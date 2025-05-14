@@ -1,0 +1,6 @@
+# local은 포트는 다르게 설정
+server:
+  port: 19100
+  servlet:
+    session:
+      tracking-modes: cookie
