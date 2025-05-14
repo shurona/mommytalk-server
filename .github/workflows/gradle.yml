@@ -74,7 +74,7 @@ jobs:
         run: ls downloaded-artifact/
       - name: Deploy to ec2
         run: |
-          ls build/libs
+          ls downloaded-artifact/build/libs
           echo "Deploy"
 #          echo "${{secrets.EC2_SSH_KEY}}" > private_key.pem
 #          chmod 600 private_key.pem
