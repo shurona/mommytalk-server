@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "name": "line-message-server",
+      "script": "java",
+      "args": [
+        "-jar",
+        "/home/ec2-user/workspace/line-demo-0.0.1.jar"
+      ]
+    }
+  ]
+}
