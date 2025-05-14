@@ -1,3 +1,4 @@
+# production은 다른 포트 사용
 server:
   port: 8080
   servlet:
