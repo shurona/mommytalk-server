@@ -69,7 +69,7 @@ jobs:
           #          path: |
           #            build/libs/
           #            information/pm2-setting/
-          path: ./downloaded-artifact
+          path: ./downloaded-artifact   # 하나의 폴더로 들어간다.
       - name: Check current folder
         run: ls downloaded-artifact/
       - name: Deploy to ec2
