@@ -71,10 +71,9 @@ jobs:
           #            information/pm2-setting/
           path: ./downloaded-artifact   # 하나의 폴더로 들어간다.
       - name: Check current folder
-        run: ls downloaded-artifact/
+        run: ls ./
       - name: Deploy to ec2
         run: |
-          ls downloaded-artifact/build/libs
           echo "Deploy"
 #          echo "${{secrets.EC2_SSH_KEY}}" > private_key.pem
 #          chmod 600 private_key.pem
