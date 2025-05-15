@@ -1,66 +1,80 @@
 package com.shrona.line_demo.line.presentation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.shrona.line_demo.line.application.LineService;
+import com.shrona.line_demo.line.presentation.dtos.LineEvent;
 import com.shrona.line_demo.line.presentation.dtos.WebHookRequestDto;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import com.shrona.line_demo.line.presentation.validation.LineValidation;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.codec.binary.Base64;
-import org.springframework.core.env.Environment;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
+@Slf4j
 @RestController
 public class LineHookController {
 
-    private final Environment environment;
+    // service
+    private final LineService lineService;
+    private final LineValidation lineValidation;
+
+    //
+    private final ObjectMapper objectMapper;
+
+    @GetMapping
+    public ResponseEntity<String> homeEntity() {
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping
-    public ResponseEntity<?> checkUrl(
+    public ResponseEntity<String> rcvLineHook(
         @RequestHeader("x-line-signature") String header,
         @RequestBody String requestBodyOrigin
     ) {
 
-        System.out.println("?? : " + header);
-
-        // TODO: 따로 메소드로 분리
-        try {
-            // header validation
-            String channelSecret =
-                this.environment.getProperty("line.secret-key");// Channel secret string
-
-            SecretKeySpec key = new SecretKeySpec(channelSecret.getBytes(), "HmacSHA256");
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(key);
-            byte[] source = requestBodyOrigin.getBytes("UTF-8");
-            String signature = Base64.encodeBase64String(mac.doFinal(source));
-
-            System.out.println(signature + " : " + signature.equals(header));
-
-            if (!signature.equals(header)) {
-                return ResponseEntity.status(401).build();
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        // 잘못된 접근은 제한 처리
+        // hook처리여서 ok 처리
+        if (!lineValidation.checkLineSignature(requestBodyOrigin, header)) {
+            return ResponseEntity.ok().build();
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            WebHookRequestDto requestBody = mapper.readValue(requestBodyOrigin,
+            // Body String을 Body 객체로 변환
+            WebHookRequestDto requestBody = objectMapper.readValue(requestBodyOrigin,
                 WebHookRequestDto.class);
 
-            System.out.println("사이즈는 : " + requestBody.events().size());
+            for (LineEvent event : requestBody.events()) {
+                switch (event.type()) {
+                    case "message":
+                        // text일 시 저장
+                        if (event.message().type().equals("text")) {
+                            lineService.saveLineMessage(event.source().userId(),
+                                event.message().text());
+                        }
+                        break;
 
-            System.out.println(requestBodyOrigin); // 혹은 로그로 출력
+                    case "follow":
+                        lineService.followLineUserByLineId(event.source().userId());
+                        break;
+
+                    case "unfollow":
+                        lineService.unfollowLineUserByLineId(event.source().userId());
+                        break;
+
+                    default:
+                        log.info("unsupported event type : " + requestBodyOrigin.toString());
+                        break;
+                }
+
+            }
+
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -77,8 +91,7 @@ public class LineHookController {
 
         // 클라이언트에 400 Bad Request와 메시지 전송
         return ResponseEntity
-            .badRequest()
-            .body("필수 헤더(" + ex.getHeaderName() + ")가 누락되었습니다.");
+            .badRequest().build();
     }
 
 }
