@@ -21,3 +21,6 @@ spring:
 #        show_sql: true # sql
 #        format_sql: true # SQL
 #        highlight_sql: true # SQL
+
+line:
+  secret-key: ${LINE_CHANNEL_SECRET}
