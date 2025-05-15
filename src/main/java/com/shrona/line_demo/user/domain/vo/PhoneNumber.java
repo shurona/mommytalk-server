@@ -15,10 +15,14 @@ public class PhoneNumber {
 
     public final static String PHONE_NUMBER_PATTERN = "^\\d{3}-\\d{3,4}-\\d{4}$";
 
-    @Column(name = "phone_number", unique = true, nullable = false)
+    @Column(name = "phone_number", unique = true, nullable = true)
     private String phoneNumber;
 
     public PhoneNumber(String phoneNumber) {
+        // 공백의 경우 -로 통일
+        if (phoneNumber.charAt(3) == ' ') {
+            phoneNumber = phoneNumber.replace(' ', '-');
+        }
 
         // Check Valid PhoneNumber
         if (!StringUtils.hasText(phoneNumber) || !Pattern.matches(PHONE_NUMBER_PATTERN,
