@@ -10,6 +10,6 @@ public enum ReservationStatus {
     FAIL("FAIL"),
     COMPLETE("COMPLETE");
 
-    private final String role;
+    private final String status;
 
 }

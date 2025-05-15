@@ -31,4 +31,13 @@ public class LineMessage extends BaseEntity {
     @JoinColumn(name = "line_user_id")
     private LineUser lineUser;
 
+    public static LineMessage createLineMessage(LineUser user, String content) {
+        LineMessage lineMessage = new LineMessage();
+
+        lineMessage.lineUser = user;
+        lineMessage.content = content;
+
+        return lineMessage;
+    }
+
 }
