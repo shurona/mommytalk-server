@@ -1,12 +1,15 @@
 package com.shrona.line_demo.line.application;
 
-import static com.shrona.line_demo.common.exception.LineErrorCode.BAD_REQUEST;
+import static com.shrona.line_demo.line.common.exception.LineErrorCode.BAD_REQUEST;
 
-import com.shrona.line_demo.common.exception.LineException;
+import com.shrona.line_demo.common.core.PhoneProcess;
+import com.shrona.line_demo.line.common.exception.LineException;
 import com.shrona.line_demo.line.domain.LineMessage;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.LineMessageJpaRepository;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
+import com.shrona.line_demo.user.domain.vo.PhoneNumber;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,12 +26,17 @@ public class LineServiceImpl implements LineService {
     private final LineUserJpaRepository lineUserRepository;
     private final LineMessageJpaRepository lineMessageRepository;
 
-    /*
-        휴대전화 입력 검증
-     */
-    public boolean isValidFormat(String input) {
-        String regex = "\\d{3}([- ])\\d{3,4}\\1\\d{4}";
-        return input.matches(regex);
+    private final PhoneProcess phoneProcess;
+
+
+    @Override
+    public LineUser findLineUserByLineId(String lineId) {
+        return findLineUserByLineIdWithException(lineId);
+    }
+
+    @Override
+    public List<LineUser> findLineUserList() {
+        return lineUserRepository.findAll();
     }
 
     //
@@ -37,6 +45,7 @@ public class LineServiceImpl implements LineService {
         Optional<LineUser> lineUserByLineId = lineUserRepository.findByLineId(lineId);
 
         LineUser lineUser;
+        // 비어있으면 새로 만들어 만들어준다.
         if (lineUserByLineId.isEmpty()) {
             LineUser newLineUser = LineUser.createLineUser(lineId);
             lineUser = lineUserRepository.save(newLineUser);
@@ -53,33 +62,37 @@ public class LineServiceImpl implements LineService {
         }
 
         // 휴대전화 번호 형식이면 번호를 저장해준다.
-        if (isValidFormat(content)) {
-            lineUser.settingPhoneNumber(content);
+        if (phoneProcess.isValidFormat(content)) {
+            lineUser.settingPhoneNumber(new PhoneNumber(content));
         }
     }
 
     @Transactional
-    public void followLineUserByLineId(String lineId) {
+    public LineUser followLineUserByLineId(String lineId) {
 
         Optional<LineUser> lineUserByLineId = lineUserRepository.findByLineId(lineId);
 
+        // 비어있으면 새로 만들어 만들어준다.
         if (lineUserByLineId.isEmpty()) {
             LineUser lineUser = LineUser.createLineUser(lineId);
-            lineUserRepository.save(lineUser);
+            return lineUserRepository.save(lineUser);
         } else {
             lineUserByLineId.get().changeFollowStatus(true);
         }
+
+        return lineUserByLineId.get();
     }
 
     @Transactional
     public void unfollowLineUserByLineId(String lineId) {
 
-        Optional<LineUser> lineById = lineUserRepository.findByLineId(lineId);
-        LineUser lineUserByLineId = findLineUserByLineId(lineId);
-        lineUserByLineId.changeFollowStatus(false);
+        Optional<LineUser> lineUserInfo = lineUserRepository.findByLineId(lineId);
+
+        // 있으면 follow를 해제로 변경해준다.
+        lineUserInfo.ifPresent(lineUser -> lineUser.changeFollowStatus(false));
     }
 
-    private LineUser findLineUserByLineId(String lineId) {
+    private LineUser findLineUserByLineIdWithException(String lineId) {
         return lineUserRepository.findByLineId(lineId).orElseThrow(
             () -> new LineException(BAD_REQUEST)
         );
