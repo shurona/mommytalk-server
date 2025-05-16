@@ -14,10 +14,12 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction(BaseEntity.DEFAULT_CONDITION)
 @Table(name = "custom_group")
 public class Group extends BaseEntity {
 
@@ -47,6 +49,17 @@ public class Group extends BaseEntity {
             userGroupList.add(UserGroup.createUserGroup(user, this));
         }
     }
+
+    // Group 엔티티 내부
+    public void updateGroupInfo(String newName, String newDescription) {
+        if (newName != null && !newName.isBlank()) {
+            this.name = newName;
+        }
+        if (newDescription != null && !newDescription.isBlank()) {
+            this.description = newDescription;
+        }
+    }
+
 
     public void deleteGroup() {
         this.isDeleted = false;

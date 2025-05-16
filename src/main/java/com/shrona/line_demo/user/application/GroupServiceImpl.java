@@ -7,6 +7,7 @@ import com.shrona.line_demo.user.domain.UserGroup;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import com.shrona.line_demo.user.infrastructure.GroupJpaRepository;
 import com.shrona.line_demo.user.infrastructure.UserGroupJpaRepository;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -56,6 +57,18 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Transactional
+    public Group updateGroupInfo(Long groupId, String newName, String newDescription) {
+        Optional<Group> groupInfo = groupRepository.findById(groupId);
+        if (groupInfo.isEmpty()) {
+            return null;
+        }
+
+        groupInfo.get().updateGroupInfo(newName, newDescription);
+
+        return groupInfo.get();
+    }
+
+    @Transactional
     public void addUserToGroup(Long groupId, List<String> phoneNumberList) {
         Optional<Group> groupInfo = groupRepository.findGroupWithUsers(groupId);
         if (groupInfo.isEmpty()) {
@@ -88,5 +101,25 @@ public class GroupServiceImpl implements GroupService {
         for (Group group : groupList) {
             group.deleteGroup();
         }
+    }
+
+    @Transactional
+    public void deleteUserFromGroup(Long id, List<String> phoneNumberList) {
+        Optional<Group> groupInfo = groupRepository.findGroupWithUsers(id);
+        if (groupInfo.isEmpty()) {
+            return;
+        }
+
+        Set<String> phoneSet = new HashSet<>(phoneNumberList);
+
+        List<Long> ids = groupInfo.get().getUserGroupList()
+            .stream()
+            .filter(ug -> phoneSet.contains(ug.getUser().getPhoneNumber().getPhoneNumber()))
+            .map(UserGroup::getId)
+            .toList();
+
+        groupInfo.get().getUserGroupList().clear();
+
+        userGroupRepository.deleteAllById(ids);
     }
 }

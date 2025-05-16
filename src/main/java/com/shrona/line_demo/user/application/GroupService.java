@@ -16,4 +16,8 @@ public interface GroupService {
     public void addUserToGroup(Long groupId, List<String> phoneNumberList);
 
     public void deleteGroup(List<Long> groupIdList);
+
+    Group updateGroupInfo(Long groupId, String newName, String newDescription);
+
+    void deleteUserFromGroup(Long id, List<String> phoneNumberList);
 }
