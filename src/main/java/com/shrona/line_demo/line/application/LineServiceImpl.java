@@ -9,9 +9,10 @@ import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.LineMessageJpaRepository;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +36,8 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public List<LineUser> findLineUserList() {
-        return lineUserRepository.findAll();
+    public Page<LineUser> findLineUserList(Pageable pageable) {
+        return lineUserRepository.findAll(pageable);
     }
 
     //

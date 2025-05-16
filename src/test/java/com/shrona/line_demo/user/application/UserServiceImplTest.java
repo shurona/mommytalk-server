@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -83,7 +84,8 @@ class UserServiceImplTest {
     public void 기본_설정_테스트() {
         assertThat(userList.size()).isEqualTo(10);
 
-        List<LineUser> lineUserList = lineService.findLineUserList();
+        List<LineUser> lineUserList = lineService.findLineUserList(PageRequest.of(0, 100))
+            .stream().toList();
         assertThat(lineUserList.size()).isEqualTo(5);
 
     }
