@@ -1,4 +1,4 @@
-package com.shrona.line_demo.common.exception;
+package com.shrona.line_demo.line.common.exception;
 
 public class LineException extends RuntimeException {
 
