@@ -6,6 +6,7 @@ import com.shrona.line_demo.user.domain.Group;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -90,4 +91,55 @@ class GroupServiceImplTest {
 
     }
 
+    @DisplayName("그룹 정보 수정")
+    @Test
+    public void 그룹_정보_수정() {
+        // given
+        String name = "그룹 이름";
+        String description = "그룹 설명";
+
+        String newName = "새 그룹";
+        String newDescription = "";
+
+        String one = "010-2222-3333";
+
+        // 먼저 그룹 생성
+        Group group = groupService.createGroup(name, description, List.of(one));
+
+        // when
+        Group groupUpdate = groupService.updateGroupInfo(group.getId(), newName, newDescription);
+
+        // then
+        assertThat(groupUpdate.getName()).isEqualTo(newName);
+        assertThat(groupUpdate.getDescription()).isEqualTo(description);
+
+    }
+
+    @DisplayName("그룹에 속한 유저들을 삭제")
+    @Test
+    public void 그룹에_속한_유저들_삭제() {
+        // given
+        String name = "그룹 이름";
+        String description = "그룹 설명";
+
+        String one = "010-2222-3333";
+        String two = "010-3123-1231";
+        String three = "010-3123-1235";
+        String wrongInfo = "01-2022-1234";
+
+        // 먼저 그룹 생성
+        Group group = groupService.createGroup(name, description,
+            List.of(one, two, two, three, wrongInfo));
+
+        // when
+        groupService.deleteUserFromGroup(group.getId(), List.of(one, two));
+
+        // 반영
+        em.flush();
+        em.clear();
+        Group afterDelete = groupService.findGroupById(group.getId());
+
+        // then
+        assertThat(afterDelete.getUserGroupList().size()).isEqualTo(1);
+    }
 }
