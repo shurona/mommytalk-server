@@ -55,7 +55,7 @@ public class LineUser extends BaseEntity {
         this.follow = true;
     }
 
-    public void settingPhoneNumber(String phone) {
-        this.phoneNumber = new PhoneNumber(phone);
+    public void settingPhoneNumber(PhoneNumber phone) {
+        this.phoneNumber = phone;
     }
 }

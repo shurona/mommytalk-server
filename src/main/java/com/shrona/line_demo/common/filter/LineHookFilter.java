@@ -35,7 +35,6 @@ public class LineHookFilter extends OncePerRequestFilter {
         CachedBodyHttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(
             servletRequest);
 
-        System.out.println("?????");
         try {
             String header = servletRequest.getHeader("x-line-signature");
 
