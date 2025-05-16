@@ -7,6 +7,8 @@ import com.shrona.line_demo.user.common.utils.UserUtils;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -66,9 +68,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public List<User> findOrCreateUsersByPhoneNumbers(List<String> phoneNumberList) {
 
+        // 중복제거
+        List<String> removeDupNumber = new ArrayList<>(new HashSet<>(phoneNumberList));
+
         // 전화번호 변환 및 필터링
         List<PhoneNumber> userPhoneList = phoneProcess.validateAndConvertPhoneNumbers(
-            phoneNumberList);
+            removeDupNumber);
 
         // 기존 사용자 조회
         List<User> existingUsers = userRepository.findByPhoneNumberIn(userPhoneList);

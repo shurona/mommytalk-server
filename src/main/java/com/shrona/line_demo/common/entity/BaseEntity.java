@@ -14,6 +14,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 public class BaseEntity {
 
+    public static final String DEFAULT_CONDITION = "is_deleted = false";
+
     @Column(name = "created_at", updatable = false)
     @CreatedDate
     protected LocalDateTime createdAt;
