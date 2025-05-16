@@ -30,4 +30,11 @@ public class UserGroup extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private Group group;
+
+    public static UserGroup createUserGroup(User user, Group group) {
+        UserGroup userGroup = new UserGroup();
+        userGroup.user = user;
+        userGroup.group = group;
+        return userGroup;
+    }
 }

@@ -48,4 +48,21 @@ public class User extends BaseEntity {
     @JoinColumn(name = "line_user_id")
     private LineUser lineUser;
 
+
+    public static User createUser(PhoneNumber phoneNumber) {
+        User user = new User();
+        user.phoneNumber = phoneNumber;
+
+        return user;
+    }
+
+    public static User createUserWithLine(PhoneNumber phoneNumber, LineUser lineUser) {
+        User user = new User();
+        user.phoneNumber = phoneNumber;
+        user.lineUser = lineUser;
+        user.lineId = lineUser.getLineId();
+
+        return user;
+    }
+
 }
