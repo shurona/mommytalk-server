@@ -11,6 +11,11 @@ public interface GroupService {
 
     public Group findGroupById(Long id);
 
+    /**
+     * 그룹 아이디에 해당하는 그룹 목록 조회
+     */
+    public List<Group> findGroupByIdList(List<Long> id);
+
     public Page<Group> findGroupList(Pageable pageable);
 
     public void addUserToGroup(Long groupId, List<String> phoneNumberList);

@@ -51,6 +51,11 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public List<Group> findGroupByIdList(List<Long> ids) {
+        return groupRepository.findAllById(ids);
+    }
+
+    @Override
     public Page<Group> findGroupList(Pageable pageable) {
 
         return groupRepository.findAll(pageable);
