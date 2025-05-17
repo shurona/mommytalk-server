@@ -33,6 +33,9 @@ public class MessageLog extends BaseEntity {
     @Column
     private ReservationStatus status;
 
+    @Column
+    private String content;
+
     @Column(name = "reserve_time")
     private LocalDateTime reserveTime;
 
@@ -41,9 +44,21 @@ public class MessageLog extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
-    private MessageType typeId;
+    private MessageType messageType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private Group group;
+
+    public static MessageLog messageLog(
+        MessageType type, Group group, LocalDateTime reserveTime, String content) {
+        MessageLog log = new MessageLog();
+        log.group = group;
+        log.reserveTime = reserveTime;
+        log.messageType = type;
+        log.status = ReservationStatus.PREPARE;
+        log.content = content;
+        return log;
+    }
+
 }

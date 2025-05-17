@@ -27,4 +27,12 @@ public class MessageType extends BaseEntity {
 
     @Column
     private String text;
+
+    public static MessageType of(String title, String text) {
+        MessageType type = new MessageType();
+        type.title = title;
+        type.text = text;
+        return type;
+    }
+
 }
