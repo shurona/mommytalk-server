@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record LineEvent(
     @JsonProperty("type") String type,
-    @JsonProperty("message") LineMessage message,
+    @JsonProperty("message") LineRcvMessage message,
     @JsonProperty("timestamp") Long timestamp,
     @JsonProperty("source") LineSource source,
     @JsonProperty("replyToken") String replyToken,
