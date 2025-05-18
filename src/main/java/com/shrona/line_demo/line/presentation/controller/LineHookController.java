@@ -1,4 +1,4 @@
-package com.shrona.line_demo.line.presentation;
+package com.shrona.line_demo.line.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shrona.line_demo.line.application.LineService;
