@@ -14,3 +14,14 @@ spring:
 #        show_sql: true # sql
 #        format_sql: true # SQL
 #        highlight_sql: true # SQL
+
+
+line:
+  secret-key: "LINE_CHANNEL_SECRET"
+  access-token: "LINE_CHANNEL_ACCESS_TOKEN"
+  base-url: "LINE_BASE_URL"
+
+
+admin:
+  header-key: "ADMIN_HEADER_KEY"
+  header-value: "ADMIN_HEADER_VALUE"
