@@ -30,7 +30,7 @@ public class LineHookController {
 
     @GetMapping
     public ResponseEntity<String> homeEntity() {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body("안녕하세요~");
     }
 
     @PostMapping
