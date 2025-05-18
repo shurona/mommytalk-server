@@ -101,9 +101,11 @@ class MessageServiceImplTest {
 
         // when
         List<MessageLog> messageLogs = messageService.findReservedMessage();
+        Page<MessageLog> allMessage = messageService.findMessageLogList(PageRequest.of(0, 100));
 
         // then
         assertThat(messageLogs.size()).isEqualTo(15);
+        assertThat(allMessage.toList().size()).isEqualTo(45);
 
     }
 }

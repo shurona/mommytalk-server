@@ -3,15 +3,22 @@ package com.shrona.line_demo.common.config;
 import com.shrona.line_demo.common.filter.LineHookFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @RequiredArgsConstructor
 @Configuration
-public class FilterConfig implements WebMvcConfigurer {
+public class WebConfig implements WebMvcConfigurer {
 
     private final Environment environment;
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     //    @Bean
     public FilterRegistrationBean<LineHookFilter> myFilter() {
