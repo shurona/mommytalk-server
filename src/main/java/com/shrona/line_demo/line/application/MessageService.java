@@ -17,4 +17,7 @@ public interface MessageService {
     MessageLog findByMessageId(Long id);
 
     Page<MessageLog> findMessageLogList(Pageable pageable);
+
+    List<MessageLog> findReservedMessage();
+    
 }

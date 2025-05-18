@@ -58,4 +58,9 @@ public class MessageServiceImpl implements MessageService {
     public Page<MessageLog> findMessageLogList(Pageable pageable) {
         return messageLogRepository.findAll(pageable);
     }
+
+    @Override
+    public List<MessageLog> findReservedMessage() {
+        return messageLogRepository.findAllByReservedMessage();
+    }
 }
