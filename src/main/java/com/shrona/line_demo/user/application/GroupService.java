@@ -9,7 +9,10 @@ public interface GroupService {
 
     public Group createGroup(String name, String description, List<String> phoneList);
 
-    public Group findGroupById(Long id);
+    /**
+     * Group 정보를 단일로 조회 user와 함께 fetch join을 할지 파라미터로 설정
+     */
+    public Group findGroupById(Long id, Boolean withUser);
 
     /**
      * 그룹 아이디에 해당하는 그룹 목록 조회
