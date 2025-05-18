@@ -61,4 +61,9 @@ public class MessageLog extends BaseEntity {
         return log;
     }
 
+    public void changeStatusAfterSend() {
+        this.status = ReservationStatus.COMPLETE;
+        this.sentTime = LocalDateTime.now();
+    }
+
 }
