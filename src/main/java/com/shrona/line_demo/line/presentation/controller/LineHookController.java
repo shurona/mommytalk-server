@@ -87,7 +87,7 @@ public class LineHookController {
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<String> handleMissingRequestHeader(MissingRequestHeaderException ex) {
         // 예외 메시지 로그 남기기
-        System.err.println("Missing header: " + ex.getHeaderName());
+        log.error("Missing header: " + ex.getHeaderName());
 
         // 클라이언트에 400 Bad Request와 메시지 전송
         return ResponseEntity
