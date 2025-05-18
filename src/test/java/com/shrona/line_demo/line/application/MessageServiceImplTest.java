@@ -77,4 +77,33 @@ class MessageServiceImplTest {
         assertThat(third.toList().size()).isEqualTo(0);
 
     }
+
+    @Test
+    public void 예약시간이된_메시지_호출_테스트() {
+        // given
+        MessageType mt = messageService.createMessageType("타이틀", "예시 포맷");
+
+        LocalDateTime reserveTime = LocalDateTime.now();
+        String content = "content";
+        Group groupInfo = groupJpaRepository.save(Group.createGroup("name", "description"));
+
+        // when
+        for (int i = 0; i < 30; i++) {
+            messageService
+                .createMessage(mt.getId(), List.of(groupInfo.getId()), reserveTime.plusHours(3),
+                    content);
+        }
+        for (int i = 0; i < 15; i++) {
+            messageService
+                .createMessage(mt.getId(), List.of(groupInfo.getId()), reserveTime.minusHours(3),
+                    content);
+        }
+
+        // when
+        List<MessageLog> messageLogs = messageService.findReservedMessage();
+
+        // then
+        assertThat(messageLogs.size()).isEqualTo(15);
+
+    }
 }

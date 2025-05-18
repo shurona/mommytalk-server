@@ -56,7 +56,7 @@ class GroupServiceImplTest {
         // when
         Group group = groupService.createGroup(name, description, List.of(one, two, unCorrect));
         groupService.deleteGroup(List.of(group.getId()));
-        group = groupService.findGroupById(group.getId());
+        group = groupService.findGroupById(group.getId(), false);
 
         // then
         assertThat(group.getIsDeleted()).isFalse();
@@ -84,7 +84,7 @@ class GroupServiceImplTest {
         // 반영
         em.flush();
         em.clear();
-        Group afterAdd = groupService.findGroupById(group.getId());
+        Group afterAdd = groupService.findGroupById(group.getId(), false);
 
         // then
         assertThat(afterAdd.getUserGroupList().size()).isEqualTo(2);
@@ -137,7 +137,7 @@ class GroupServiceImplTest {
         // 반영
         em.flush();
         em.clear();
-        Group afterDelete = groupService.findGroupById(group.getId());
+        Group afterDelete = groupService.findGroupById(group.getId(), false);
 
         // then
         assertThat(afterDelete.getUserGroupList().size()).isEqualTo(1);
