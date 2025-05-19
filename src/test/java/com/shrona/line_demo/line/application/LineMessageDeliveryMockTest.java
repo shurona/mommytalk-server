@@ -23,7 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClientResponseException;
 
 @ExtendWith(MockitoExtension.class)
-public class LineMessageDeliveryTest {
+public class LineMessageDeliveryMockTest {
 
     @Mock
     private MessageService messageService;
