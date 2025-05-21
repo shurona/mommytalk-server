@@ -12,4 +12,7 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
     List<User> findByPhoneNumberIn(List<PhoneNumber> phoneNumberList);
 
     Optional<User> findByPhoneNumber(PhoneNumber phoneNumber);
+
+    Optional<User> findByPhoneNumberAndLineUserIsNull(PhoneNumber phoneNumber);
+
 }

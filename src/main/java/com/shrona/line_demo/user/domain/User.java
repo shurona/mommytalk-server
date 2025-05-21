@@ -65,4 +65,12 @@ public class User extends BaseEntity {
         return user;
     }
 
+    /*
+        존재하는 유저에게 라인 정보를 넣어준다.
+     */
+    public void matchUserWithLine(LineUser lineUser) {
+        this.lineUser = lineUser;
+        this.lineId = lineUser.getLineId();
+    }
+
 }
