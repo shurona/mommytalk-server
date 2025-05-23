@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>로그인 페이지</title>
+  <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+<div class="login-container">
+  <h2>로그인</h2>
+  <form class="login-form" method="post" th:action="@{/admin/v1/login}" th:object="${loginForm}">
+    <label for="userid">ID</label>
+    <input autofocus id="userid" name="userid" required th:field="*{loginId}" type="text">
+    <small class="form-text res-error" th:errors="*{loginId}"
+           th:if="${#fields.hasErrors('loginId')}">아이디 오류</small>
+    <label for="password">Password</label>
+    <input id="password" name="password" required th:field="*{password}" type="password">
+    <small class="form-text res-error" th:errors="*{password}"
+           th:if="${#fields.hasErrors('password')}">비밀번호 오류</small>
+    <button type="submit">로그인</button>
+  </form>
+</div>
+</body>
+</html>
