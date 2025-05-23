@@ -23,6 +23,16 @@ public class AdminServiceImpl implements AdminService {
         return adminRepository.findAll();
     }
 
+    @Override
+    public AdminUser findByLoginId(String loginId) {
+
+        return adminRepository.findByLoginId(loginId).orElse(null);
+    }
+
+    public boolean checkPasswordCorrect(String inputPassword, String dbPassword) {
+        return passwordEncoder.matches(inputPassword, dbPassword);
+    }
+
     @Transactional
     public AdminUser createAdminUser(String loginId, String password, String lineId) {
 
