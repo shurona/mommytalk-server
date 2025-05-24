@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="container">
-  <div th:replace="fragments/sidebar :: sidebar"></div>
+  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
   <div class="content">
     <div class="header-row">
@@ -31,7 +31,9 @@
       <tbody>
       <tr th:each="group : ${groups}">
         <td><input name="selectedGroups" th:value="${group.id}" type="checkbox"></td>
-        <td th:text="${group.name}">결제/새로그룹</td>
+        <td>
+          <a th:href="@{/admin/groups/{id}(id=${group.id})}" th:text="${group.name}"></a>
+        </td>
         <td th:text="${group.friendCount + '명 / ' + group.totalCount + '명'}">2명 / 2명</td>
         <td>
           <div th:text="${#temporals.format(group.updatedAt, 'yyyy.MM.dd HH:mm')}"></div>
@@ -43,7 +45,7 @@
     </table>
 
     <div class="action-row">
-      <button class="delete-btn">선택 삭제</button>
+      <button class="delete-btn" onclick="removeSelectedGroups()">선택 삭제</button>
     </div>
 
     <div class="pagination">
@@ -98,6 +100,6 @@
   </div>
 </div>
 
-<script th:src="@{/js/groupmodal.js}"></script>
+<script th:src="@{/js/group-list.js}"></script>
 </body>
 </html>
