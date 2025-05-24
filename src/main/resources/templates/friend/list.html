@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>라인 친구 목록</title>
+  <link rel="stylesheet" th:href="@{/css/friendlist.css}">
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+</head>
+<body>
+<div class="container">
+  <div th:replace="fragments/sidebar :: sidebar"></div>
+  <div class="content">
+    <h2 class="page-title">전체 라인 친구</h2>
+    <p class="description">서비스 구매여부와 관계 없이 마미톡 라인 계정을 친구추가한 전체 사용자 목록</p>
+
+    <table class="user-table">
+      <thead>
+      <tr>
+        <th>라인ID</th>
+        <th>휴대폰번호</th>
+        <th>친구추가일</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="user : ${friends}">
+        <td th:text="${user.lineId}">xxxxx</td>
+        <td th:text="${user.phoneNumber}">070-1234-5678</td>
+        <td th:text="${#temporals.format(user.joinDate, 'yyyy.MM.dd HH:mm')}">2025.02.01 12:00</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="search-bar">
+      <input name="query" placeholder="검색어를 입력하세요" type="text">
+      <button type="submit">검색</button>
+    </div>
+
+    <div class="pagination">
+      <!--      <a th:classappend="${i} == ${currentPage} ? 'active' : ''"-->
+      <!--         th:each="i : ${#numbers.sequence(1, totalPages)}"-->
+      <!--         th:href="@{/admin/group/all(page=${i})}"-->
+      <!--         th:text="${i}">1</a>-->
+    </div>
+  </div>
+</div>
+</body>
+</html>

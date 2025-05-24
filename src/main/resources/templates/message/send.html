@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>메시지 보내기 | Mommytalk english</title>
+  <link rel="stylesheet" th:href="@{/css/send.css}">
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+</head>
+<body>
+<div class="container">
+  <!-- 사이드바 fragment 삽입 -->
+  <div th:replace="fragments/sidebar :: sidebar"></div>
+
+  <!-- 메인 컨텐츠 -->
+  <main class="main-content">
+    <h2 class="main-title">메시지 보내기</h2>
+    <form class="message-form" method="post" th:action="@{/admin/message/v1/send}"
+          th:object="${messageForm}">
+      <div class="form-row">
+        <!-- 메시지 입력 -->
+        <div class="form-group message-input-group">
+          <label class="form-label" for="content">내용</label>
+          <textarea class="form-textarea" id="content" maxlength="500" name="content" required
+                    rows="6" th:field="*{content}"></textarea>
+          <div class="form-helper">
+            <span>줄바꿈시 메시지에 반영</span>
+            <span class="char-count" id="charCount">0/500</span>
+          </div>
+        </div>
+
+        <!-- 메시지 미리보기 -->
+        <div class="form-group preview-group">
+          <label class="form-label">프리뷰</label>
+          <div class="preview-box">
+            <!-- 실제 미리보기 내용은 서버에서 렌더링하거나 JS로 동적 표시 -->
+            <div class="preview-message">
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 메시지 타겟 -->
+      <div class="form-row target-row">
+        <div class="form-group">
+          <label class="form-label">메시지 타겟</label>
+
+          <!-- 라디오 버튼 2개 -->
+          <div class="target-options">
+            <label>
+              <input name="targetType" onclick="updateTargetUI()"
+                     th:checked="*{targetType} == 'ALL'"
+                     type="radio" value="ALL"> 전체 친구 발송
+            </label>
+            <label>
+              <input name="targetType" onclick="updateTargetUI()"
+                     th:checked="*{targetType} == 'GROUP'"
+                     type="radio" value="GROUP"> 포함할 친구 그룹
+            </label>
+          </div>
+          <div class="target-selects">
+            <!-- 포함 선택 영역 -->
+            <div class="target-select-group" id="includeGroupBox" style="display: none;">
+              <label>포함할 친구그룹</label>
+              <!-- 드롭다운 버튼 -->
+              <div class="custom-dropdown">
+                <button class="dropdown-toggle" onclick="toggleDropdown('includeDropdown')"
+                        type="button">그룹선택 ▾
+                </button>
+                <!-- 드롭다운 박스 -->
+                <div class="dropdown-menu" id="includeDropdown">
+                  <div class="checkbox-list">
+                    <label th:each="groupId : ${groupForm.keySet()}">
+                      <input name="includeGroup"
+                             th:checked="${#lists.contains(messageForm.includeGroup, groupId)}"
+                             th:text="${groupForm.get(groupId)}"
+                             th:value="${groupId}"
+                             type="checkbox">
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 제외 선택 영역 -->
+            <div class="target-select-group" id="excludeGroupBox" style="display: none;">
+              <label>제외할 친구그룹</label>
+              <!-- 드롭다운 버튼 -->
+              <div class="custom-dropdown">
+                <button class="dropdown-toggle" onclick="toggleDropdown('excludeDropdown')"
+                        type="button">그룹선택 ▾
+                </button>
+                <!-- 드롭다운 박스 -->
+                <div class="dropdown-menu" id="excludeDropdown">
+                  <div class="checkbox-list">
+                    <label th:each="groupId : ${groupForm.keySet()}">
+                      <input name="excludeGroup"
+                             th:checked="${#lists.contains(messageForm.excludeGroup, groupId)}"
+                             th:text="${groupForm.get(groupId)}"
+                             th:value="${groupId}"
+                             type="checkbox">
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <small class="form-text res-error" th:errors="*{includeGroup}"
+                 th:if="${#fields.hasErrors('includeGroup')}">포함할 친구 그룹을 선택하세요</small>
+        </div>
+      </div>
+
+      <!-- 날짜/시간 설정 -->
+      <div class="form-row schedule-row">
+        <div class="form-group">
+          <label class="form-label">발송 날짜/시간 설정</label>
+          <div class="datetime-inputs">
+            <input name="sendDate" placeholder="2025.00.00" th:field="*{sendDate}" type="text">
+            <select name="sendHour" th:field="*{sendHour}">
+              <option th:each="h : ${#numbers.sequence(0,23)}" th:text="${h}+'시'"
+                      th:value="${h}"></option>
+            </select>
+            <select name="sendMinute" th:field="*{sendMinute}">
+              <option th:each="m : ${#numbers.sequence(0,59,5)}"
+                      th:text="${m < 10 ? '0' + m : m} + '분'"
+                      th:value="${m}"></option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하단 버튼 -->
+      <div class="form-row button-row">
+        <button class="btn btn-test" type="button">테스트 발송</button>
+        <button class="btn btn-primary" type="submit">등록</button>
+      </div>
+    </form>
+  </main>
+</div>
+<script>
+  // 글자 수 선택 및 preview 처리
+  document.addEventListener('DOMContentLoaded', function () {
+    const textarea = document.getElementById('content');
+    const preview = document.querySelector('.preview-message');
+    const charCount = document.getElementById('charCount');
+
+    function updatePreview() {
+      const value = textarea.value;
+      preview.innerHTML = value
+        .replace(/&/g, "&amp;")    // XSS 방지
+        .replace(/</g, "&lt;")     // HTML 이스케이프
+        .replace(/>/g, "&gt;")
+        .replace(/\n/g, "<br>");   // 줄바꿈을 <br>로
+      charCount.textContent = `${value.length}/500`;
+    }
+
+    textarea.addEventListener('input', updatePreview);
+
+    // 초기값이 있을 경우 반영
+    updatePreview();
+  });
+
+
+  // 그룹 토글 선택
+  function updateTargetUI() {
+    const target = document.querySelector('input[name="targetType"]:checked').value;
+    const includeBox = document.getElementById('includeGroupBox');
+    const excludeBox = document.getElementById('excludeGroupBox');
+
+    includeBox.style.display = target === 'GROUP' ? 'block' : 'none';
+    excludeBox.style.display = target === 'ALL' ? 'block' : 'none';
+  }
+
+  // 페이지 로드 시 초기화
+  document.addEventListener('DOMContentLoaded', updateTargetUI);
+
+
+  // 토글 드롭 다운
+  function toggleDropdown(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  }
+
+</script>
+</body>
+</html>

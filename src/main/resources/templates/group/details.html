@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>구매자 그룹 상세</title>
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/group-detail.css}">
+</head>
+<body>
+<div class="container">
+  <div th:replace="fragments/sidebar :: sidebar"></div>
+
+  <div class="content">
+    <h2 class="page-title">구매자 그룹 상세</h2>
+
+    <!-- 기본정보 -->
+    <section class="group-info-section">
+      <table class="group-info-table">
+        <tbody>
+        <tr>
+          <th>그룹명</th>
+          <td th:text="${group.name}">종료</td>
+        </tr>
+        <tr>
+          <th>등록수</th>
+          <td>
+            <span th:text="${group.totalCount}">30</span>명
+          </td>
+        </tr>
+        <tr>
+          <th>친구수</th>
+          <td>
+            <span th:text="${group.friendCount}">29</span>명
+          </td>
+        </tr>
+        <tr>
+          <th>생성 상태</th>
+          <td>생성 완료</td>
+        </tr>
+        <tr>
+          <th>생성일시</th>
+          <td th:text="${#temporals.format(group.createdAt, 'yyyy.MM.dd')}">2025.03.21</td>
+        </tr>
+        <tr>
+          <th>업데이트일시</th>
+          <td th:text="${#temporals.format(group.updatedAt, 'yyyy.MM.dd')}">2025.03.21</td>
+        </tr>
+        </tbody>
+      </table>
+      <button class="add-friend-btn" onclick="location.href='/admin/group/friend/add'"
+              type="button">+ 그룹에 친구 추가
+      </button>
+    </section>
+
+    <!-- 친구 목록 테이블 -->
+    <section class="friend-list-section">
+      <table class="friend-table">
+        <thead>
+        <tr>
+          <th><input type="checkbox"></th>
+          <th>전화번호</th>
+          <th>라인 ID</th>
+          <th>친구 추가 방법</th>
+          <th>그룹에 등록한 시간</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="buyer : ${buyers}">
+          <td><input name="selectedFriends" th:value="${buyer.id}" type="checkbox"></td>
+          <td th:text="${buyer.phone}">8210****1426</td>
+          <td th:text="${buyer.lineId}">라인ID</td>
+          <td th:text="${buyer.addInfo}">전화번호로 추가</td>
+          <td th:text="${#temporals.format(buyer.createdAt, 'yyyy.MM.dd HH:mm:ss')}">2025.05.14
+            08:52
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(buyers)}">
+          <td class="empty-message" colspan="5">등록된 친구가 없습니다.</td>
+        </tr>
+        </tbody>
+      </table>
+      <div class="action-row">
+        <button class="delete-btn" type="button">선택 삭제</button>
+      </div>
+    </section>
+  </div>
+</div>
+</body>
+</html>

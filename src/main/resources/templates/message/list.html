@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>메시지 목록</title>
+  <link rel="stylesheet" th:href="@{/css/messagelist.css}">
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+</head>
+<body>
+<div class="container">
+  <div th:replace="fragments/sidebar :: sidebar"></div>
+  <div class="content">
+    <h2>메시지 목록</h2>
+    <table class="message-table">
+      <thead>
+      <tr>
+        <th>발송일시</th>
+        <th>내용</th>
+        <th>발송수</th>
+        <th>상태</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="msg : ${messages}">
+        <td th:text="${#temporals.format(msg.sendDateTime, 'yyyy.MM.dd HH:mm')}"></td>
+        <td th:text="${msg.content}"></td>
+        <td th:text="${msg.receiverCount}"></td>
+        <td th:text="${msg.status}"></td>
+      </tr>
+      </tbody>
+    </table>
+
+    <!--    &lt;!&ndash; 페이징 예시 &ndash;&gt;-->
+    <!--    <div class="pagination">-->
+    <!--      <a class="page" href="?page=1">1</a>-->
+    <!--      <a class="page" href="?page=2">2</a>-->
+    <!--    </div>-->
+  </div>
+</div>
+</body>
+</html>

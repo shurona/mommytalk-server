@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="stylesheet" th:href="@{/css/grouplist.css}">
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/groupmodal.css}">
+</head>
+<body>
+<div class="container">
+  <div th:replace="fragments/sidebar :: sidebar"></div>
+
+  <div class="content">
+    <div class="header-row">
+      <h2 class="page-title">구매자 그룹</h2>
+      <!-- 기존 버튼을 모달 오픈으로 변경 -->
+      <button class="create-btn" onclick="openCreateGroupModal()">신규 그룹 만들기</button>
+    </div>
+
+    <table class="group-table">
+      <thead>
+      <tr>
+        <th><input type="checkbox"></th>
+        <th>그룹명</th>
+        <th>친구수 / 등록수</th>
+        <th>업데이트일시 / 생성일시</th>
+        <th>상태</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="group : ${groups}">
+        <td><input name="selectedGroups" th:value="${group.id}" type="checkbox"></td>
+        <td th:text="${group.name}">결제/새로그룹</td>
+        <td th:text="${group.friendCount + '명 / ' + group.totalCount + '명'}">2명 / 2명</td>
+        <td>
+          <div th:text="${#temporals.format(group.updatedAt, 'yyyy.MM.dd HH:mm')}"></div>
+          <div th:text="${#temporals.format(group.createdAt, 'yyyy.MM.dd HH:mm')}"></div>
+        </td>
+        <td th:text="${group.description}">생성 완료</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div class="action-row">
+      <button class="delete-btn">선택 삭제</button>
+    </div>
+
+    <div class="pagination">
+      <!--      <a th:classappend="${i} == ${currentPage} ? 'active' : ''"-->
+      <!--         th:each="i : ${#numbers.sequence(1, totalPages)}"-->
+      <!--         th:href="@{/admin/group/buyers(page=${i})}"-->
+      <!--         th:text="${i}">1</a>-->
+    </div>
+  </div>
+</div>
+
+<!-- 신규 그룹 만들기 모달 -->
+<div class="modal" id="createGroupModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>신규 그룹 만들기</h3>
+      <span class="close" onclick="closeCreateGroupModal()">&times;</span>
+    </div>
+
+    <form th:action="@{/admin/group/create}" method="post" class="group-form">
+      <div class="form-section">
+        <label for="groupName">그룹명</label>
+        <input id="groupName" maxlength="20" name="groupName" placeholder="그룹명을 입력해주세요" type="text">
+        <div class="char-count">0/20자</div>
+      </div>
+
+      <div class="form-section">
+        <label for="groupDescription">그룹 설명</label>
+        <textarea id="groupDescription" name="groupDescription" placeholder="그룹 설명을 입력해주세요"
+                  rows="3"></textarea>
+        <div class="char-count">0/500자</div>
+      </div>
+
+      <div class="form-section">
+        <label>휴대전화번호로 직접 검색 추가</label>
+        <div class="friend-search-section">
+          <div class="search-info">
+            <span>000-0000-0000 형식으로 작성해주세요</span>
+          </div>
+          <textarea id="friendNames" name="friendNames"
+                    placeholder="휴대전화번호를 줄바꿈으로 구분하여 입력해주세요"
+                    rows="6"></textarea>
+          <div class="char-count">0/1200자</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeCreateGroupModal()" type="button">취소</button>
+        <button class="btn-submit" type="submit">그룹 등록</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script th:src="@{/js/groupmodal.js}"></script>
+</body>
+</html>
