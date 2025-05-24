@@ -1,7 +1,6 @@
 .container {
   display: flex;
   min-height: 100vh;
-  background: #f8f8f8;
 }
 .content {
   flex: 1;
@@ -108,19 +107,29 @@
   justify-content: flex-end;
   margin-top: 8px;
 }
-.delete-btn {
-  background: #f66;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 20px;
-  font-size: 1em;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.2s;
+/* 예시: group-detail.css에 추가 */
+.action-row.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
 }
-.delete-btn:hover {
-  background: #d44;
+
+.delete-btn {
+  padding: 6px 12px;
+  background-color: #eee;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* list-btn css */
+.list-btn {
+  padding: 6px 12px;
+  background-color: #eee;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 /* 모달 기본 스타일 */
