@@ -3,6 +3,7 @@ package com.shrona.line_demo.user.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.shrona.line_demo.user.domain.Group;
+import com.shrona.line_demo.user.domain.UserGroup;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
@@ -129,7 +130,7 @@ class GroupServiceImplTest {
 
     }
 
-    @DisplayName("그룹에 속한 유저들을 삭제")
+    @DisplayName("그룹에 속한 유저들을 휴대전화 기준으로 삭제")
     @Test
     public void 그룹에_속한_유저들_삭제() {
         // given
@@ -146,7 +147,7 @@ class GroupServiceImplTest {
             List.of(one, two, two, three, wrongInfo));
 
         // when
-        groupService.deleteUserFromGroup(group.getId(), List.of(one, two));
+        groupService.deleteUserFromGroupByPhones(group.getId(), List.of(one, two));
 
         // 반영
         em.flush();
@@ -155,5 +156,32 @@ class GroupServiceImplTest {
 
         // then
         assertThat(afterDelete.getUserGroupList().size()).isEqualTo(1);
+    }
+
+    @DisplayName("그룹에 속한 유저들을 DB 아이디 기준으로 삭제")
+    @Test
+    public void 그룹에_속한_유저들_아이디기준_삭제() {
+        // given
+        String name = "그룹 이름";
+        String description = "그룹 설명";
+
+        String one = "010-2222-3333";
+        String two = "010-3123-1231";
+        String three = "010-3123-1235";
+        String wrongInfo = "01-2022-1234";
+
+        // 먼저 그룹 생성
+        Group group = groupService.createGroup(name, description,
+            List.of(one, two, two, three, wrongInfo));
+
+        List<Long> ids = group.getUserGroupList().stream().map(UserGroup::getId).toList();
+
+        // when
+        groupService.deleteUserFromGroupByIds(group.getId(), ids);
+
+        Group afterDelete = groupService.findGroupById(group.getId(), false);
+
+        // then
+        assertThat(afterDelete.getUserGroupList().size()).isEqualTo(0);
     }
 }
