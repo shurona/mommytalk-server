@@ -3,7 +3,9 @@ package com.shrona.line_demo.user.presentation.controller;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
 import com.shrona.line_demo.user.presentation.form.BuyerForm;
+import com.shrona.line_demo.user.presentation.form.GroupAddUserRequestBody;
 import com.shrona.line_demo.user.presentation.form.GroupCreateRequestBody;
+import com.shrona.line_demo.user.presentation.form.GroupDeleteUserRequestBody;
 import com.shrona.line_demo.user.presentation.form.GroupForm;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,7 +44,7 @@ public class GroupController {
 
     @PostMapping
     public String createNewGroup(
-        @RequestBody GroupCreateRequestBody requestBody
+        @Validated @RequestBody GroupCreateRequestBody requestBody
     ) {
 
         groupService.createGroup(requestBody.name(), requestBody.description(),
@@ -65,5 +69,30 @@ public class GroupController {
             groupInfo.getUserGroupList().stream().map(BuyerForm::of).toList());
 
         return "group/details";
+    }
+
+    @PostMapping("/{id}/users")
+    public String addUserToGroup(
+        @PathVariable("id") Long groupId,
+        @RequestBody GroupAddUserRequestBody requestBody
+    ) {
+
+        System.out.println("여긴가요? : " + requestBody);
+
+        // 유저 추가
+        groupService.addUserToGroup(groupId, requestBody.phoneNumberList());
+
+        return "redirect:/admin/groups/" + groupId;
+    }
+
+    @DeleteMapping("/{id}/users")
+    public String deleteUserToGroup(
+        @PathVariable("id") Long groupId,
+        @RequestBody GroupDeleteUserRequestBody requestBody
+    ) {
+
+        groupService.deleteUserFromGroupByIds(groupId, requestBody.userGroupIds());
+
+        return "redirect:/admin/groups/" + groupId;
     }
 }

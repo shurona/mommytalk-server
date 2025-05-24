@@ -56,13 +56,21 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public List<Group> findGroupByIdList(List<Long> ids) {
+
         return groupRepository.findAllById(ids);
     }
 
     @Override
     public Page<Group> findGroupList(Pageable pageable) {
 
-        return groupRepository.findAll(pageable);
+        Page<Group> groupsPageList = groupRepository.findAll(pageable);
+
+        for (Group group : groupsPageList.toList()) {
+            for (UserGroup userGroup : group.getUserGroupList()) {
+                userGroup.getUser();
+            }
+        }
+        return groupsPageList;
     }
 
     @Transactional
@@ -96,7 +104,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Transactional
-    public void deleteUserFromGroup(Long id, List<String> phoneNumberList) {
+    public void deleteUserFromGroupByPhones(Long id, List<String> phoneNumberList) {
         Optional<Group> groupInfo = groupRepository.findGroupWithUsers(id);
         if (groupInfo.isEmpty()) {
             return;
@@ -111,6 +119,23 @@ public class GroupServiceImpl implements GroupService {
             .toList();
 
         groupInfo.get().getUserGroupList().clear();
+
+        userGroupRepository.deleteAllById(ids);
+    }
+
+    @Transactional
+    public void deleteUserFromGroupByIds(Long id, List<Long> ids) {
+
+        System.out.println(id + " : " + ids);
+
+        Optional<Group> groupInfo = groupRepository.findById(id);
+        if (groupInfo.isEmpty()) {
+            return;
+        }
+
+        groupInfo.get().getUserGroupList().clear();
+
+        System.out.println(ids);
 
         userGroupRepository.deleteAllById(ids);
     }

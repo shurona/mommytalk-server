@@ -43,7 +43,12 @@ public interface GroupService {
     Group updateGroupInfo(Long groupId, String newName, String newDescription);
 
     /**
-     * 그룹에서 유저 목록 삭제
+     * 그룹에서 휴대 전화를 기준으로 유저 목록 삭제
      */
-    void deleteUserFromGroup(Long id, List<String> phoneNumberList);
+    void deleteUserFromGroupByPhones(Long id, List<String> phoneNumberList);
+
+    /**
+     * 그룹에서 데이터베이스 아이디를 기준으로 유저 목록 삭제
+     */
+    void deleteUserFromGroupByIds(Long id, List<Long> ids);
 }

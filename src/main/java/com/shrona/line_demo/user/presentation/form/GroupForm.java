@@ -1,6 +1,7 @@
 package com.shrona.line_demo.user.presentation.form;
 
 import com.shrona.line_demo.user.domain.Group;
+import com.shrona.line_demo.user.domain.UserGroup;
 import java.time.LocalDateTime;
 
 public record GroupForm(
@@ -15,11 +16,18 @@ public record GroupForm(
 
     public static GroupForm of(Group group) {
 
+        int friendCount = 0;
+        for (UserGroup userGroup : group.getUserGroupList()) {
+            if (userGroup.getUser().getLineId() != null) {
+                friendCount += 1;
+            }
+        }
+
         return new GroupForm(
             group.getId(),
             group.getName(),
             group.getDescription(),
-            0, 0, // todo: 이거 로직 추가합시다.
+            friendCount, group.getUserGroupList().size(),
             group.getCreatedAt(),
             group.getUpdatedAt()
         );
