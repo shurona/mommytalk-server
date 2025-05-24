@@ -14,6 +14,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
@@ -33,6 +34,7 @@ public class Group extends BaseEntity {
     @Column
     private String description;
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     private List<UserGroup> userGroupList = new ArrayList<>();
 
