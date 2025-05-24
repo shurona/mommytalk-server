@@ -1,0 +1,22 @@
+<!-- sidebar.html -->
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="sidebar">
+  <aside class="sidebar">
+    <div class="sidebar-title">Mommytalk english</div>
+    <nav class="sidebar-menu">
+      <ul>
+        <li class="menu-section">메시지</li>
+        <li class="menu-item active"><a href="/admin/messages"><span>메시지 보내기</span></a></li>
+        <li class="menu-item"><a href="/admin/messages/list"><span>메시지 목록</span></a></li>
+        <li class="menu-section">친구 그룹</li>
+        <li class="menu-item"><a href="/admin/line/friends/list"><span>전체 친구</span></a></li>
+        <li class="menu-item"><a href="/admin/groups/list"><span>구매자 그룹</span></a></li>
+        <li class="menu-section"><span>테스트 발송 대상 설정</span></li>
+      </ul>
+    </nav>
+  </aside>
+</div>
+</body>
+</html>
