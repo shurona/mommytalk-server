@@ -44,10 +44,8 @@ public class Group extends BaseEntity {
         return group;
     }
 
-    public void addUserToGroup(List<User> userList) {
-        for (User user : userList) {
-            userGroupList.add(UserGroup.createUserGroup(user, this));
-        }
+    public void addUserToGroup(List<UserGroup> userList) {
+        userGroupList.addAll(userList);
     }
 
     // Group 엔티티 내부

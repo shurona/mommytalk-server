@@ -34,13 +34,12 @@ public class GroupServiceImpl implements GroupService {
 
     @Transactional
     public Group createGroup(String name, String description, List<String> phoneList) {
+        Group groupInfo = groupRepository.save(Group.createGroup(name, description));
 
-        List<User> userList = userService.findOrCreateUsersByPhoneNumbers(phoneList);
+        // 휴대전화 목록에 맞는 유저를 group에 추가해준다.
+        generateGroupUserInfo(groupInfo, phoneList);
 
-        Group group = Group.createGroup(name, description);
-        group.addUserToGroup(userList);
-
-        return groupRepository.save(group);
+        return groupRepository.findById(groupInfo.getId()).orElseThrow();
     }
 
     @Override
@@ -85,24 +84,7 @@ public class GroupServiceImpl implements GroupService {
             return;
         }
 
-        // 입력된 전화번호를 유저 생성 및 라인 유저와 매칭 후 List 반환
-        List<User> userListFromPhoneNumber = userService
-            .findOrCreateUsersByPhoneNumbers(phoneNumberList);
-
-        // group에 이미 존재하는 번호들을 추출한다.
-        List<User> pList = groupInfo.get().getUserGroupList().stream()
-            .map(UserGroup::getUser).toList();
-
-        // 존재하는 번호들을 추출해낸다.
-        Set<PhoneNumber> existPhoneNumbers = userUtils.extractPhoneNumbers(pList);
-
-        // 유저 그룹에 없는 신규 유저를 저장한다.
-        List<UserGroup> list = userListFromPhoneNumber.stream()
-            .filter(u -> !existPhoneNumbers.contains(u.getPhoneNumber()))
-            .map(nu -> UserGroup.createUserGroup(nu, groupInfo.get())).toList();
-
-        // 단체 저장
-        userGroupRepository.saveAll(list);
+        generateGroupUserInfo(groupInfo.get(), phoneNumberList);
     }
 
     @Transactional
@@ -131,5 +113,32 @@ public class GroupServiceImpl implements GroupService {
         groupInfo.get().getUserGroupList().clear();
 
         userGroupRepository.deleteAllById(ids);
+    }
+
+    /**
+     * phoneNumber 목록을 조사해서 없는 번호는 입력해준다.
+     */
+    @Transactional
+    private void generateGroupUserInfo(Group groupInfo, List<String> phoneNumberList) {
+        // 입력된 전화번호를 유저 생성 및 라인 유저와 매칭 후 List 반환
+        List<User> userListFromPhoneNumber = userService
+            .findOrCreateUsersByPhoneNumbers(phoneNumberList);
+
+        // group에 이미 존재하는 번호들을 추출한다.
+        List<User> pList = groupInfo.getUserGroupList().stream()
+            .map(UserGroup::getUser).toList();
+
+        // 존재하는 번호들을 추출해낸다.
+        Set<PhoneNumber> existPhoneNumbers = userUtils.extractPhoneNumbers(pList);
+
+        // 유저 그룹에 없는 신규 유저를 저장한다.
+        List<UserGroup> list = userListFromPhoneNumber.stream()
+            .filter(u -> !existPhoneNumbers.contains(u.getPhoneNumber()))
+            .map(nu -> UserGroup.createUserGroup(nu, groupInfo)).toList();
+
+        groupInfo.addUserToGroup(list);
+
+        // 단체 저장
+        userGroupRepository.saveAll(list);
     }
 }
