@@ -6,6 +6,7 @@ import com.shrona.line_demo.user.domain.Group;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,13 @@ class GroupServiceImplTest {
     @PersistenceContext
     private EntityManager em;
 
+    @BeforeEach
+    public void createUserForTest() {
+        userService.createUser("010-2222-3333");
+        userService.createUser("010-3123-1231");
+
+    }
+
     @Test
     public void 그룹_생성_테스트() {
         // given
@@ -36,7 +44,12 @@ class GroupServiceImplTest {
         String unCorrect = "02-322-3232";
 
         // when
-        Group group = groupService.createGroup(name, description, List.of(one, two, unCorrect));
+        Group aa = groupService.createGroup(name, description, List.of(one, two, unCorrect));
+
+        // 반영
+        em.flush();
+        em.clear();
+        Group group = groupService.findGroupById(aa.getId(), false);
 
         // then
         assertThat(group.getName()).isEqualTo(name);
@@ -77,6 +90,7 @@ class GroupServiceImplTest {
 
         // 유저를 미리 저장
         userService.createUser(two);
+        // 반영
 
         // when
         groupService.addUserToGroup(group.getId(), List.of(one, two, wrongInfo));
