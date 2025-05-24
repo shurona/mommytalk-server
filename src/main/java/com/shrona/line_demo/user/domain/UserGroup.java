@@ -12,9 +12,11 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
+@SQLRestriction(BaseEntity.DEFAULT_CONDITION)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user_group")
 public class UserGroup extends BaseEntity {
@@ -36,5 +38,9 @@ public class UserGroup extends BaseEntity {
         userGroup.user = user;
         userGroup.group = group;
         return userGroup;
+    }
+
+    public void deleteUserGroup() {
+        this.isDeleted = true;
     }
 }

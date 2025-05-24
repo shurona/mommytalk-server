@@ -62,6 +62,6 @@ public class Group extends BaseEntity {
 
 
     public void deleteGroup() {
-        this.isDeleted = false;
+        this.isDeleted = true;
     }
 }

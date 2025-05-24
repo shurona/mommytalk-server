@@ -38,6 +38,11 @@ public interface GroupService {
     public void deleteGroup(List<Long> groupIdList);
 
     /**
+     * 그룹 목록 soft delete 삭제
+     */
+    public void softDeleteGroup(List<Long> groupIdList);
+
+    /**
      * 그룹 정보 업데이트(이름, 설명만)
      */
     Group updateGroupInfo(Long groupId, String newName, String newDescription);

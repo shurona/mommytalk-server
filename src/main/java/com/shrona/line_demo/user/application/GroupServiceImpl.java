@@ -97,8 +97,20 @@ public class GroupServiceImpl implements GroupService {
 
     @Transactional
     public void deleteGroup(List<Long> groupIdList) {
+        if (groupIdList.isEmpty()) {
+            return;
+        }
+        groupRepository.deleteAllById(groupIdList);
+    }
+
+    @Transactional
+    public void softDeleteGroup(List<Long> groupIdList) {
+        System.out.println(groupIdList);
         List<Group> groupList = groupRepository.findAllById(groupIdList);
         for (Group group : groupList) {
+            for (UserGroup userGroup : group.getUserGroupList()) {
+                userGroup.deleteUserGroup();
+            }
             group.deleteGroup();
         }
     }

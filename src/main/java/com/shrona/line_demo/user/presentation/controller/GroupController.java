@@ -5,12 +5,14 @@ import com.shrona.line_demo.user.domain.Group;
 import com.shrona.line_demo.user.presentation.form.BuyerForm;
 import com.shrona.line_demo.user.presentation.form.GroupAddUserRequestBody;
 import com.shrona.line_demo.user.presentation.form.GroupCreateRequestBody;
+import com.shrona.line_demo.user.presentation.form.GroupDeleteRequestBody;
 import com.shrona.line_demo.user.presentation.form.GroupDeleteUserRequestBody;
 import com.shrona.line_demo.user.presentation.form.GroupForm;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
@@ -61,6 +63,11 @@ public class GroupController {
 
         Group groupInfo = groupService.findGroupById(id, true);
 
+        // null이면 목록으로 반환
+        if (groupInfo == null) {
+            return "group/list";
+        }
+
         // groupInfo
         model.addAttribute("group", GroupForm.of(groupInfo));
 
@@ -85,14 +92,23 @@ public class GroupController {
         return "redirect:/admin/groups/" + groupId;
     }
 
+    @DeleteMapping
+    public ResponseEntity<?> deleteGroupIds(
+        @RequestBody GroupDeleteRequestBody requestBody
+    ) {
+        groupService.softDeleteGroup(requestBody.groupIds());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}/users")
-    public String deleteUserToGroup(
+    public ResponseEntity<?> deleteUserToGroup(
         @PathVariable("id") Long groupId,
         @RequestBody GroupDeleteUserRequestBody requestBody
     ) {
 
         groupService.deleteUserFromGroupByIds(groupId, requestBody.userGroupIds());
 
-        return "redirect:/admin/groups/" + groupId;
+        return ResponseEntity.ok().build();
     }
+
 }
