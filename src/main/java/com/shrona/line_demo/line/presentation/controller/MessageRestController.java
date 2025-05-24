@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 //local 테스트 용 Controller
 @Profile({"local"})
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/message")
+@RequestMapping("/api/v1/messages")
 @RestController
 public class MessageRestController {
 
