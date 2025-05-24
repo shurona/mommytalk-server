@@ -1,0 +1,228 @@
+body {
+    margin: 0;
+    background: #fafafa;
+    font-family: 'Noto Sans KR', Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding: 48px 48px 48px 0;
+}
+
+.main-title {
+    font-size: 1.35em;
+    font-weight: bold;
+    margin-bottom: 24px;
+}
+
+.message-form {
+    width: 100%;
+}
+
+.form-row {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.message-input-group {
+    flex: 2;
+    margin-right: 36px;
+}
+
+.preview-group {
+    flex: 1;
+    min-width: 280px;
+}
+
+.form-label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-textarea {
+    width: 100%;
+    height: 300px;
+    resize: none;
+    font-size: 1em;
+    padding: 12px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.form-helper {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95em;
+    color: #888;
+    margin-top: 4px;
+}
+
+.char-count {
+    color: #888;
+}
+
+.preview-box {
+  border: 1px solid #ccc;
+  padding: 12px;
+  background-color: #f9f9f9;
+  min-height: 120px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap; /* fallback */
+}
+
+.preview-message {
+  color: #333;
+}
+
+.preview-link {
+    color: #1680fa;
+    text-decoration: underline;
+}
+
+.target-row .form-group {
+    width: 100%;
+}
+
+.target-options {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 12px;
+}
+
+.target-options label {
+    font-weight: normal;
+    font-size: 1em;
+}
+
+.custom-dropdown {
+  position: relative;
+  display: block; /* 부모 너비에 맞추기 위해 block */
+  width: 100%;
+  max-width: 240px; /* ✅ 원한다면 제한 설정 */
+  font-family: "Segoe UI", sans-serif;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  padding: 10px 14px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #a084f7;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 8px 20px rgba(160, 132, 247, 0.15);
+  display: none;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.dropdown-menu label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  width: 100%;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 6px;
+}
+
+.dropdown-menu label:hover {
+  background-color: #f2f0fc;
+}
+
+.dropdown-menu input[type="checkbox"] {
+  accent-color: #a084f7;
+  cursor: pointer;
+}
+
+.schedule-row .form-group {
+    width: 100%;
+}
+
+.datetime-inputs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+}
+
+.datetime-inputs input[type="text"] {
+    width: 80px;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+}
+
+.datetime-inputs select {
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+}
+
+.button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 18px;
+    margin-top: 40px;
+}
+
+.btn {
+    padding: 12px 32px;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #e0e0e0;
+    color: #222;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-primary {
+    background: #bbb;
+    color: #222;
+}
+
+.btn-test {
+    background: #fff;
+    color: #222;
+    border: 1px solid #bbb;
+}
+
+.btn:hover {
+    background: #d1d1d1;
+}
+
+/* 에러 처리 */
+.res-error {
+    color: #e74c3c;
+    font-size: 0.95em;
+    margin-bottom: 12px;
+    /* input과 에러 메시지 간격 조정 */
+    margin-top: -4px;
+}

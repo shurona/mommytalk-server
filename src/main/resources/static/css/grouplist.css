@@ -1,0 +1,84 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.content {
+  flex: 1;
+  padding: 30px;
+  background-color: #fff;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.create-btn {
+  padding: 8px 14px;
+  background-color: #f7f7f7;
+  border: 1px solid #999;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.group-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.group-table th,
+.group-table td {
+  border: 1px solid #ccc;
+  padding: 12px;
+  font-size: 14px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.group-table thead {
+  background-color: #f8f8f8;
+}
+
+.action-row {
+  margin-top: 10px;
+}
+
+.delete-btn {
+  padding: 6px 12px;
+  background-color: #eee;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.pagination a {
+  display: inline-block;
+  padding: 6px 10px;
+  margin: 0 3px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: #333;
+  text-decoration: none;
+}
+
+.pagination a.active {
+  background-color: #a084f7;
+  color: #fff;
+  border-color: #a084f7;
+}
