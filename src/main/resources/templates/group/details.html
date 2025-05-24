@@ -22,15 +22,15 @@
           <td th:text="${group.name}">종료</td>
         </tr>
         <tr>
-          <th>등록수</th>
-          <td>
-            <span th:text="${group.totalCount}">30</span>명
-          </td>
-        </tr>
-        <tr>
           <th>친구수</th>
           <td>
             <span th:text="${group.friendCount}">29</span>명
+          </td>
+        </tr>
+        <tr>
+          <th>등록수</th>
+          <td>
+            <span th:text="${group.totalCount}">30</span>명
           </td>
         </tr>
         <tr>
@@ -47,20 +47,20 @@
         </tr>
         </tbody>
       </table>
-      <button class="add-friend-btn" onclick="location.href='/admin/group/friend/add'"
-              type="button">+ 그룹에 친구 추가
-      </button>
     </section>
 
     <!-- 친구 목록 테이블 -->
     <section class="friend-list-section">
+      <div class="action-row top">
+        <button class="add-friend-btn" onclick="openAddFriendModal()">+ 그룹에 친구 추가</button>
+      </div>
       <table class="friend-table">
         <thead>
         <tr>
-          <th><input type="checkbox"></th>
-          <th>전화번호</th>
-          <th>라인 ID</th>
-          <th>친구 추가 방법</th>
+          <th width="10%"><input type="checkbox"></th>
+          <th width="20%">전화번호</th>
+          <th width="20%">라인 ID</th>
+          <th width="20%">친구 추가 방법</th>
           <th>그룹에 등록한 시간</th>
         </tr>
         </thead>
@@ -80,10 +80,25 @@
         </tbody>
       </table>
       <div class="action-row">
-        <button class="delete-btn" type="button">선택 삭제</button>
+        <button class="delete-btn" type="button" onclick="deleteSelectedFriends()">선택 삭제</button>
       </div>
     </section>
   </div>
 </div>
+
+<!-- 모달 오버레이 -->
+<div class="modal-overlay" id="addFriendModal" style="display: none;">
+  <div class="modal-content">
+    <h3>전화번호 직접 입력</h3>
+    <p class="info-text">전화번호는 한 줄에 하나씩 추가해주세요.</p>
+    <textarea id="phoneNumbers" name="phoneNumbers" placeholder="090-0000-0000" rows="5"></textarea>
+    <div class="modal-buttons">
+      <button type="button" class="cancel-btn" onclick="closeAddFriendModal()">취소</button>
+      <button type="button" class="confirm-btn" onclick="addPhoneNumbersToGroup()">추가</button>
+    </div>
+  </div>
+</div>
+<div id="groupMeta" th:data-group-id="${group.id}"></div>
+<script th:src="@{/js/group-detail.js}"></script>
 </body>
 </html>

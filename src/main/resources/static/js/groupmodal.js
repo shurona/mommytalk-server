@@ -63,7 +63,6 @@ document.getElementById('createGroupModal').addEventListener('submit', function(
   const name = document.getElementById('groupName').value;
   const description = document.getElementById('groupDescription').value;
   const phoneNumbers = document.getElementById('friendNames').value;
-  console.log(name, description, phoneNumbers);
 
   // friendsNames 배열로 변환 및 휴대전화 번호 형식 검증 후 오류 메시지 출력
   const phoneNumberList = phoneNumbers.split('\n');
