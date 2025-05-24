@@ -7,10 +7,13 @@ import org.springframework.data.domain.Pageable;
 
 public interface GroupService {
 
+    /**
+     * 그룹 생성
+     */
     public Group createGroup(String name, String description, List<String> phoneList);
 
     /**
-     * Group 정보를 단일로 조회 user와 함께 fetch join을 할지 파라미터로 설정
+     * Group 정보를 단일로 조회 user와 함께 fetch join을 할지 withUser 파라미터로 설정
      */
     public Group findGroupById(Long id, Boolean withUser);
 
@@ -19,13 +22,28 @@ public interface GroupService {
      */
     public List<Group> findGroupByIdList(List<Long> id);
 
+    /**
+     * 그룹 목록 조회
+     */
     public Page<Group> findGroupList(Pageable pageable);
 
+    /**
+     * 그룹에 전화번호 추가
+     */
     public void addUserToGroup(Long groupId, List<String> phoneNumberList);
 
+    /**
+     * 그룹 목록(영구) 삭제
+     */
     public void deleteGroup(List<Long> groupIdList);
 
+    /**
+     * 그룹 정보 업데이트(이름, 설명만)
+     */
     Group updateGroupInfo(Long groupId, String newName, String newDescription);
 
+    /**
+     * 그룹에서 유저 목록 삭제
+     */
     void deleteUserFromGroup(Long id, List<String> phoneNumberList);
 }

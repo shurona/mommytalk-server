@@ -6,8 +6,14 @@ import org.springframework.data.domain.Pageable;
 
 public interface LineService {
 
+    /**
+     * 라인 아이디를 기준으로 라인 유저 조회
+     */
     public LineUser findLineUserByLineId(String lineId);
 
+    /**
+     * 라인 유저 목록 조회
+     */
     public Page<LineUser> findLineUserList(Pageable pageable);
 
     /**
