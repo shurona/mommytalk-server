@@ -24,7 +24,7 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    @GetMapping
+    @GetMapping({"", "/"})
     public String homeView(
         @SessionAttribute(name = StaticVariable.LOGIN_USER, required = false) UserSession userSession,
         Model model
