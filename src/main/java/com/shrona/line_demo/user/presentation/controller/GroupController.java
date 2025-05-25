@@ -56,14 +56,14 @@ public class GroupController {
     }
 
     @PostMapping
-    public String createNewGroup(
+    public ResponseEntity<?> createNewGroup(
         @Validated @RequestBody GroupCreateRequestBody requestBody
     ) {
 
         groupService.createGroup(requestBody.name(), requestBody.description(),
             requestBody.phoneNumberList());
 
-        return "redirect:/admin/groups/list";
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")
