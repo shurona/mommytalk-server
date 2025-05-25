@@ -8,9 +8,9 @@
     <li th:if="${pagingInfo.hasPrevious()}">
             <a class="page" th:href="@{__${pagingInfo.requestUrl}__(page=${pagingInfo.number - 1})}">이전</a>
     </li>
+    <!-- 좌우로 7개씩만 표시되도록 설정 -->
     <li th:each="i : ${#numbers.sequence((pagingInfo.number > 7 ? pagingInfo.number - 7 : 0), 
         (pagingInfo.number + 7 < pagingInfo.totalPages ? pagingInfo.number + 7 : pagingInfo.totalPages - 1))}">
-        
       <a class="page"
          th:href="@{__${pagingInfo.requestUrl}__(page=${i})}"
          th:classappend="${i == pagingInfo.number} ? 'active'">
