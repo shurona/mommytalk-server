@@ -6,6 +6,7 @@
   <link rel="stylesheet" th:href="@{/css/grouplist.css}">
   <link rel="stylesheet" th:href="@{/css/sidebar.css}">
   <link rel="stylesheet" th:href="@{/css/groupmodal.css}">
+  <link rel="stylesheet" th:href="@{/css/pagination.css}">
 </head>
 <body>
 <div class="container">
@@ -48,12 +49,7 @@
       <button class="delete-btn" onclick="removeSelectedGroups()">선택 삭제</button>
     </div>
 
-    <div class="pagination">
-      <!--      <a th:classappend="${i} == ${currentPage} ? 'active' : ''"-->
-      <!--         th:each="i : ${#numbers.sequence(1, totalPages)}"-->
-      <!--         th:href="@{/admin/group/buyers(page=${i})}"-->
-      <!--         th:text="${i}">1</a>-->
-    </div>
+    <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo})}"></div>
   </div>
 </div>
 

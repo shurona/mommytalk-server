@@ -5,6 +5,7 @@
   <title>메시지 목록</title>
   <link rel="stylesheet" th:href="@{/css/messagelist.css}">
   <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/pagination.css}">
 </head>
 <body>
 <div class="container">
@@ -30,11 +31,8 @@
       </tbody>
     </table>
 
-    <!--    &lt;!&ndash; 페이징 예시 &ndash;&gt;-->
-    <!--    <div class="pagination">-->
-    <!--      <a class="page" href="?page=1">1</a>-->
-    <!--      <a class="page" href="?page=2">2</a>-->
-    <!--    </div>-->
+    <!-- 페이징 -->
+    <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo})}"></div>
   </div>
 </div>
 </body>

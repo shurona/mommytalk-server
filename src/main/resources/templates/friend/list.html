@@ -5,6 +5,7 @@
   <title>라인 친구 목록</title>
   <link rel="stylesheet" th:href="@{/css/friendlist.css}">
   <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/pagination.css}">
 </head>
 <body>
 <div class="container">
@@ -35,12 +36,8 @@
       <button type="submit">검색</button>
     </div>
 
-    <div class="pagination">
-      <!--      <a th:classappend="${i} == ${currentPage} ? 'active' : ''"-->
-      <!--         th:each="i : ${#numbers.sequence(1, totalPages)}"-->
-      <!--         th:href="@{/admin/group/all(page=${i})}"-->
-      <!--         th:text="${i}">1</a>-->
-    </div>
+    <!-- 페이징 -->
+    <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo})}"></div>
   </div>
 </div>
 </body>
