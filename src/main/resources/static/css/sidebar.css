@@ -38,13 +38,55 @@
     cursor: pointer;
 }
 
-.menu-item.active span {
+.menu-item.active {
     color: #e74c3c;
     font-weight: bold;
 }
 
-.menu-item span {
+.sidebar {
+    width: 260px;
+    background: #d9d9d9;
+    border-radius: 24px;
+    margin: 24px;
+    padding: 32px 0 0 0;
+    box-sizing: border-box;
+    min-height: 90vh;
+}
+
+.sidebar-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-left: 0;      /* 기존 margin-left 제거 */
+    margin-bottom: 36px;
+    text-align: center;  /* 텍스트도 가운데 정렬 */
+    width: 100%;
+}
+
+.sidebar-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+
+.menu-section {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin: 28px 0 12px 32px;
     color: #222;
+}
+
+.menu-item {
+    margin: 8px 0 8px 56px;
+    font-size: 1.05em;
+    color: #222;
+    cursor: pointer;
+}
+
+.menu-item.active a,
+.menu-item.active span {
+    color: #e74c3c;
+    font-weight: bold;
 }
 
 a {
