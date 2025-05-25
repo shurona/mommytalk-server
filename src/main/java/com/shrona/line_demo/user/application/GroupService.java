@@ -2,6 +2,7 @@ package com.shrona.line_demo.user.application;
 
 import com.shrona.line_demo.user.domain.Group;
 import java.util.List;
+import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -23,9 +24,19 @@ public interface GroupService {
     public List<Group> findGroupByIdList(List<Long> id);
 
     /**
+     * 그룹아이디가 존재하지 않는 그룹 목록 조회
+     */
+    public List<Group> findGroupListNotIn(List<Long> ids);
+
+    /**
      * 그룹 목록 조회
      */
     public Page<Group> findGroupList(Pageable pageable);
+
+    /**
+     * 그룹 별로 유저 숫자 조회
+     */
+    public Map<Long, Integer> findGroupUserCount(List<Long> groupIds);
 
     /**
      * 그룹에 전화번호 추가

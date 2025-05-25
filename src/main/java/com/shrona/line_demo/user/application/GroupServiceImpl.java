@@ -9,8 +9,10 @@ import com.shrona.line_demo.user.infrastructure.GroupJpaRepository;
 import com.shrona.line_demo.user.infrastructure.UserGroupJpaRepository;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,8 +58,16 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public List<Group> findGroupByIdList(List<Long> ids) {
-
         return groupRepository.findAllById(ids);
+    }
+
+    @Override
+    public List<Group> findGroupListNotIn(List<Long> exceptGroupIds) {
+        if (exceptGroupIds == null || exceptGroupIds.isEmpty()) {
+            // 제외할 ID가 없으면 전체 그룹 조회
+            return groupRepository.findAll();
+        }
+        return groupRepository.findByIdNotIn(exceptGroupIds);
     }
 
     @Override
@@ -71,6 +81,19 @@ public class GroupServiceImpl implements GroupService {
             }
         }
         return groupsPageList;
+    }
+
+    @Override
+    public Map<Long, Integer> findGroupUserCount(List<Long> groupIds) {
+
+        List<Object[]> groupUserCounts = userGroupRepository.countByGroupIds(groupIds);
+
+        // Object List를 int int로 변환
+        return groupUserCounts.stream()
+            .collect(Collectors.toMap(
+                arr -> (Long) arr[0],
+                arr -> ((Long) arr[1]).intValue()
+            ));
     }
 
     @Transactional
