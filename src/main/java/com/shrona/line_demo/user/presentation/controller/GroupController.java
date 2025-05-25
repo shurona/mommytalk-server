@@ -32,6 +32,9 @@ public class GroupController {
 
     private final GroupService groupService;
 
+    /**
+     * 그룹 목록 조회
+     */
     @GetMapping("/list")
     public String groupListView(
         @RequestParam(value = "page", defaultValue = "0") int pageNumber,
@@ -55,6 +58,9 @@ public class GroupController {
         return "group/list";
     }
 
+    /**
+     * 새 그룹 추가
+     */
     @PostMapping
     public ResponseEntity<?> createNewGroup(
         @Validated @RequestBody GroupCreateRequestBody requestBody
@@ -66,6 +72,9 @@ public class GroupController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 구매자 그룹 상세조회 페이지 view
+     */
     @GetMapping("/{id}")
     public String groupDetailView(
         @PathVariable("id") Long id,
