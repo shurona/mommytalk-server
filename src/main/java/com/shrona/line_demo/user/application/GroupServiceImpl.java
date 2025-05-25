@@ -161,11 +161,10 @@ public class GroupServiceImpl implements GroupService {
         // 존재하는 번호들을 추출해낸다.
         Set<PhoneNumber> existPhoneNumbers = userUtils.extractPhoneNumbers(pList);
 
-        // 유저 그룹에 없는 신규 유저를 저장한다.
+        // 유저 그룹에 없는 유저를 UserGroup에 추가해준다.
         List<UserGroup> list = userListFromPhoneNumber.stream()
             .filter(u -> !existPhoneNumbers.contains(u.getPhoneNumber()))
             .map(nu -> UserGroup.createUserGroup(nu, groupInfo)).toList();
-
         groupInfo.addUserToGroup(list);
 
         // 단체 저장

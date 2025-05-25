@@ -4,9 +4,11 @@ import static com.shrona.line_demo.line.presentation.form.TargetType.GROUP;
 
 import com.shrona.line_demo.common.dto.PagingForm;
 import com.shrona.line_demo.line.application.MessageService;
+import com.shrona.line_demo.line.application.sender.MessageSender;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.presentation.form.MessageListForm;
 import com.shrona.line_demo.line.presentation.form.MessageSendForm;
+import com.shrona.line_demo.line.presentation.form.MessageTestForm;
 import com.shrona.line_demo.line.presentation.form.TargetType;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
@@ -18,12 +20,14 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -32,8 +36,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class MessageController {
 
+    // service
     private final MessageService messageService;
     private final GroupService groupService;
+
+    // sender
+    private final MessageSender messageSender;
 
     @GetMapping
     public String sendMessageView(Model model) {
@@ -56,7 +64,7 @@ public class MessageController {
         String messageListUrl = "/admin/messages/list";
 
         Page<MessageLog> messageLogList = messageService.findMessageLogList(
-            PageRequest.of(pageNumber, 2));
+            PageRequest.of(pageNumber, 20));
 
         model.addAttribute("pagingInfo",
             PagingForm.of(
@@ -67,6 +75,9 @@ public class MessageController {
         return "message/list";
     }
 
+    /**
+     * 보낼 메시지를 저장하는 Controller
+     */
     @PostMapping("/v1/send")
     public String sendMessage(
         Model model,
@@ -93,6 +104,19 @@ public class MessageController {
         }
 
         return "redirect:/admin/messages";
+    }
+
+    @PostMapping("/v1/send/test")
+    public ResponseEntity<?> testDeliver(
+        @RequestBody MessageTestForm form
+    ) {
+        if (messageSender.sendTestLineMessage(form.content())) {
+            return ResponseEntity.ok(Map.of("success", true));
+        } else {
+            return ResponseEntity.internalServerError().build();
+        }
+
+
     }
 
     /*
