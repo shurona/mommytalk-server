@@ -1,4 +1,4 @@
-package com.shrona.line_demo.line.presentation.controller;
+package com.shrona.line_demo.line.presentation.mvc;
 
 import com.shrona.line_demo.common.dto.PagingForm;
 import com.shrona.line_demo.line.application.LineService;
@@ -20,7 +20,7 @@ public class LineUserController {
 
     @GetMapping("/admin/line/friends/list")
     public String lineFriendView(
-        @RequestParam(value = "page", defaultValue = "1") int pageNumber,
+        @RequestParam(value = "page", defaultValue = "0") int pageNumber,
         Model model
     ) {
         String lineFriendListViewUrl = "/admin/line/friends/list";
