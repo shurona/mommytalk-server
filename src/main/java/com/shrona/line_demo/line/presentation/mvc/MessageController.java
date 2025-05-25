@@ -1,5 +1,6 @@
 package com.shrona.line_demo.line.presentation.mvc;
 
+import static com.shrona.line_demo.line.presentation.form.TargetType.ALL;
 import static com.shrona.line_demo.line.presentation.form.TargetType.GROUP;
 
 import com.shrona.line_demo.common.dto.PagingForm;
@@ -64,13 +65,20 @@ public class MessageController {
         String messageListUrl = "/admin/messages/list";
 
         Page<MessageLog> messageLogList = messageService.findMessageLogList(
-            PageRequest.of(pageNumber, 20));
+            PageRequest.of(pageNumber, 15));
 
+        Map<Long, Integer> groupUserCount = groupService.findGroupUserCount(
+            messageLogList.map(m -> m.getGroup().getId()).toList());
+
+        // 페이징 정보
         model.addAttribute("pagingInfo",
             PagingForm.of(
                 messageLogList.getNumber(), messageLogList.getTotalPages(),
                 messageListUrl));
-        model.addAttribute("messages", messageLogList.map(MessageListForm::of).toList());
+
+        // 메시지 목록 정보
+        model.addAttribute("messages",
+            messageLogList.map(m -> MessageListForm.of(m, groupUserCount)).toList());
 
         return "message/list";
     }
@@ -85,6 +93,7 @@ public class MessageController {
         BindingResult bindingResult
     ) {
 
+        // 전송이 특정 그룹인 경우
         if (form.targetType().equals(GROUP.getType())) {
             // 그룹 타겟 전송인데 그룹이 비어있는 경우
             if (form.includeGroup() == null || form.includeGroup().isEmpty()) {
@@ -102,10 +111,20 @@ public class MessageController {
                 LocalDateTime.of(form.sendDate(), LocalTime.of(form.sendHour(), form.sendMinute())),
                 form.content());
         }
+        // 전송이 전체 인 경우
+        else if (form.targetType().equals(ALL.getType())) {
+            messageService.createMessageAllGroup(
+                1L, form.excludeGroup(),
+                LocalDateTime.of(form.sendDate(), LocalTime.of(form.sendHour(), form.sendMinute())),
+                form.content());
+        }
 
-        return "redirect:/admin/messages";
+        return "redirect:/admin/messages/list";
     }
 
+    /**
+     * 테스트 요청
+     */
     @PostMapping("/v1/send/test")
     public ResponseEntity<?> testDeliver(
         @RequestBody MessageTestForm form
@@ -119,8 +138,8 @@ public class MessageController {
 
     }
 
-    /*
-        Group model의 등록(메시지 보내기 화면에서 그룹 목록 보여주기)
+    /**
+     * Group model의 등록(메시지 보내기 화면에서 그룹 목록 보여주기)
      */
     private void registerGroupModel(Model model) {
         Page<Group> groupList = groupService.findGroupList(PageRequest.of(0, 1000));
@@ -132,8 +151,8 @@ public class MessageController {
         model.addAttribute("groupForm", groupNameList);
     }
 
-    /*
-        에러 발생 시 MessageSendForm을 다시 만들어줌.
+    /**
+     * 에러 발생 시 MessageSendForm을 다시 만들어줌.
      */
     private MessageSendForm initMessageSendFormByForm(MessageSendForm form) {
         return MessageSendForm.of(form.content(),
