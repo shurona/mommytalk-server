@@ -94,9 +94,6 @@ public class GroupController {
         @PathVariable("id") Long groupId,
         @RequestBody GroupAddUserRequestBody requestBody
     ) {
-
-        System.out.println("여긴가요? : " + requestBody);
-
         // 유저 추가
         groupService.addUserToGroup(groupId, requestBody.phoneNumberList());
 

@@ -105,7 +105,6 @@ public class GroupServiceImpl implements GroupService {
 
     @Transactional
     public void softDeleteGroup(List<Long> groupIdList) {
-        System.out.println(groupIdList);
         List<Group> groupList = groupRepository.findAllById(groupIdList);
         for (Group group : groupList) {
             for (UserGroup userGroup : group.getUserGroupList()) {
@@ -137,18 +136,12 @@ public class GroupServiceImpl implements GroupService {
 
     @Transactional
     public void deleteUserFromGroupByIds(Long id, List<Long> ids) {
-
-        System.out.println(id + " : " + ids);
-
         Optional<Group> groupInfo = groupRepository.findById(id);
         if (groupInfo.isEmpty()) {
             return;
         }
 
         groupInfo.get().getUserGroupList().clear();
-
-        System.out.println(ids);
-
         userGroupRepository.deleteAllById(ids);
     }
 

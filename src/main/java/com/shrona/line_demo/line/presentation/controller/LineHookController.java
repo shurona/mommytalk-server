@@ -77,7 +77,7 @@ public class LineHookController {
 
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error(e.getMessage());
         }
 
         return ResponseEntity.ok().build();

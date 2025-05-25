@@ -56,7 +56,7 @@ public class MessageController {
         String messageListUrl = "/admin/messages/list";
 
         Page<MessageLog> messageLogList = messageService.findMessageLogList(
-            PageRequest.of(pageNumber, 20));
+            PageRequest.of(pageNumber, 2));
 
         model.addAttribute("pagingInfo",
             PagingForm.of(
