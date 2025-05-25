@@ -1,0 +1,26 @@
+<!-- pagination.html -->
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 페이지네이션 -->
+<div class="pagination" th:fragment="pagination(pagingInfo)">
+  <ul>
+    <li th:if="${pagingInfo.hasPrevious()}">
+            <a class="page" th:href="@{__${pagingInfo.requestUrl}__(page=${pagingInfo.number - 1})}">이전</a>
+    </li>
+    <li th:each="i : ${#numbers.sequence((pagingInfo.number > 7 ? pagingInfo.number - 7 : 0), 
+        (pagingInfo.number + 7 < pagingInfo.totalPages ? pagingInfo.number + 7 : pagingInfo.totalPages - 1))}">
+        
+      <a class="page"
+         th:href="@{__${pagingInfo.requestUrl}__(page=${i})}"
+         th:classappend="${i == pagingInfo.number} ? 'active'">
+        <span th:text="${i + 1}">1</span>
+      </a>
+    </li>
+    <li th:if="${pagingInfo.hasNext()}">
+            <a class="page" th:href="@{__${pagingInfo.requestUrl}__(page=${pagingInfo.number + 1})}">다음</a>
+    </li>
+  </ul>
+</div>
+</body>
+</html>
