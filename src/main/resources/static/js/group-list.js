@@ -75,6 +75,7 @@ document.getElementById('createGroupModal').addEventListener('submit', function(
 
   // 휴대전화번호 형식 검증
   for (let i = 0; i < phoneNumberList.length; i++) {
+    phoneNumberList[i] = phoneNumberList[i].trim(); // 공백 제거
     if (!/^\d{3}-\d{4}-\d{4}$/.test(phoneNumberList[i])) {
       alert('휴대전화번호 형식이 올바르지 않습니다.');
       return;
