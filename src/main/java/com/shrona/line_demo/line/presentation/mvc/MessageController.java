@@ -49,7 +49,7 @@ public class MessageController {
 
     @GetMapping("/list")
     public String messageListView(
-        @RequestParam(value = "page", defaultValue = "1") int pageNumber,
+        @RequestParam(value = "page", defaultValue = "0") int pageNumber,
         Model model
     ) {
         // 메시지 목록 url

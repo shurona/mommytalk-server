@@ -34,7 +34,7 @@ public class GroupController {
 
     @GetMapping("/list")
     public String groupListView(
-        @RequestParam(value = "page", defaultValue = "1") int pageNumber,
+        @RequestParam(value = "page", defaultValue = "0") int pageNumber,
         Model model
     ) {
 
