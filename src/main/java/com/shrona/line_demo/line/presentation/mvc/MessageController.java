@@ -2,7 +2,10 @@ package com.shrona.line_demo.line.presentation.mvc;
 
 import static com.shrona.line_demo.line.presentation.form.TargetType.GROUP;
 
+import com.shrona.line_demo.common.dto.PagingForm;
 import com.shrona.line_demo.line.application.MessageService;
+import com.shrona.line_demo.line.domain.MessageLog;
+import com.shrona.line_demo.line.presentation.form.MessageListForm;
 import com.shrona.line_demo.line.presentation.form.MessageSendForm;
 import com.shrona.line_demo.line.presentation.form.TargetType;
 import com.shrona.line_demo.user.application.GroupService;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RequiredArgsConstructor
 @RequestMapping("/admin/messages")
@@ -44,7 +48,21 @@ public class MessageController {
     }
 
     @GetMapping("/list")
-    public String messageListView() {
+    public String messageListView(
+        @RequestParam(value = "page", defaultValue = "1") int pageNumber,
+        Model model
+    ) {
+        // 메시지 목록 url
+        String messageListUrl = "/admin/messages/list";
+
+        Page<MessageLog> messageLogList = messageService.findMessageLogList(
+            PageRequest.of(pageNumber, 20));
+
+        model.addAttribute("pagingInfo",
+            PagingForm.of(
+                messageLogList.getNumber(), messageLogList.getTotalPages(),
+                messageListUrl));
+        model.addAttribute("messages", messageLogList.map(MessageListForm::of).toList());
 
         return "message/list";
     }
@@ -61,6 +79,8 @@ public class MessageController {
             if (form.includeGroup() == null || form.includeGroup().isEmpty()) {
                 bindingResult.rejectValue("includeGroup", "error.non-group", "포함할 친구 그룹을 선택하세요.");
                 registerGroupModel(model);
+
+                // model의 기본 데이터를 초기화 해주고 binding result 새로 매핑해준다.
                 model.addAttribute("messageForm", initMessageSendFormByForm(form));
                 model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "messageForm", bindingResult);
 
@@ -72,9 +92,12 @@ public class MessageController {
                 form.content());
         }
 
-        return "redirect:/admin/message";
+        return "redirect:/admin/messages";
     }
 
+    /*
+        Group model의 등록(메시지 보내기 화면에서 그룹 목록 보여주기)
+     */
     private void registerGroupModel(Model model) {
         Page<Group> groupList = groupService.findGroupList(PageRequest.of(0, 1000));
 
@@ -85,6 +108,9 @@ public class MessageController {
         model.addAttribute("groupForm", groupNameList);
     }
 
+    /*
+        에러 발생 시 MessageSendForm을 다시 만들어줌.
+     */
     private MessageSendForm initMessageSendFormByForm(MessageSendForm form) {
         return MessageSendForm.of(form.content(),
             LocalDateTime.of(form.sendDate(), LocalTime.of(form.sendHour(), form.sendMinute())),

@@ -1,5 +1,6 @@
 package com.shrona.line_demo.user.presentation.controller;
 
+import com.shrona.line_demo.common.dto.PagingForm;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
 import com.shrona.line_demo.user.presentation.form.BuyerForm;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RequiredArgsConstructor
 @RequestMapping("/admin/groups")
@@ -32,11 +34,20 @@ public class GroupController {
 
     @GetMapping("/list")
     public String groupListView(
+        @RequestParam(value = "page", defaultValue = "1") int pageNumber,
         Model model
     ) {
 
-        Page<Group> groupWithPage = groupService.findGroupList(PageRequest.of(0, 1000));
+        String groupListUrl = "/admin/groups/list";
+
+        Page<Group> groupWithPage = groupService.findGroupList(PageRequest.of(pageNumber, 20));
         List<GroupForm> groupList = groupWithPage.stream().map(GroupForm::of).toList();
+
+        // 페이징 추가
+        model.addAttribute("pagingInfo",
+            PagingForm.of(
+                groupWithPage.getNumber(), groupWithPage.getTotalPages(),
+                groupListUrl));
 
         // group 추가
         model.addAttribute("groups", groupList);
