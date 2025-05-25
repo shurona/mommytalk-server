@@ -21,6 +21,12 @@ public interface MessageService {
     (Long messageTypeId, List<Long> groupId, LocalDateTime reserveTime, String content);
 
     /**
+     * 모든 그룹에 메시지 전송(제외 그룹 확인)
+     */
+    public List<MessageLog> createMessageAllGroup
+    (Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime, String content);
+
+    /**
      * 메시지 단일 조회
      */
     MessageLog findByMessageId(Long id);

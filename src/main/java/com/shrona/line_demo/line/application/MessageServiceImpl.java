@@ -49,6 +49,23 @@ public class MessageServiceImpl implements MessageService {
             .map(g -> MessageLog.messageLog(typeInfo.get(), g, reserveTime, content)).toList());
     }
 
+    @Transactional
+    public List<MessageLog> createMessageAllGroup
+        (Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime, String content) {
+
+        Optional<MessageType> typeInfo = messageTypeRepository.findById(messageTypeId);
+
+        // todo: 추후에 그룹이 많아지면 loop으로 처리
+        List<Group> groupInfo = groupService.findGroupListNotIn(exceptGroupIds);
+
+        if (typeInfo.isEmpty() || groupInfo.isEmpty()) {
+            return null;
+        }
+
+        return messageLogRepository.saveAll(groupInfo.stream()
+            .map(g -> MessageLog.messageLog(typeInfo.get(), g, reserveTime, content)).toList());
+    }
+
     @Override
     public MessageLog findByMessageId(Long id) {
         return messageLogRepository.findById(id).orElse(null);
