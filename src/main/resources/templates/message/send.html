@@ -61,10 +61,10 @@
           <div class="target-selects">
             <!-- 포함 선택 영역 -->
             <div class="target-select-group" id="includeGroupBox" style="display: none;">
-              <label>포함할 친구그룹</label>
+              <label>포함할 친구그룹 (<span id="includeCount">0</span>)</label>
               <!-- 드롭다운 버튼 -->
               <div class="custom-dropdown">
-                <button class="dropdown-toggle" onclick="toggleDropdown('includeDropdown')"
+                <button class="dropdown-toggle" onclick="toggleDropdown('includeDropdown', event)"
                         type="button">그룹선택 ▾
                 </button>
                 <!-- 드롭다운 박스 -->
@@ -84,10 +84,11 @@
 
             <!-- 제외 선택 영역 -->
             <div class="target-select-group" id="excludeGroupBox" style="display: none;">
-              <label>제외할 친구그룹</label>
+              <label>제외할 친구그룹 (<span id="excludeCount">0</span>)</label>
               <!-- 드롭다운 버튼 -->
               <div class="custom-dropdown">
-                <button class="dropdown-toggle" onclick="toggleDropdown('excludeDropdown')"
+
+                <button class="dropdown-toggle" onclick="toggleDropdown('excludeDropdown', event)"
                         type="button">그룹선택 ▾
                 </button>
                 <!-- 드롭다운 박스 -->
@@ -131,56 +132,12 @@
 
       <!-- 하단 버튼 -->
       <div class="form-row button-row">
-        <button class="btn btn-test" type="button">테스트 발송</button>
+        <button class="btn btn-test" type="button" onclick="sendTestMessage()">테스트 발송</button>
         <button class="btn btn-primary" type="submit">등록</button>
       </div>
     </form>
   </main>
 </div>
-<script>
-  // 글자 수 선택 및 preview 처리
-  document.addEventListener('DOMContentLoaded', function () {
-    const textarea = document.getElementById('content');
-    const preview = document.querySelector('.preview-message');
-    const charCount = document.getElementById('charCount');
-
-    function updatePreview() {
-      const value = textarea.value;
-      preview.innerHTML = value
-        .replace(/&/g, "&amp;")    // XSS 방지
-        .replace(/</g, "&lt;")     // HTML 이스케이프
-        .replace(/>/g, "&gt;")
-        .replace(/\n/g, "<br>");   // 줄바꿈을 <br>로
-      charCount.textContent = `${value.length}/500`;
-    }
-
-    textarea.addEventListener('input', updatePreview);
-
-    // 초기값이 있을 경우 반영
-    updatePreview();
-  });
-
-
-  // 그룹 토글 선택
-  function updateTargetUI() {
-    const target = document.querySelector('input[name="targetType"]:checked').value;
-    const includeBox = document.getElementById('includeGroupBox');
-    const excludeBox = document.getElementById('excludeGroupBox');
-
-    includeBox.style.display = target === 'GROUP' ? 'block' : 'none';
-    excludeBox.style.display = target === 'ALL' ? 'block' : 'none';
-  }
-
-  // 페이지 로드 시 초기화
-  document.addEventListener('DOMContentLoaded', updateTargetUI);
-
-
-  // 토글 드롭 다운
-  function toggleDropdown(id) {
-    const el = document.getElementById(id);
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
-  }
-
-</script>
+<script th:src="@{/js/send.js}"></script>
 </body>
 </html>
