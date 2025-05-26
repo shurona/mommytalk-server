@@ -10,7 +10,8 @@ public record LineUserForm(
 ) {
 
     public static LineUserForm of(String lineId, PhoneNumber phoneNumber, LocalDateTime joinDate) {
-        return new LineUserForm(lineId, phoneNumber.getPhoneNumber(), joinDate);
+        String phone = phoneNumber != null ? phoneNumber.getPhoneNumber() : "";
+        return new LineUserForm(lineId, phone, joinDate);
     }
 
 }
