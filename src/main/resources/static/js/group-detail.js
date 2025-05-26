@@ -66,7 +66,6 @@ function addPhoneNumbersToGroup() {
     }
   }
 
-
   // /admin/groups post 요청으로 데이터 전송
   fetch(`/admin/groups/${groupId}/users`, {
     method: 'POST',

@@ -1,6 +1,7 @@
 package com.shrona.line_demo.line.application.sender;
 
 import com.shrona.line_demo.admin.application.AdminService;
+import com.shrona.line_demo.admin.domain.AdminUser;
 import com.shrona.line_demo.line.application.MessageService;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.infrastructure.sender.LineMessageSenderClient;
@@ -62,8 +63,11 @@ public class MessageSenderImpl implements MessageSender {
 
         // Admin 라인 채널을 갖고 온다.
         List<String> lineIdList = adminService.findAdminUserList().stream()
-            .map(ad -> ad.getLineId())
+            .map(AdminUser::getLineId)
+            .filter(l -> l != null && !l.isEmpty())
             .toList();
+
+        System.out.println(lineIdList);
 
         // 테스트용 라인 메시지
         try {

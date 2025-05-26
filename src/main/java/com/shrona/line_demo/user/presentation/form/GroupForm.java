@@ -18,7 +18,8 @@ public record GroupForm(
 
         int friendCount = 0;
         for (UserGroup userGroup : group.getUserGroupList()) {
-            if (userGroup.getUser().getLineId() != null) {
+            if (userGroup.getUser().getLineId() != null &&
+                !userGroup.getUser().getLineId().isEmpty()) {
                 friendCount += 1;
             }
         }
