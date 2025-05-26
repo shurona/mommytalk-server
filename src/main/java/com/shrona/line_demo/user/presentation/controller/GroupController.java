@@ -99,14 +99,14 @@ public class GroupController {
     }
 
     @PostMapping("/{id}/users")
-    public String addUserToGroup(
+    public ResponseEntity<?> addUserToGroup(
         @PathVariable("id") Long groupId,
         @RequestBody GroupAddUserRequestBody requestBody
     ) {
         // 유저 추가
         groupService.addUserToGroup(groupId, requestBody.phoneNumberList());
 
-        return "redirect:/admin/groups/" + groupId;
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping
