@@ -13,6 +13,7 @@ import com.shrona.line_demo.line.presentation.form.MessageTestForm;
 import com.shrona.line_demo.line.presentation.form.TargetType;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -21,10 +22,12 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,6 +59,9 @@ public class MessageController {
         return "message/send";
     }
 
+    /**
+     * 메시지 목록 조회
+     */
     @GetMapping("/list")
     public String messageListView(
         @RequestParam(value = "page", defaultValue = "0") int pageNumber,
@@ -64,9 +70,12 @@ public class MessageController {
         // 메시지 목록 url
         String messageListUrl = "/admin/messages/list";
 
+        // 정렬을 포함해서 Pageable을 전달해서 메시지 목록을 받는다.
+        Sort sort = Sort.by(Sort.Order.desc("createdAt"));
         Page<MessageLog> messageLogList = messageService.findMessageLogList(
-            PageRequest.of(pageNumber, 15));
+            PageRequest.of(pageNumber, 15, sort));
 
+        // groupId : 유저 갯수 Map을 조회한다.
         Map<Long, Integer> groupUserCount = groupService.findGroupUserCount(
             messageLogList.map(m -> m.getGroup().getId()).toList());
 
@@ -89,19 +98,31 @@ public class MessageController {
     @PostMapping("/v1/send")
     public String sendMessage(
         Model model,
-        @ModelAttribute("messageForm") MessageSendForm form,
+        @Validated @ModelAttribute("messageForm") MessageSendForm form,
         BindingResult bindingResult
     ) {
+        // 날짜를 잘못 입력한 경우
+        if (form.sendDate() == null) {
+            // model의 기본 데이터를 초기화 해주고 binding result 새로 매핑해준다.
+            model.addAttribute("messageForm", initMessageSendFormByForm(form, LocalDate.now()));
+            model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "messageForm", bindingResult);
+
+            // group 목록 추가
+            registerGroupModel(model);
+            return "message/send";
+        }
 
         // 전송이 특정 그룹인 경우
         if (form.targetType().equals(GROUP.getType())) {
             // 그룹 타겟 전송인데 그룹이 비어있는 경우
             if (form.includeGroup() == null || form.includeGroup().isEmpty()) {
                 bindingResult.rejectValue("includeGroup", "error.non-group", "포함할 친구 그룹을 선택하세요.");
+
+                // group 목록 추가
                 registerGroupModel(model);
 
                 // model의 기본 데이터를 초기화 해주고 binding result 새로 매핑해준다.
-                model.addAttribute("messageForm", initMessageSendFormByForm(form));
+                model.addAttribute("messageForm", initMessageSendFormByForm(form, form.sendDate()));
                 model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "messageForm", bindingResult);
 
                 return "message/send";
@@ -154,9 +175,9 @@ public class MessageController {
     /**
      * 에러 발생 시 MessageSendForm을 다시 만들어줌.
      */
-    private MessageSendForm initMessageSendFormByForm(MessageSendForm form) {
+    private MessageSendForm initMessageSendFormByForm(MessageSendForm form, LocalDate localDate) {
         return MessageSendForm.of(form.content(),
-            LocalDateTime.of(form.sendDate(), LocalTime.of(form.sendHour(), form.sendMinute())),
+            LocalDateTime.of(localDate, LocalTime.of(form.sendHour(), form.sendMinute())),
             new ArrayList<>(), new ArrayList<>(), TargetType.valueOf(form.targetType()));
     }
 
