@@ -71,17 +71,24 @@ body {
 
 .preview-box {
   border: 1px solid #ccc;
-  padding: 12px;
+  padding: 8px 10px;
   background-color: #f9f9f9;
   min-height: 120px;
+  max-height: 300px;
   border-radius: 6px;
   font-size: 14px;
   line-height: 1.6;
-  white-space: pre-wrap; /* fallback */
+  display: flex;
+  align-items: flex-start;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
 .preview-message {
   color: #333;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .preview-link {
