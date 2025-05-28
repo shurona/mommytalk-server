@@ -23,7 +23,10 @@
       </thead>
       <tbody>
       <tr th:each="msg : ${messages}">
-        <td th:text="${#temporals.format(msg.sendDateTime, 'yyyy.MM.dd HH:mm')}"></td>
+        <!-- <td th:text="${#temporals.format(msg.sendDateTime, 'yyyy.MM.dd HH:mm')}"></td> -->
+        <td th:attr="data-utc=${#temporals.format(msg.sendDateTime, 'yyyy-MM-dd HH:mm')}">
+          <!-- <span th:text="'(UTC) ' + ${#temporals.format(msg.sendDateTime, 'yyyy.MM.dd HH:mm')}" /> -->
+        </td>
         <td th:text="${msg.content}"></td>
         <td th:text="${msg.receiverCount}"></td>
         <td th:text="${msg.status}"></td>
@@ -35,5 +38,17 @@
     <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo})}"></div>
   </div>
 </div>
+<script>
+  document.querySelectorAll('td[data-utc]').forEach(td => {
+    const utc = td.getAttribute('data-utc');
+    const date = new Date(utc);  // 브라우저가 자동으로 변환
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const h = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    td.textContent = `${y}-${m}-${d} ${h}:${min}`;
+  });
+</script>
 </body>
 </html>
