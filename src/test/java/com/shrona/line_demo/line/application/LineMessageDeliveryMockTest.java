@@ -1,6 +1,8 @@
 package com.shrona.line_demo.line.application;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -52,10 +54,14 @@ public class LineMessageDeliveryMockTest {
         when(messageRepository.findAllByReservedMessage(any(LocalDateTime.class)))
             .thenReturn(List.of(mockMessageLog));
         when(mockMessageLog.getGroup()).thenReturn(mockGroup);
-        when(mockGroup.getId()).thenReturn(1L);
-        when(groupService.findGroupById(1L, true))
+
+        // group mock
+        when(groupService.findGroupById(anyLong(), eq(true)))
             .thenReturn(mockGroup);
+        when(mockGroup.getId()).thenReturn(2L);
         when(mockGroup.getUserGroupList()).thenReturn(List.of(mockUserGroup));
+
+        // userGroup, user mock
         when(mockUserGroup.getUser()).thenReturn(mockUser);
         when(mockUser.getLineId()).thenReturn("LINE_USER_001");
 
@@ -75,12 +81,22 @@ public class LineMessageDeliveryMockTest {
         MessageLog mockMessageLog = mock(MessageLog.class);
         Group mockGroup = mock(Group.class);
 
+        UserGroup mockUserGroup = mock(UserGroup.class);
+        User mockUser = mock(User.class);
+
         when(messageRepository.findAllByReservedMessage(any(LocalDateTime.class)))
             .thenReturn(List.of(mockMessageLog));
         when(mockMessageLog.getGroup()).thenReturn(mockGroup);
-        when(mockGroup.getId()).thenReturn(1L);
-        when(groupService.findGroupById(1L, true))
+
+        // group mock
+        when(groupService.findGroupById(anyLong(), eq(true)))
             .thenReturn(mockGroup);
+        when(mockGroup.getId()).thenReturn(2L);
+        when(mockGroup.getUserGroupList()).thenReturn(List.of(mockUserGroup));
+
+        // userGroup, user mock
+        when(mockUserGroup.getUser()).thenReturn(mockUser);
+        when(mockUser.getLineId()).thenReturn("LINE_USER_001");
         doThrow(new RestClientResponseException("Error", 500, "Error", null, null, null))
             .when(lineMessageSenderClient).SendMulticastMessage(any());
 
