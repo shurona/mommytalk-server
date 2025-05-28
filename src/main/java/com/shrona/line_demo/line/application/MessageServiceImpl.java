@@ -1,5 +1,6 @@
 package com.shrona.line_demo.line.application;
 
+import com.shrona.line_demo.line.application.utils.MessageUtils;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.domain.MessageType;
 import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 @Service
 public class MessageServiceImpl implements MessageService {
 
@@ -26,6 +29,10 @@ public class MessageServiceImpl implements MessageService {
 
     // service
     private final GroupService groupService;
+
+    // Utils
+    private final MessageUtils messageUtils;
+
 
     @Transactional
     public MessageType createMessageType(String title, String text) {
@@ -45,8 +52,12 @@ public class MessageServiceImpl implements MessageService {
             return null;
         }
 
-        return messageLogRepository.saveAll(groupInfo.stream()
+        List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
             .map(g -> MessageLog.messageLog(typeInfo.get(), g, reserveTime, content)).toList());
+
+        messageUtils.registerTaskSchedule(messageLogList, reserveTime);
+
+        return messageLogList;
     }
 
     @Transactional
@@ -62,8 +73,12 @@ public class MessageServiceImpl implements MessageService {
             return null;
         }
 
-        return messageLogRepository.saveAll(groupInfo.stream()
+        List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
             .map(g -> MessageLog.messageLog(typeInfo.get(), g, reserveTime, content)).toList());
+
+        messageUtils.registerTaskSchedule(messageLogList, reserveTime);
+
+        return messageLogList;
     }
 
     @Override
@@ -73,6 +88,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Page<MessageLog> findMessageLogList(Pageable pageable) {
+
         return messageLogRepository.findAll(pageable);
     }
 

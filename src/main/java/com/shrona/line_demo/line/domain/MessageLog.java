@@ -66,4 +66,7 @@ public class MessageLog extends BaseEntity {
         this.sentTime = LocalDateTime.now();
     }
 
+    public void failedStatusBecauseError() {
+        this.status = ReservationStatus.FAIL;
+    }
 }
