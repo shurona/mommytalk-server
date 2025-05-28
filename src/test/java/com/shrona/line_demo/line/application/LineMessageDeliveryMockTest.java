@@ -9,11 +9,13 @@ import static org.mockito.Mockito.when;
 
 import com.shrona.line_demo.line.application.sender.MessageSenderImpl;
 import com.shrona.line_demo.line.domain.MessageLog;
+import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
 import com.shrona.line_demo.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.UserGroup;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +28,7 @@ import org.springframework.web.client.RestClientResponseException;
 public class LineMessageDeliveryMockTest {
 
     @Mock
-    private MessageService messageService;
+    private MessageLogJpaRepository messageRepository;
 
     @Mock
     private GroupService groupService;
@@ -47,7 +49,7 @@ public class LineMessageDeliveryMockTest {
         UserGroup mockUserGroup = mock(UserGroup.class);
         User mockUser = mock(User.class);
 
-        when(messageService.findReservedMessage())
+        when(messageRepository.findAllByReservedMessage(any(LocalDateTime.class)))
             .thenReturn(List.of(mockMessageLog));
         when(mockMessageLog.getGroup()).thenReturn(mockGroup);
         when(mockGroup.getId()).thenReturn(1L);
@@ -73,7 +75,7 @@ public class LineMessageDeliveryMockTest {
         MessageLog mockMessageLog = mock(MessageLog.class);
         Group mockGroup = mock(Group.class);
 
-        when(messageService.findReservedMessage())
+        when(messageRepository.findAllByReservedMessage(any(LocalDateTime.class)))
             .thenReturn(List.of(mockMessageLog));
         when(mockMessageLog.getGroup()).thenReturn(mockGroup);
         when(mockGroup.getId()).thenReturn(1L);
