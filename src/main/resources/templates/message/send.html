@@ -5,6 +5,8 @@
   <title>메시지 보내기 | Mommytalk english</title>
   <link rel="stylesheet" th:href="@{/css/send.css}">
   <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body>
 <div class="container">
@@ -115,20 +117,11 @@
       <div class="form-row schedule-row">
         <div class="form-group">
           <label class="form-label">발송 날짜/시간 설정</label>
-          <div class="datetime-inputs">
-            <input name="sendDate" placeholder="2025.00.00" th:field="*{sendDate}" type="text">
-            <select name="sendHour" th:field="*{sendHour}">
-              <option th:each="h : ${#numbers.sequence(0,23)}" th:text="${h}+'시'"
-                      th:value="${h}"></option>
-            </select>
-            <select name="sendMinute" th:field="*{sendMinute}">
-              <option th:each="m : ${#numbers.sequence(0,59,5)}"
-                      th:text="${m < 10 ? '0' + m : m} + '분'"
-                      th:value="${m}"></option>
-            </select>
-          </div>
-          <small class="form-text res-error" th:errors="*{sendDate}"
-                 th:if="${#fields.hasErrors('sendDate')}">날짜 데이터가 잘못 입력되었습니다.</small>
+          <input type="text" id="sendDateTime" name="sendDateTime" th:field="*{sendDateTime}"
+                 class="form-control flatpickr" placeholder="발송 날짜/시간을 선택하세요">
+          <input type="hidden" id="sendDateTimeUtc" name="sendDateTimeUtc" th:field="*{sendDateTimeUtc}">
+          <small class="form-text res-error" th:errors="*{sendDateTime}"
+                 th:if="${#fields.hasErrors('sendDateTime')}">날짜 데이터가 잘못 입력되었습니다.</small>
         </div>
       </div>
 

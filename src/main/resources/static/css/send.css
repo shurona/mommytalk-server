@@ -233,3 +233,13 @@ body {
     /* input과 에러 메시지 간격 조정 */
     margin-top: -4px;
 }
+
+/* Flatpickr input appearance */
+input#sendDateTime.flatpickr {
+  width: 200px;
+  padding: 8px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  box-sizing: border-box;
+}

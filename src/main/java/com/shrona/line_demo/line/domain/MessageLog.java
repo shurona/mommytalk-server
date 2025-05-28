@@ -18,10 +18,12 @@ import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction(BaseEntity.DEFAULT_CONDITION)
 @Table(name = "message_log")
 public class MessageLog extends BaseEntity {
 

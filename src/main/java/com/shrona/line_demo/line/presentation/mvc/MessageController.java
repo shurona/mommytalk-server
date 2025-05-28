@@ -13,9 +13,9 @@ import com.shrona.line_demo.line.presentation.form.MessageTestForm;
 import com.shrona.line_demo.line.presentation.form.TargetType;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,7 +27,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -98,19 +97,12 @@ public class MessageController {
     @PostMapping("/v1/send")
     public String sendMessage(
         Model model,
-        @Validated @ModelAttribute("messageForm") MessageSendForm form,
+        @ModelAttribute("messageForm") MessageSendForm form,
         BindingResult bindingResult
     ) {
-        // 날짜를 잘못 입력한 경우
-        if (form.sendDate() == null) {
-            // model의 기본 데이터를 초기화 해주고 binding result 새로 매핑해준다.
-            model.addAttribute("messageForm", initMessageSendFormByForm(form, LocalDate.now()));
-            model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "messageForm", bindingResult);
-
-            // group 목록 추가
-            registerGroupModel(model);
-            return "message/send";
-        }
+        ZonedDateTime serverDateTime = form.sendDateTimeUtc()
+            .withZoneSameInstant(ZoneId.systemDefault());
+        LocalDateTime localDateTime = serverDateTime.toLocalDateTime();
 
         // 전송이 특정 그룹인 경우
         if (form.targetType().equals(GROUP.getType())) {
@@ -122,22 +114,20 @@ public class MessageController {
                 registerGroupModel(model);
 
                 // model의 기본 데이터를 초기화 해주고 binding result 새로 매핑해준다.
-                model.addAttribute("messageForm", initMessageSendFormByForm(form, form.sendDate()));
+                model.addAttribute("messageForm", initMessageSendFormByForm(form));
                 model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "messageForm", bindingResult);
 
                 return "message/send";
             }
             messageService.createMessage(
                 1L, form.includeGroup(),
-                LocalDateTime.of(form.sendDate(), LocalTime.of(form.sendHour(), form.sendMinute())),
+                localDateTime,
                 form.content());
         }
         // 전송이 전체 인 경우
         else if (form.targetType().equals(ALL.getType())) {
             messageService.createMessageAllGroup(
-                1L, form.excludeGroup(),
-                LocalDateTime.of(form.sendDate(), LocalTime.of(form.sendHour(), form.sendMinute())),
-                form.content());
+                1L, form.excludeGroup(), localDateTime, form.content());
         }
 
         return "redirect:/admin/messages/list";
@@ -175,10 +165,9 @@ public class MessageController {
     /**
      * 에러 발생 시 MessageSendForm을 다시 만들어줌.
      */
-    private MessageSendForm initMessageSendFormByForm(MessageSendForm form, LocalDate localDate) {
-        return MessageSendForm.of(form.content(),
-            LocalDateTime.of(localDate, LocalTime.of(form.sendHour(), form.sendMinute())),
-            new ArrayList<>(), new ArrayList<>(), TargetType.valueOf(form.targetType()));
+    private MessageSendForm initMessageSendFormByForm(MessageSendForm form) {
+        return MessageSendForm.of(form.content(), form.sendDateTime(), new ArrayList<>(),
+            new ArrayList<>(), TargetType.valueOf(form.targetType()));
     }
 
 }
