@@ -127,6 +127,8 @@
                       th:value="${m}"></option>
             </select>
           </div>
+          <small class="form-text res-error" th:errors="*{sendDate}"
+                 th:if="${#fields.hasErrors('sendDate')}">날짜 데이터가 잘못 입력되었습니다.</small>
         </div>
       </div>
 
