@@ -56,7 +56,7 @@ public class MessageSenderImpl implements MessageSender {
 
     @Transactional
     public void sendLineMessageByReservationByMessageIds(List<Long> messageIds) {
-        log.info("발송 준비 중 : {}", messageIds);
+        log.info("발송 시작  : {}", messageIds);
         List<MessageLog> messageLogList = messageRepository.findAllById(messageIds);
         for (MessageLog messageLog : messageLogList) {
             // 예약 상태가 아니면 패스
