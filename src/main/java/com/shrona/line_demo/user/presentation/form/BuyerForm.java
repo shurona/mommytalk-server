@@ -23,8 +23,8 @@ public record BuyerForm(
             userGroup.getUser().getPhoneNumber().getPhoneNumber(),
             userGroup.getUser().getLineId(),
             addMethod,
-            userGroup.getCreatedAt(),
-            userGroup.getUpdatedAt()
+            userGroup.getCreatedAt().plusHours(9), // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경,
+            userGroup.getUpdatedAt().plusHours(9) // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경
         );
     }
 

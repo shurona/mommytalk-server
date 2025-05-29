@@ -16,8 +16,8 @@ public record MessageListForm(
     public static MessageListForm of(MessageLog messageLog, Map<Long, Integer> groupUserCount) {
         return new MessageListForm(
             messageLog.getId(),
-            messageLog.getReserveTime(),
-            messageLog.getCreatedAt(),
+            messageLog.getReserveTime().plusHours(9), // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경
+            messageLog.getCreatedAt().plusHours(9),
             messageLog.getContent(),
             groupUserCount.getOrDefault(messageLog.getGroup().getId(), 0),
             messageLog.getStatus().getStatus()

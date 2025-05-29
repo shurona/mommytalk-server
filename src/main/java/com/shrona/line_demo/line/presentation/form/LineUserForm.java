@@ -11,7 +11,9 @@ public record LineUserForm(
 
     public static LineUserForm of(String lineId, PhoneNumber phoneNumber, LocalDateTime joinDate) {
         String phone = phoneNumber != null ? phoneNumber.getPhoneNumber() : "";
-        return new LineUserForm(lineId, phone, joinDate);
+        return new LineUserForm(lineId,
+            phone,
+            joinDate.plusHours(9)); // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경
     }
 
 }

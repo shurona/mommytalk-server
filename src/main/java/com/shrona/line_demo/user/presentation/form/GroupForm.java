@@ -29,8 +29,8 @@ public record GroupForm(
             group.getName(),
             group.getDescription(),
             friendCount, group.getUserGroupList().size(),
-            group.getCreatedAt(),
-            group.getUpdatedAt()
+            group.getCreatedAt().plusHours(9), // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경,
+            group.getUpdatedAt().plusHours(9) // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경
         );
     }
 
