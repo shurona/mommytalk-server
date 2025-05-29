@@ -25,7 +25,7 @@ public class LineHookController {
     private final LineService lineService;
     private final LineValidation lineValidation;
 
-    //
+    // object Mapper
     private final ObjectMapper objectMapper;
 
     @GetMapping
@@ -33,7 +33,7 @@ public class LineHookController {
         return ResponseEntity.ok().body("안녕하세요~");
     }
 
-    @PostMapping
+    @PostMapping("/mommy-test")
     public ResponseEntity<String> rcvLineHook(
         @RequestHeader("x-line-signature") String header,
         @RequestBody String requestBodyOrigin
