@@ -4,22 +4,28 @@
 <body>
 <div th:fragment="sidebar">
   <aside class="sidebar">
-    <div class="sidebar-title">Mommytalk english</div>
+    <div class="sidebar-title">
+      <a th:href="@{/admin}"  th:text="${channelInfo.name}">Mommytalk english</a>
+    </div>
     <nav class="sidebar-menu">
       <ul>
         <li class="menu-section">메시지</li>
-          <li class="menu-item" th:classappend="${currentPath == '/admin/messages'} ? 'active'">
-          <a href="/admin/messages"><span>메시지 보내기</span></a>
+        <li class="menu-item" 
+            th:classappend="${currentPath == '/admin/channels/' + channelInfo.id + '/messages'} ? 'active'">
+          <a th:href="@{/admin/channels/{channelId}/messages(channelId=${channelInfo.id})}"><span>메시지 보내기</span></a>
         </li>
-        <li class="menu-item" th:classappend="${currentPath == '/admin/messages/list'} ? 'active'">
-          <a href="/admin/messages/list"><span>메시지 목록</span></a>
+        <li class="menu-item"
+            th:classappend="${currentPath == '/admin/channels/' + channelInfo.id + '/messages/list'} ? 'active'">
+          <a th:href="@{/admin/channels/{channelId}/messages/list(channelId=${channelInfo.id})}"><span>메시지 목록</span></a>
         </li>
         <li class="menu-section">친구 그룹</li>
-            <li class="menu-item" th:classappend="${currentPath == '/admin/line/friends/list'} ? 'active'">
-          <a href="/admin/line/friends/list"><span>전체 라인 친구</span></a>
+        <li class="menu-item"
+            th:classappend="${currentPath == '/admin/channels/' + channelInfo.id + '/friends/list'} ? 'active'">
+          <a th:href="@{/admin/channels/{channelId}/friends/list(channelId=${channelInfo.id})}"><span>전체 라인 친구</span></a>
         </li>
-        <li class="menu-item" th:classappend="${currentPath == '/admin/groups/list'} ? 'active'">
-          <a href="/admin/groups/list"><span>구매자 그룹</span></a>
+        <li class="menu-item"
+            th:classappend="${currentPath == '/admin/channels/' + channelInfo.id + '/groups/list'} ? 'active'">
+          <a th:href="@{/admin/channels/{channelId}/groups/list(channelId=${channelInfo.id})}"><span>구매자 그룹</span></a>
         </li>
         <li class="menu-section"><span>테스트 발송 대상 설정</span></li>
       </ul>
