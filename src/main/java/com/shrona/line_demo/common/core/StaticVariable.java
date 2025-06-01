@@ -9,6 +9,11 @@ public class StaticVariable {
     public final static int LOGIN_SESSION_TIME = 30 * 60;
 
     /**
+     * 로그인 view
+     */
+    public final static String HOME_VIEW = "home";
+
+    /**
      * 쓰레드 스케쥴 최대 크기
      */
     public final static int POOL_SIZE = 2;
