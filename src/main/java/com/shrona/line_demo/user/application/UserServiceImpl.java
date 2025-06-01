@@ -97,12 +97,18 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    /**
+     * 새로 생긴 유저와 존재하는 유저 목록을 하나로 합쳐서 List로 반환한다.
+     */
     private List<User> combineUsers(List<User> existing, List<User> newUsers) {
         return Stream.concat(existing.stream(), newUsers.stream())
             .toList();
     }
 
 
+    /**
+     * foundPhoneNumbers 존재하지 않는 휴대전화 목록을 반환한다.
+     */
     private List<PhoneNumber> findNotFoundPhoneNumbers(
         List<PhoneNumber> userPhoneList,
         Set<PhoneNumber> foundPhoneNumbers
@@ -112,6 +118,9 @@ public class UserServiceImpl implements UserService {
             .toList();
     }
 
+    /**
+     * [휴대전화 : 라인 유저] 형식으로 매핑해준다.
+     */
     private Map<PhoneNumber, LineUser> createPhoneToLineUserMap(List<PhoneNumber> notFoundNumbers) {
         List<LineUser> lineUsers = lineUserRepository.findByPhoneNumberIn(notFoundNumbers);
         return lineUsers.stream()
@@ -121,8 +130,8 @@ public class UserServiceImpl implements UserService {
             ));
     }
 
-    /*
-        라인이 있는 유저와 없는 유저와 구분해서 User 객체 생성
+    /**
+     * 라인이 있는 유저와 없는 유저와 구분해서 User 객체 생성
      */
     private List<User> createNewUsers(
         List<PhoneNumber> notFoundNumbers,
