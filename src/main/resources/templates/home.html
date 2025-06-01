@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <title>서비스 자산</title>
@@ -18,14 +18,15 @@
     }
     .center-container {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
-        height: 60vh;
+        margin-top: 40px;
     }
     .service-btn {
         width: 700px;
         max-width: 90vw;
         padding: 24px 0;
+        margin-bottom: 20px;
         background: #d9d9d9;
         border: none;
         border-radius: 20px;
@@ -44,7 +45,12 @@
 <body>
 <div class="title">서비스 자산</div>
 <div class="center-container">
-  <button class="service-btn" onclick="location.href='/admin/messages'">Mommytalk english</button>
+  <div th:each="channel : ${channels}">
+    <button class="service-btn"
+            th:text="${channel.name}"
+            th:onclick="'location.href=\'/admin/channels/' + ${channel.id} + '/messages\''">
+    </button>
+  </div>
 </div>
 </body>
 </html>
