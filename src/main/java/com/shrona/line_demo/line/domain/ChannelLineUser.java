@@ -57,6 +57,6 @@ public class ChannelLineUser extends BaseEntity {
     }
 
     public void changeFollowStatus(boolean status) {
-        this.follow = true;
+        this.follow = status;
     }
 }

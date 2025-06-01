@@ -61,12 +61,8 @@ public class ChannelHookServiceImpl implements ChannelHookService {
             return;
         }
 
-        System.out.println("채널 통과");
-
         LineUser lineUserInfo = lineService.findOrCreateLineUser(lineId);
-
-        System.out.println("라인 유저 확인 통과 " + lineUserInfo.getLineId());
-
+        
         lineService.unfollowChannelAndLineUser(channelById.get(), lineUserInfo);
     }
 
