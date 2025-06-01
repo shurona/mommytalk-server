@@ -54,7 +54,6 @@ public class ChannelHookServiceImpl implements ChannelHookService {
 
     @Transactional
     public void unfollowLineUserByLineId(Long channelId, String lineId) {
-        System.out.println("언팔로우 시작");
         Optional<Channel> channelById = channelService.findChannelById(channelId);
         // 채널 정보가 없으면 패스 => 잘못된 요청
         if (channelById.isEmpty()) {
@@ -62,7 +61,7 @@ public class ChannelHookServiceImpl implements ChannelHookService {
         }
 
         LineUser lineUserInfo = lineService.findOrCreateLineUser(lineId);
-        
+
         lineService.unfollowChannelAndLineUser(channelById.get(), lineUserInfo);
     }
 
