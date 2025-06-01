@@ -1,10 +1,14 @@
 package com.shrona.line_demo.line.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.shrona.line_demo.line.common.exception.LineException;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
 import com.shrona.line_demo.linehook.infrastructure.LineMessageJpaRepository;
@@ -56,10 +60,15 @@ class LineServiceMockTest {
     @Test
     public void 라인유저_휴대전화_변경_테스트() {
 
+        PhoneNumber mockPhoneNumber = mock(PhoneNumber.class);
         String phoneNumber = "010-2323-2323";
         when(lineUserRepository.findById(anyLong())).thenReturn(Optional.of(
             LineUser.createLineUser("lineIdId")));
-        when(userJpaRepository.findByPhoneNumber(any(PhoneNumber.class))).thenReturn(null);
+        when(userJpaRepository.findByPhoneNumber(any(PhoneNumber.class))).thenReturn(
+            Optional.empty());
+        when(userJpaRepository.findByPhoneNumber(eq(null))).thenReturn(
+            Optional.empty());
+
         LineUser lineUser = lineService.updateLineUserPhoneNumber(1L, phoneNumber);
 
         Assertions.assertThat(lineUser.getPhoneNumber().getPhoneNumber()).isEqualTo(phoneNumber);
@@ -72,10 +81,10 @@ class LineServiceMockTest {
         String phoneNumber = "010-2323-223";
         when(lineUserRepository.findById(anyLong())).thenReturn(Optional.of(
             LineUser.createLineUser("lineIdId")));
-        when(userJpaRepository.findByPhoneNumber(any(PhoneNumber.class))).thenReturn(null);
-        LineUser lineUser = lineService.updateLineUserPhoneNumber(1L, phoneNumber);
 
-        Assertions.assertThat(lineUser.getPhoneNumber()).isNull();
+        assertThatThrownBy(() ->
+            lineService.updateLineUserPhoneNumber(1L, phoneNumber)
+        ).isInstanceOf(LineException.class);
     }
 
 }
