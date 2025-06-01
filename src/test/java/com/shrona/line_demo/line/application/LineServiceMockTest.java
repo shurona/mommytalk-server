@@ -1,6 +1,7 @@
 package com.shrona.line_demo.line.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
@@ -8,6 +9,7 @@ import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
 import com.shrona.line_demo.linehook.infrastructure.LineMessageJpaRepository;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
+import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +24,9 @@ class LineServiceMockTest {
 
     @InjectMocks
     private LineServiceImpl lineService;
+
+    @Mock
+    private UserJpaRepository userJpaRepository;
 
     @Mock
     private LineUserJpaRepository lineUserRepository;
@@ -54,6 +59,7 @@ class LineServiceMockTest {
         String phoneNumber = "010-2323-2323";
         when(lineUserRepository.findById(anyLong())).thenReturn(Optional.of(
             LineUser.createLineUser("lineIdId")));
+        when(userJpaRepository.findByPhoneNumber(any(PhoneNumber.class))).thenReturn(null);
         LineUser lineUser = lineService.updateLineUserPhoneNumber(1L, phoneNumber);
 
         Assertions.assertThat(lineUser.getPhoneNumber().getPhoneNumber()).isEqualTo(phoneNumber);
@@ -66,6 +72,7 @@ class LineServiceMockTest {
         String phoneNumber = "010-2323-223";
         when(lineUserRepository.findById(anyLong())).thenReturn(Optional.of(
             LineUser.createLineUser("lineIdId")));
+        when(userJpaRepository.findByPhoneNumber(any(PhoneNumber.class))).thenReturn(null);
         LineUser lineUser = lineService.updateLineUserPhoneNumber(1L, phoneNumber);
 
         Assertions.assertThat(lineUser.getPhoneNumber()).isNull();
