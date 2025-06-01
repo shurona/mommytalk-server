@@ -121,7 +121,6 @@ class ChannelHookServiceImplTest {
             Optional.of(mock(LineUser.class)));
 
         String phoneNumber = "010-1234-1234";
-//        String wrongPhoneNumber = "010-12-1234";
 
         // when
         channelHookService.sendLineMessageAfterSuccess(channel.getId(), lineUserOne.getLineId(),

@@ -115,6 +115,9 @@ public class LineServiceImpl implements LineService {
 
     @Transactional
     public void unfollowChannelAndLineUser(Channel channel, LineUser lineUser) {
+
+        System.out.println("언팔로우 내부 함수 까지 진입");
+
         channelLineUserRepository.findByChannelAndLineUser(channel, lineUser)
             .ifPresent(channelLineUser -> channelLineUser.changeFollowStatus(false));
 
