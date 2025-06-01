@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * @deprecated
+ * interceptor로 헤더 정보 공통 처리
  */
 public class ChannelIdInterceptor implements HandlerInterceptor {
 
