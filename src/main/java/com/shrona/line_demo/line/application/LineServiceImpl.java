@@ -39,6 +39,11 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
+    public Optional<LineUser> findLineUserByPhoneNumber(String phoneNumber) {
+        return lineUserRepository.findByPhoneNumber(PhoneNumber.changeWithoutError(phoneNumber));
+    }
+
+    @Override
     public Page<ChannelLineUser> findChannelLineUserListByChannel(
         Channel channel, Pageable pageable) {
         return channelLineUserRepository.findAllByChannel(channel, pageable);

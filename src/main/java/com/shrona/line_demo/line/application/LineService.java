@@ -15,6 +15,11 @@ public interface LineService {
     public Optional<LineUser> findLineUserByLineId(String lineId);
 
     /**
+     * 휴대전화를 기준으로 라인 유저 조회
+     */
+    public Optional<LineUser> findLineUserByPhoneNumber(String phoneNumber);
+
+    /**
      * 라인 유저 목록 조회
      */
     public Page<ChannelLineUser> findChannelLineUserListByChannel(
