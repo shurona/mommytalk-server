@@ -101,6 +101,7 @@ function sendTestMessage() {
   });
 }
 
+// 날짜 시간 설정 및 UTC 반환
 document.addEventListener('DOMContentLoaded', function () {
   const picker = flatpickr("#sendDateTime", {
     enableTime: true,
