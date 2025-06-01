@@ -2,6 +2,7 @@ package com.shrona.line_demo.line.application.sender;
 
 import com.shrona.line_demo.admin.application.AdminService;
 import com.shrona.line_demo.admin.domain.AdminUser;
+import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.domain.type.ReservationStatus;
 import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
@@ -9,7 +10,9 @@ import com.shrona.line_demo.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.line_demo.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +29,8 @@ public class MessageSenderImpl implements MessageSender {
     // status int
     private static final int FAIL = 0;
     private static final int SUCCESS = 1;
+    //
+    private static final String prefixHeader = "Bearer ";
     // restClient
     private final LineMessageSenderClient lineMessageSenderClient;
     // Service
@@ -63,6 +68,7 @@ public class MessageSenderImpl implements MessageSender {
             if (!messageLog.getStatus().equals(ReservationStatus.PREPARE)) {
                 continue;
             }
+
             // 메시지 전송
             int sendStatus = sendMessageToLine(messageLog);
 
@@ -76,7 +82,7 @@ public class MessageSenderImpl implements MessageSender {
     }
 
     @Override
-    public boolean sendTestLineMessage(String text) {
+    public boolean sendTestLineMessage(Channel channel, String text) {
 
         // Admin 라인 채널을 갖고 온다.
         List<String> lineIdList = adminService.findAdminUserList().stream()
@@ -86,13 +92,19 @@ public class MessageSenderImpl implements MessageSender {
 
         log.info("[테스트 메시지] 메시지 발송 아이디 목록 {}", lineIdList);
 
+        String accessToken = channel.getAccessToken();
+
+        // accessToken을 Base64 -> utf8로 변환한다.
+        String decodedString = base64ToUtf8(accessToken);
+
         // 테스트용 라인 메시지
         try {
             LineMessageMulticastRequestBody lineMessageMulticastRequestBody
                 = LineMessageMulticastRequestBody.of(lineIdList, text);
 
             // 메시지 전송
-            lineMessageSenderClient.SendMulticastMessage(lineMessageMulticastRequestBody);
+            lineMessageSenderClient.SendMulticastMessage(prefixHeader + decodedString,
+                lineMessageMulticastRequestBody);
         } catch (Exception e) {
             log.error("에러 발생 : " + e.getMessage());
             return false;
@@ -109,18 +121,23 @@ public class MessageSenderImpl implements MessageSender {
         Group groupInfo = groupService.findGroupById(messageLog.getGroup().getId(), true);
         List<String> lineIdList = groupInfo.getUserGroupList().stream()
             .filter(
-                gu -> gu.getUser().getLineId() != null
-                    && !gu.getUser().getLineId().isEmpty()) // 연결된 라인 아이디가 있는지 확인한다.
+                gu -> gu.getUser().getLineId() != null)// 연결된 라인 아이디가 있는지 확인한다.
+            .filter(gu -> !gu.getUser().getLineId().isEmpty())
             .map(gu -> gu.getUser().getLineId()).toList();
 
-        // 목록이 비어 있으면 보내지 않는다.
-        if (lineIdList.isEmpty()) {
+        String accessToken = groupInfo.getChannel().getAccessToken();
+        // 목록 및 accessToken이 비어 있으면 보내지 않는다.
+        if (lineIdList.isEmpty() || accessToken.isBlank()) {
             return SUCCESS;
         }
 
+        // accessToken을 Base64 -> utf8로 변환한다.
+        String decodedString = base64ToUtf8(accessToken);
+
         // 라인 메시지 전송
         try {
-            lineMessageSenderClient.SendMulticastMessage(
+            //TODO: 인원수가 많아지면 나눠서 전송
+            lineMessageSenderClient.SendMulticastMessage(prefixHeader + decodedString,
                 LineMessageMulticastRequestBody.of(lineIdList, messageLog.getContent()));
         } catch (RestClientResponseException e) {
             // TODO: 어떻게 처리할까
@@ -129,5 +146,10 @@ public class MessageSenderImpl implements MessageSender {
         }
 
         return SUCCESS;
+    }
+
+    private String base64ToUtf8(String accessToken) {
+        byte[] decodedBytes = Base64.getDecoder().decode(accessToken);
+        return new String(decodedBytes, StandardCharsets.UTF_8);
     }
 }

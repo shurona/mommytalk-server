@@ -76,8 +76,9 @@ function updateGroupCount(groupName, counterId) {
 // 테스트 발송 버튼 클릭시 Post 요청
 function sendTestMessage() {
   const content = document.getElementById('content').value;
+  const channelId = document.getElementById('groupMeta').dataset.channelId;
 
-  fetch('/admin/messages/v1/send/test', {
+  fetch(`/admin/channels/${channelId}/messages/v1/send/test`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -108,7 +109,6 @@ document.addEventListener('DOMContentLoaded', function () {
     dateFormat: "Y-m-d H:i",
     allowInput: true,
     onChange: function (selectedDates, dateStr, instance) {
-      console.log("열려요 : " + dateStr);
       if (selectedDates.length > 0) {
         document.getElementById('sendDateTime').value = dateStr;
         const utc = selectedDates[0].toISOString();
@@ -117,10 +117,8 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     onClose: function (selectedDates, dateStr, instance) {
       const inputValue = instance.input.value;  // 사용자가 직접 입력한 값
-      console.log("사용자 입력:", inputValue);
 
       // 수동입력 시에도 value에서 재파싱
-      console.log("ㅇㅇㅇㅇ : " + dateStr);
       let parsed = instance.parseDate(instance.input.value, "Y-m-d H:i");
       if (parsed) {
         document.getElementById('sendDateTime').value = inputValue;

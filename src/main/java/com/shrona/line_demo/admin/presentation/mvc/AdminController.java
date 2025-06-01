@@ -1,12 +1,18 @@
 package com.shrona.line_demo.admin.presentation.mvc;
 
+import static com.shrona.line_demo.common.core.StaticVariable.HOME_VIEW;
+
 import com.shrona.line_demo.admin.application.AdminService;
 import com.shrona.line_demo.admin.domain.AdminUser;
 import com.shrona.line_demo.admin.presentation.form.LoginForm;
 import com.shrona.line_demo.common.core.StaticVariable;
 import com.shrona.line_demo.common.session.UserSession;
+import com.shrona.line_demo.line.application.ChannelService;
+import com.shrona.line_demo.line.domain.Channel;
+import com.shrona.line_demo.line.presentation.form.ChannelListForm;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,7 +28,9 @@ import org.springframework.web.bind.annotation.SessionAttribute;
 @Controller
 public class AdminController {
 
+    // Service
     private final AdminService adminService;
+    private final ChannelService channelService;
 
     @GetMapping({"", "/"})
     public String homeView(
@@ -36,7 +44,11 @@ public class AdminController {
             return "login";
         }
 
-        return "home";
+        // 채널 정보를 갖고 와서 model로 넘겨준다.
+        List<Channel> channelList = channelService.findChannelList();
+        model.addAttribute("channels", channelList.stream().map(ChannelListForm::of).toList());
+
+        return HOME_VIEW;
     }
 
     @PostMapping("/v1/login")

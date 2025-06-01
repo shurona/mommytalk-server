@@ -88,4 +88,10 @@ public class User extends BaseEntity {
         this.lineId = lineUser.getLineId();
     }
 
+    public void clearLineUserAndPhoneNumber() {
+        this.lineId = null;
+        this.lineUser = null;
+        this.phoneNumber = null;
+    }
+
 }

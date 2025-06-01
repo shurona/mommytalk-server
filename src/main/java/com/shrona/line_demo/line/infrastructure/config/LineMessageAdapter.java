@@ -21,14 +21,10 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 public class LineMessageAdapter {
 
     private final String lineBaseUrl;
-    private final String lineAccessKey;
-
 
     public LineMessageAdapter(
-        @Value("${line.base-url}") String lineBaseUrl,
-        @Value("${line.access-token}") String lineAccessKey) {
+        @Value("${line.base-url}") String lineBaseUrl) {
         this.lineBaseUrl = lineBaseUrl;
-        this.lineAccessKey = lineAccessKey;
     }
 
     @Bean
@@ -37,9 +33,6 @@ public class LineMessageAdapter {
         RestClient restClient = RestClient.builder()
             .baseUrl(lineBaseUrl + "/multicast")
 //            .requestInterceptor(logRequestInterceptor())
-            .defaultHeaders(headers -> {
-                headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + lineAccessKey);
-            })
             .build();
 
         RestClientAdapter adapter = RestClientAdapter.create(restClient);

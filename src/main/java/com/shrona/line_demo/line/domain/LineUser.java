@@ -32,30 +32,22 @@ public class LineUser extends BaseEntity {
     @Embedded
     private PhoneNumber phoneNumber;
 
-    @Column
-    private boolean follow;
-
-    @Column
-    private boolean purchased;
-
     @OneToMany(mappedBy = "lineUser")
-    private List<LineMessage> lineMessageList = new ArrayList<>();
+    private List<ChannelLineUser> channelLineUserList = new ArrayList<>();
 
     public static LineUser createLineUser(String lineId) {
         LineUser lineUser = new LineUser();
 
         lineUser.lineId = lineId;
-        lineUser.follow = true;
-        lineUser.purchased = false;
 
         return lineUser;
     }
 
-    public void changeFollowStatus(boolean status) {
-        this.follow = true;
-    }
 
     public void settingPhoneNumber(PhoneNumber phone) {
-        this.phoneNumber = phone;
+        // null이 아닌 경우에만 바꿔준다.
+        if (phone != null) {
+            this.phoneNumber = phone;
+        }
     }
 }

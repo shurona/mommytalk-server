@@ -13,6 +13,9 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByPhoneNumber(PhoneNumber phoneNumber);
 
+    /**
+     * 라인 유저가 비어있으면서 휴대전화와 매칭되는 유저를 갖고 온다.
+     */
     Optional<User> findByPhoneNumberAndLineUserIsNull(PhoneNumber phoneNumber);
 
 }

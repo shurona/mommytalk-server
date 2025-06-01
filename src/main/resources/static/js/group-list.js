@@ -64,6 +64,9 @@ document.getElementById('createGroupModal').addEventListener('submit', function(
   const description = document.getElementById('groupDescription').value;
   const phoneNumbers = document.getElementById('friendNames').value;
 
+  // event.target은 form 요소를 가리킵니다.
+  const form = event.target; // 또는 event.currentTarget
+
   // friendsNames 배열로 변환 및 휴대전화 번호 형식 검증 후 오류 메시지 출력
   const phoneNumberList = phoneNumbers.split('\n');
 
@@ -83,7 +86,7 @@ document.getElementById('createGroupModal').addEventListener('submit', function(
   }
 
   // /admin/groups post 요청으로 데이터 전송
-  fetch('/admin/groups', {
+  fetch(form.action, {
     method: 'POST',
     body: JSON.stringify({ name, description, phoneNumberList }),
     headers: {
@@ -110,6 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function removeSelectedGroups() {
   const checkboxes = document.querySelectorAll("tbody input[name='selectedGroups']:checked");
   const groupIds = Array.from(checkboxes).map(cb => cb.value);
+  const channelId = document.getElementById('groupMeta').dataset.channelId;
 
   if (groupIds.length === 0) {
     alert('선택된 그룹이 없습니다.');
@@ -121,7 +125,7 @@ function removeSelectedGroups() {
   }
 
   // 요청 전송
-  fetch('/admin/groups', {
+  fetch(`/admin/channels/${channelId}/groups`, {
     method: 'DELETE',
     body: JSON.stringify({ groupIds }),
     headers: {

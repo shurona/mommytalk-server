@@ -1,6 +1,7 @@
 package com.shrona.line_demo.line.application;
 
 import com.shrona.line_demo.line.application.utils.MessageUtils;
+import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.domain.MessageType;
 import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
@@ -16,6 +17,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -42,8 +45,9 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Transactional
-    public List<MessageLog> createMessage
-        (Long messageTypeId, List<Long> groupIds, LocalDateTime reserveTime, String content) {
+    public List<MessageLog> createMessageSelectGroup
+        (Channel channel, Long messageTypeId, List<Long> groupIds, LocalDateTime reserveTime,
+            String content) {
 
         Optional<MessageType> typeInfo = messageTypeRepository.findById(messageTypeId);
         List<Group> groupInfo = groupService.findGroupByIdList(groupIds);
@@ -53,30 +57,49 @@ public class MessageServiceImpl implements MessageService {
         }
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> MessageLog.messageLog(typeInfo.get(), g, reserveTime, content)).toList());
+            .map(g -> MessageLog.messageLog(channel, typeInfo.get(), g, reserveTime, content))
+            .toList());
 
-        messageUtils.registerTaskSchedule(messageLogList, reserveTime);
+        // commit이 된 이후에 실행을 한다.
+        TransactionSynchronizationManager.registerSynchronization(
+            new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    messageUtils.registerTaskSchedule(messageLogList, reserveTime);
+                }
+            }
+        );
 
         return messageLogList;
     }
 
     @Transactional
     public List<MessageLog> createMessageAllGroup
-        (Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime, String content) {
+        (Channel channel, Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime,
+            String content) {
 
         Optional<MessageType> typeInfo = messageTypeRepository.findById(messageTypeId);
 
         // todo: 추후에 그룹이 많아지면 loop으로 처리
-        List<Group> groupInfo = groupService.findGroupListNotIn(exceptGroupIds);
+        List<Group> groupInfo = groupService.findGroupListNotIn(channel, exceptGroupIds);
 
         if (typeInfo.isEmpty() || groupInfo.isEmpty()) {
             return null;
         }
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> MessageLog.messageLog(typeInfo.get(), g, reserveTime, content)).toList());
+            .map(g -> MessageLog.messageLog(channel, typeInfo.get(), g, reserveTime, content))
+            .toList());
 
-        messageUtils.registerTaskSchedule(messageLogList, reserveTime);
+        // commit이 된 이후에 실행을 한다.
+        TransactionSynchronizationManager.registerSynchronization(
+            new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    messageUtils.registerTaskSchedule(messageLogList, reserveTime);
+                }
+            }
+        );
 
         return messageLogList;
     }
@@ -87,13 +110,18 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Page<MessageLog> findMessageLogList(Pageable pageable) {
+    public Page<MessageLog> findMessageLogList(Channel channel, Pageable pageable) {
 
-        return messageLogRepository.findAll(pageable);
+        return messageLogRepository.findAllByChannel(channel, pageable);
     }
 
     @Override
-    public List<MessageLog> findReservedMessage() {
+    public List<MessageLog> findReservedMessage(Channel channel) {
+        return messageLogRepository.findAllReservedMessageByChannel(channel, LocalDateTime.now());
+    }
+
+    @Override
+    public List<MessageLog> findReservedAllMessage() {
         return messageLogRepository.findAllByReservedMessage(LocalDateTime.now());
     }
 }

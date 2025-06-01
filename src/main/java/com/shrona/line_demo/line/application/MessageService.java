@@ -1,5 +1,6 @@
 package com.shrona.line_demo.line.application;
 
+import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.domain.MessageType;
 import java.time.LocalDateTime;
@@ -12,33 +13,40 @@ public interface MessageService {
     /**
      * 메시지 타입 생성
      */
-    MessageType createMessageType(String title, String text);
+    public MessageType createMessageType(String title, String text);
 
     /**
      * 메시지 생성(발송 시 사용)
      */
-    List<MessageLog> createMessage
-    (Long messageTypeId, List<Long> groupId, LocalDateTime reserveTime, String content);
+    public List<MessageLog> createMessageSelectGroup
+    (Channel channel, Long messageTypeId, List<Long> groupId, LocalDateTime reserveTime,
+        String content);
 
     /**
      * 모든 그룹에 메시지 전송(제외 그룹 확인)
      */
     public List<MessageLog> createMessageAllGroup
-    (Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime, String content);
+    (Channel channel, Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime,
+        String content);
 
     /**
      * 메시지 단일 조회
      */
-    MessageLog findByMessageId(Long id);
+    public MessageLog findByMessageId(Long id);
 
     /**
      * 메시지 로그 조회
      */
-    Page<MessageLog> findMessageLogList(Pageable pageable);
+    public Page<MessageLog> findMessageLogList(Channel channel, Pageable pageable);
 
     /**
      * 예약 된 메시지 목록 조회
      */
-    List<MessageLog> findReservedMessage();
+    public List<MessageLog> findReservedMessage(Channel channel);
+
+    /**
+     * 예약 된 메시지 목록 조회
+     */
+    public List<MessageLog> findReservedAllMessage();
 
 }

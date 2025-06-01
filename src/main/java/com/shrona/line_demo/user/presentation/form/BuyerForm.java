@@ -18,9 +18,12 @@ public record BuyerForm(
         String addMethod = userGroup.getUser().getAddMethod().equals(AddUserMethod.LINE)
             ? "라인으로 추가" : "전화번호로 추가";
 
+        String phoneNumber = userGroup.getUser().getPhoneNumber() == null ? null
+            : userGroup.getUser().getPhoneNumber().getPhoneNumber();
+
         return new BuyerForm(
             userGroup.getId(),
-            userGroup.getUser().getPhoneNumber().getPhoneNumber(),
+            phoneNumber,
             userGroup.getUser().getLineId(),
             addMethod,
             userGroup.getCreatedAt().plusHours(9), // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경,

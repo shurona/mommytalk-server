@@ -1,10 +1,15 @@
 package com.shrona.line_demo.line.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
-import com.shrona.line_demo.line.infrastructure.LineMessageJpaRepository;
+import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
+import com.shrona.line_demo.linehook.infrastructure.LineMessageJpaRepository;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
+import java.util.Optional;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +45,30 @@ class LineServiceMockTest {
         assertThat(phoneOne.getPhoneNumber()).isEqualTo(one);
         assertThat(phoneTwo.getPhoneNumber()).isEqualTo(changeTwo);
 
+    }
+
+    @DisplayName("라인유저 휴대전화 번호 변경 테스트")
+    @Test
+    public void 라인유저_휴대전화_변경_테스트() {
+
+        String phoneNumber = "010-2323-2323";
+        when(lineUserRepository.findById(anyLong())).thenReturn(Optional.of(
+            LineUser.createLineUser("lineIdId")));
+        LineUser lineUser = lineService.updateLineUserPhoneNumber(1L, phoneNumber);
+
+        Assertions.assertThat(lineUser.getPhoneNumber().getPhoneNumber()).isEqualTo(phoneNumber);
+    }
+
+    @DisplayName("라인유저 휴대전화 번호 잘못 변경 테스트")
+    @Test
+    public void 라인유저_휴대전화_잘못변경_테스트() {
+
+        String phoneNumber = "010-2323-223";
+        when(lineUserRepository.findById(anyLong())).thenReturn(Optional.of(
+            LineUser.createLineUser("lineIdId")));
+        LineUser lineUser = lineService.updateLineUserPhoneNumber(1L, phoneNumber);
+
+        Assertions.assertThat(lineUser.getPhoneNumber()).isNull();
     }
 
 }

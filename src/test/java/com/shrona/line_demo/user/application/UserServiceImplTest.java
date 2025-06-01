@@ -3,7 +3,10 @@ package com.shrona.line_demo.user.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.shrona.line_demo.line.application.LineServiceImpl;
+import com.shrona.line_demo.line.domain.Channel;
+import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
+import com.shrona.line_demo.line.infrastructure.ChannelJpaRepository;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import jakarta.persistence.EntityManager;
@@ -28,14 +31,21 @@ class UserServiceImplTest {
     @Autowired
     private LineServiceImpl lineService;
 
+    @Autowired
+    private ChannelJpaRepository channelJpaRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     private List<User> userList;
     private List<String> phoneNumberList;
+    private Channel channel;
 
     @BeforeEach
     void setUp() {
+
+        channel = channelJpaRepository.save(
+            Channel.createChannel("name", "description"));
 
         String number1 = "010-2345-6789";
         String number2 = "010-3456-7890";
@@ -52,17 +62,23 @@ class UserServiceImplTest {
             (number1, number2, number3, number4, number5, number6, number7, number8, number9,
                 number10));
 
-        LineUser lineUser1 = lineService.followLineUserByLineId("line1");
-        LineUser lineUser2 = lineService.followLineUserByLineId("line2");
-        LineUser lineUser3 = lineService.followLineUserByLineId("line3");
-        LineUser lineUser4 = lineService.followLineUserByLineId("line4");
-        LineUser lineUser5 = lineService.followLineUserByLineId("line5");
+        LineUser line1 = lineService.findOrCreateLineUser("line1");
+        LineUser line2 = lineService.findOrCreateLineUser("line2");
+        LineUser line3 = lineService.findOrCreateLineUser("line3");
+        LineUser line4 = lineService.findOrCreateLineUser("line4");
+        LineUser line5 = lineService.findOrCreateLineUser("line5");
 
-        lineUser1.settingPhoneNumber(new PhoneNumber(number6));
-        lineUser2.settingPhoneNumber(new PhoneNumber(number7));
-        lineUser3.settingPhoneNumber(new PhoneNumber(number8));
-        lineUser4.settingPhoneNumber(new PhoneNumber(number9));
-        lineUser5.settingPhoneNumber(new PhoneNumber(number10));
+        lineService.followChannelAndLineUser(channel, line1);
+        lineService.followChannelAndLineUser(channel, line2);
+        lineService.followChannelAndLineUser(channel, line3);
+        lineService.followChannelAndLineUser(channel, line4);
+        lineService.followChannelAndLineUser(channel, line5);
+
+        line1.settingPhoneNumber(new PhoneNumber(number6));
+        line2.settingPhoneNumber(new PhoneNumber(number7));
+        line3.settingPhoneNumber(new PhoneNumber(number8));
+        line4.settingPhoneNumber(new PhoneNumber(number9));
+        line5.settingPhoneNumber(new PhoneNumber(number10));
 
         userList = new ArrayList<>(List.of(
             User.createUser(new PhoneNumber(number1)),
@@ -70,11 +86,11 @@ class UserServiceImplTest {
             User.createUser(new PhoneNumber(number3)),
             User.createUser(new PhoneNumber(number4)),
             User.createUser(new PhoneNumber(number5)),
-            User.createUserWithLine(new PhoneNumber(number6), lineUser1),
-            User.createUserWithLine(new PhoneNumber(number7), lineUser2),
-            User.createUserWithLine(new PhoneNumber(number8), lineUser3),
-            User.createUserWithLine(new PhoneNumber(number9), lineUser4),
-            User.createUserWithLine(new PhoneNumber(number10), lineUser5)
+            User.createUserWithLine(new PhoneNumber(number6), line1),
+            User.createUserWithLine(new PhoneNumber(number7), line2),
+            User.createUserWithLine(new PhoneNumber(number8), line3),
+            User.createUserWithLine(new PhoneNumber(number9), line4),
+            User.createUserWithLine(new PhoneNumber(number10), line5)
         ));
     }
 
@@ -82,10 +98,13 @@ class UserServiceImplTest {
     @DisplayName("기본 설정 테스트")
     @Test
     public void 기본_설정_테스트() {
+        // 초기 테스트 확인
         assertThat(userList.size()).isEqualTo(10);
-
-        List<LineUser> lineUserList = lineService.findLineUserList(PageRequest.of(0, 100))
+        
+        List<ChannelLineUser> lineUserList = lineService.findChannelLineUserListByChannel(
+                channel, PageRequest.of(0, 100))
             .stream().toList();
+
         assertThat(lineUserList.size()).isEqualTo(5);
 
     }
@@ -118,7 +137,10 @@ class UserServiceImplTest {
         String wrongPhone = "03-399-3932";
         String lineId = "newLineId";
 
-        LineUser lineUser = lineService.followLineUserByLineId(lineId);
+        LineUser lineUser = lineService.findOrCreateLineUser(lineId);
+
+        ChannelLineUser channelLineUser = lineService.followChannelAndLineUser(
+            channel, lineUser);
         lineUser.settingPhoneNumber(new PhoneNumber(correctPhone));
 
         entityManager.flush();

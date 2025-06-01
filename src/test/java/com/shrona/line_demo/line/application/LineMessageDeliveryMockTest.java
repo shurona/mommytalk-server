@@ -2,6 +2,7 @@ package com.shrona.line_demo.line.application;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shrona.line_demo.line.application.sender.MessageSenderImpl;
+import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
 import com.shrona.line_demo.line.infrastructure.sender.LineMessageSenderClient;
@@ -50,8 +52,10 @@ public class LineMessageDeliveryMockTest {
         Group mockGroup = mock(Group.class);
         UserGroup mockUserGroup = mock(UserGroup.class);
         User mockUser = mock(User.class);
+        Channel mockChannel = mock(Channel.class);
 
-        when(messageRepository.findAllByReservedMessage(any(LocalDateTime.class)))
+        when(messageRepository.findAllByReservedMessage(
+            any(LocalDateTime.class)))
             .thenReturn(List.of(mockMessageLog));
         when(mockMessageLog.getGroup()).thenReturn(mockGroup);
 
@@ -60,6 +64,8 @@ public class LineMessageDeliveryMockTest {
             .thenReturn(mockGroup);
         when(mockGroup.getId()).thenReturn(2L);
         when(mockGroup.getUserGroupList()).thenReturn(List.of(mockUserGroup));
+        when(mockGroup.getChannel()).thenReturn(mockChannel);
+        when(mockChannel.getAccessToken()).thenReturn("asdfasdfasdfasdf");
 
         // userGroup, user mock
         when(mockUserGroup.getUser()).thenReturn(mockUser);
@@ -70,7 +76,7 @@ public class LineMessageDeliveryMockTest {
 
         // then
         // 3. 검증: 메시지 전송 및 상태 변경 호출 확인
-        verify(lineMessageSenderClient).SendMulticastMessage(any());
+        verify(lineMessageSenderClient).SendMulticastMessage(anyString(), any());
         verify(mockMessageLog).changeStatusAfterSend();
 
     }
@@ -84,7 +90,10 @@ public class LineMessageDeliveryMockTest {
         UserGroup mockUserGroup = mock(UserGroup.class);
         User mockUser = mock(User.class);
 
-        when(messageRepository.findAllByReservedMessage(any(LocalDateTime.class)))
+        Channel mockChannel = mock(Channel.class);
+
+        when(messageRepository.findAllByReservedMessage(
+            any(LocalDateTime.class)))
             .thenReturn(List.of(mockMessageLog));
         when(mockMessageLog.getGroup()).thenReturn(mockGroup);
 
@@ -93,12 +102,14 @@ public class LineMessageDeliveryMockTest {
             .thenReturn(mockGroup);
         when(mockGroup.getId()).thenReturn(2L);
         when(mockGroup.getUserGroupList()).thenReturn(List.of(mockUserGroup));
+        when(mockGroup.getChannel()).thenReturn(mockChannel);
+        when(mockChannel.getAccessToken()).thenReturn("asdfasdfasdfasdf");
 
         // userGroup, user mock
         when(mockUserGroup.getUser()).thenReturn(mockUser);
         when(mockUser.getLineId()).thenReturn("LINE_USER_001");
         doThrow(new RestClientResponseException("Error", 500, "Error", null, null, null))
-            .when(lineMessageSenderClient).SendMulticastMessage(any());
+            .when(lineMessageSenderClient).SendMulticastMessage(anyString(), any());
 
         // when
         messageSender.sendLineMessageByReservation();

@@ -2,6 +2,8 @@ package com.shrona.line_demo.user.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.shrona.line_demo.line.domain.Channel;
+import com.shrona.line_demo.line.infrastructure.ChannelJpaRepository;
 import com.shrona.line_demo.user.domain.Group;
 import com.shrona.line_demo.user.domain.UserGroup;
 import jakarta.persistence.EntityManager;
@@ -23,14 +25,21 @@ class GroupServiceImplTest {
 
     @Autowired
     private UserServiceImpl userService;
+    @Autowired
+    private ChannelJpaRepository channelRepository;
 
     @PersistenceContext
     private EntityManager em;
+
+    private Channel channel;
 
     @BeforeEach
     public void createUserForTest() {
         userService.createUser("010-2222-3333");
         userService.createUser("010-3123-1231");
+
+        // 채널 정보 저장
+        channel = channelRepository.save(Channel.createChannel("이름", "설명"));
 
     }
 
@@ -45,7 +54,8 @@ class GroupServiceImplTest {
         String unCorrect = "02-322-3232";
 
         // when
-        Group aa = groupService.createGroup(name, description, List.of(one, two, unCorrect));
+        Group aa = groupService.createGroup(
+            channel, name, description, List.of(one, two, unCorrect));
 
         // 반영
         em.flush();
@@ -68,11 +78,10 @@ class GroupServiceImplTest {
         String wrongInfo = "01-2022-1234";
 
         // 먼저 그룹 생성
-        Group group = groupService.createGroup(name, description, List.of(one));
+        Group group = groupService.createGroup(channel, name, description, List.of(one));
 
         // 유저를 미리 저장
         userService.createUser(two);
-        // 반영
 
         // when
         groupService.addUserToGroup(group.getId(), List.of(one, two, wrongInfo));
@@ -100,7 +109,8 @@ class GroupServiceImplTest {
         String one = "010-2222-3333";
 
         // 먼저 그룹 생성
-        Group group = groupService.createGroup(name, description, List.of(one));
+        Group group = groupService.createGroup(
+            channel, name, description, List.of(one));
 
         // when
         Group groupUpdate = groupService.updateGroupInfo(group.getId(), newName, newDescription);
@@ -108,7 +118,6 @@ class GroupServiceImplTest {
         // then
         assertThat(groupUpdate.getName()).isEqualTo(newName);
         assertThat(groupUpdate.getDescription()).isEqualTo(description);
-
     }
 
     @DisplayName("그룹 소프트 삭제")
@@ -123,7 +132,8 @@ class GroupServiceImplTest {
         String unCorrect = "02-322-3232";
 
         // when
-        Group group = groupService.createGroup(name, description, List.of(one, two, unCorrect));
+        Group group = groupService.createGroup(
+            channel, name, description, List.of(one, two, unCorrect));
         groupService.softDeleteGroup(List.of(group.getId()));
         group = groupService.findGroupById(group.getId(), false);
 
@@ -144,7 +154,7 @@ class GroupServiceImplTest {
         String wrongInfo = "01-2022-1234";
 
         // 먼저 그룹 생성
-        Group group = groupService.createGroup(name, description,
+        Group group = groupService.createGroup(channel, name, description,
             List.of(one, two, two, three, wrongInfo));
 
         // when
@@ -171,7 +181,7 @@ class GroupServiceImplTest {
         String wrongInfo = "01-2022-1234";
 
         // 먼저 그룹 생성
-        Group group = groupService.createGroup(name, description,
+        Group group = groupService.createGroup(channel, name, description,
             List.of(one, two, two, three, wrongInfo));
 
         // when
@@ -199,7 +209,7 @@ class GroupServiceImplTest {
         String wrongInfo = "01-2022-1234";
 
         // 먼저 그룹 생성
-        Group group = groupService.createGroup(name, description,
+        Group group = groupService.createGroup(channel, name, description,
             List.of(one, two, two, three, wrongInfo));
 
         List<Long> ids = group.getUserGroupList().stream().map(UserGroup::getId).toList();

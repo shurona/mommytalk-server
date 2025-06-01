@@ -16,7 +16,7 @@
   <!-- 메인 컨텐츠 -->
   <main class="main-content">
     <h2 class="main-title">메시지 보내기</h2>
-    <form class="message-form" method="post" th:action="@{/admin/messages/v1/send}"
+    <form class="message-form" method="post" th:action="@{/admin/channels/{channelId}/messages/v1/send(channelId=${channelInfo.id})}"
           th:object="${messageForm}">
       <div class="form-row">
         <!-- 메시지 입력 -->
@@ -133,6 +133,8 @@
     </form>
   </main>
 </div>
+
+<div id="groupMeta" th:data-channel-id="${channelInfo.id}"></div>
 <script th:src="@{/js/send.js}"></script>
 </body>
 </html>
