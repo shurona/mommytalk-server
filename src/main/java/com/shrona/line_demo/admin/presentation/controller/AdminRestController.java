@@ -50,7 +50,7 @@ public class AdminRestController {
         return ResponseEntity.ok().build();
     }
 
-    //    @PostMapping("/line-test")
+    @PostMapping("/line-test")
     public ResponseEntity<?> lineTestController(
         HttpServletRequest request,
         @RequestHeader("line") String lineId,
@@ -61,7 +61,15 @@ public class AdminRestController {
         if (!inputAdminKey.equals(headerValue)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        channelHookService.saveLineMessage(1L, lineId, content);
+        boolean isPhoneSave = channelHookService.saveLineMessage(1L, lineId, content);
+        
+        // 휴대번호가 저장되었으면 메시지 전송 로직 실행
+        if (isPhoneSave) {
+            channelHookService.sendLineMessageAfterSuccess(
+                1L,
+                lineId,
+                content);
+        }
 
         return ResponseEntity.ok().build();
     }

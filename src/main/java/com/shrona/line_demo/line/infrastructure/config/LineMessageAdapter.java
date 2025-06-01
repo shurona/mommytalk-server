@@ -1,6 +1,7 @@
 package com.shrona.line_demo.line.infrastructure.config;
 
 import com.shrona.line_demo.line.infrastructure.sender.LineMessageSenderClient;
+import com.shrona.line_demo.line.infrastructure.sender.LineMessageSingleSenderClient;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,9 @@ public class LineMessageAdapter {
         this.lineBaseUrl = lineBaseUrl;
     }
 
+    /**
+     * 멀티 전송
+     */
     @Bean
     public LineMessageSenderClient LineMessageMultiCastClient() {
 
@@ -41,6 +45,25 @@ public class LineMessageAdapter {
         HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
 
         return factory.createClient(LineMessageSenderClient.class);
+    }
+
+    /**
+     * 단일 전송
+     */
+    @Bean
+    public LineMessageSingleSenderClient LineMessageSingleCastClient() {
+
+        RestClient restClient = RestClient.builder()
+            .baseUrl(lineBaseUrl + "/push")
+//            .requestInterceptor(logRequestInterceptor())
+            .build();
+
+        RestClientAdapter adapter = RestClientAdapter.create(restClient);
+
+        // 어댑터를 기반으로 HTTP 서비스 프록시 팩토리를 빌드
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
+
+        return factory.createClient(LineMessageSingleSenderClient.class);
     }
 
     /**

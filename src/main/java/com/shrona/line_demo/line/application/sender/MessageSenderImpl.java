@@ -3,11 +3,14 @@ package com.shrona.line_demo.line.application.sender;
 import com.shrona.line_demo.admin.application.AdminService;
 import com.shrona.line_demo.admin.domain.AdminUser;
 import com.shrona.line_demo.line.domain.Channel;
+import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.domain.type.ReservationStatus;
 import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
 import com.shrona.line_demo.line.infrastructure.sender.LineMessageSenderClient;
+import com.shrona.line_demo.line.infrastructure.sender.LineMessageSingleSenderClient;
 import com.shrona.line_demo.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
+import com.shrona.line_demo.line.infrastructure.sender.dto.LineMessageSingleRequestBody;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
 import java.nio.charset.StandardCharsets;
@@ -29,10 +32,12 @@ public class MessageSenderImpl implements MessageSender {
     // status int
     private static final int FAIL = 0;
     private static final int SUCCESS = 1;
+    private static final int CHUNK_SIZE = 500;
     //
     private static final String prefixHeader = "Bearer ";
     // restClient
     private final LineMessageSenderClient lineMessageSenderClient;
+    private final LineMessageSingleSenderClient lineMessageSingleSenderClient;
     // Service
     private final GroupService groupService;
     private final AdminService adminService;
@@ -113,6 +118,22 @@ public class MessageSenderImpl implements MessageSender {
         return true;
     }
 
+    @Override
+    public void sendSingleMessageWithContents(Channel channel, LineUser lineUser, String text) {
+
+        String accessToken = channel.getAccessToken();
+        String decodeToken = base64ToUtf8(accessToken);
+        try {
+            lineMessageSingleSenderClient.sendSingleMessage(prefixHeader + decodeToken,
+                LineMessageSingleRequestBody.of(lineUser.getLineId(), text));
+        } catch (Exception e) {
+            // TODO: 어떻게 처리할까
+            log.error("에러 발생 : " + e.getMessage());
+        }
+        // thread sleep
+        sleepThreadForRateLimit();
+    }
+
     /**
      * 메시지를 라인에 전달한다.
      */
@@ -135,14 +156,23 @@ public class MessageSenderImpl implements MessageSender {
         String decodedString = base64ToUtf8(accessToken);
 
         // 라인 메시지 전송
-        try {
-            //TODO: 인원수가 많아지면 나눠서 전송
-            lineMessageSenderClient.SendMulticastMessage(prefixHeader + decodedString,
-                LineMessageMulticastRequestBody.of(lineIdList, messageLog.getContent()));
-        } catch (RestClientResponseException e) {
-            // TODO: 어떻게 처리할까
-            log.error("에러 발생 : " + e.getMessage());
-            return FAIL;
+        for (int i = 0; i < lineIdList.size(); i += CHUNK_SIZE) {
+            List<String> subList = lineIdList.subList(i,
+                Math.min(i + CHUNK_SIZE, lineIdList.size()));
+            try {
+                lineMessageSenderClient.SendMulticastMessage(
+                    prefixHeader + decodedString,
+                    LineMessageMulticastRequestBody.of(subList, messageLog.getContent())
+                );
+            } catch (RestClientResponseException e) {
+                //TODO : 어떻게 처리할까
+                log.error("[전송 중 에러 발생] {} 번째에서 에러 발생 {} id 목록 \n에러 원인 {}",
+                    i, lineIdList, e.getMessage());
+                return FAIL;
+            }
+
+            // thread sleep
+            sleepThreadForRateLimit();
         }
 
         return SUCCESS;
@@ -151,5 +181,13 @@ public class MessageSenderImpl implements MessageSender {
     private String base64ToUtf8(String accessToken) {
         byte[] decodedBytes = Base64.getDecoder().decode(accessToken);
         return new String(decodedBytes, StandardCharsets.UTF_8);
+    }
+
+    private void sleepThreadForRateLimit() {
+        try {
+            Thread.sleep(10);
+        } catch (Exception e) {
+            //
+        }
     }
 }
