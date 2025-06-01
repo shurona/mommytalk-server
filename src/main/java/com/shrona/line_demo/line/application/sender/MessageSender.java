@@ -1,5 +1,6 @@
 package com.shrona.line_demo.line.application.sender;
 
+import com.shrona.line_demo.line.domain.Channel;
 import java.util.List;
 
 public interface MessageSender {
@@ -17,5 +18,5 @@ public interface MessageSender {
     /**
      * admin user의 라인 계정으로 테스트 메시지를 전달한다.
      */
-    public boolean sendTestLineMessage(String text);
+    public boolean sendTestLineMessage(Channel channel, String text);
 }
