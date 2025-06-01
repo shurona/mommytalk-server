@@ -1,5 +1,6 @@
 package com.shrona.line_demo.user.application;
 
+import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.user.domain.Group;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,8 @@ public interface GroupService {
     /**
      * 그룹 생성
      */
-    public Group createGroup(String name, String description, List<String> phoneList);
+    public Group createGroup(
+        Channel channel, String name, String description, List<String> phoneList);
 
     /**
      * Group 정보를 단일로 조회 user와 함께 fetch join을 할지 withUser 파라미터로 설정
@@ -26,12 +28,12 @@ public interface GroupService {
     /**
      * 그룹아이디가 존재하지 않는 그룹 목록 조회
      */
-    public List<Group> findGroupListNotIn(List<Long> ids);
+    public List<Group> findGroupListNotIn(Channel channel, List<Long> ids);
 
     /**
      * 그룹 목록 조회
      */
-    public Page<Group> findGroupList(Pageable pageable);
+    public Page<Group> findGroupList(Channel channel, Pageable pageable);
 
     /**
      * 그룹 별로 유저 숫자 조회
@@ -56,15 +58,15 @@ public interface GroupService {
     /**
      * 그룹 정보 업데이트(이름, 설명만)
      */
-    Group updateGroupInfo(Long groupId, String newName, String newDescription);
+    public Group updateGroupInfo(Long groupId, String newName, String newDescription);
 
     /**
      * 그룹에서 휴대 전화를 기준으로 유저 목록 삭제
      */
-    void deleteUserFromGroupByPhones(Long id, List<String> phoneNumberList);
+    public void deleteUserFromGroupByPhones(Long id, List<String> phoneNumberList);
 
     /**
      * 그룹에서 데이터베이스 아이디를 기준으로 유저 목록 삭제
      */
-    void deleteUserFromGroupByIds(Long id, List<Long> ids);
+    public void deleteUserFromGroupByIds(Long id, List<Long> ids);
 }

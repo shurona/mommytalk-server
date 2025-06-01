@@ -52,9 +52,14 @@ public class MessageLog extends BaseEntity {
     @JoinColumn(name = "group_id")
     private Group group;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "channel_id")
+    private Channel channel;
+
     public static MessageLog messageLog(
-        MessageType type, Group group, LocalDateTime reserveTime, String content) {
+        Channel channel, MessageType type, Group group, LocalDateTime reserveTime, String content) {
         MessageLog log = new MessageLog();
+        log.channel = channel;
         log.group = group;
         log.reserveTime = reserveTime;
         log.messageType = type;

@@ -1,5 +1,6 @@
 package com.shrona.line_demo.user.application;
 
+import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.user.common.utils.UserUtils;
 import com.shrona.line_demo.user.domain.Group;
 import com.shrona.line_demo.user.domain.User;
@@ -35,8 +36,9 @@ public class GroupServiceImpl implements GroupService {
     private final UserUtils userUtils;
 
     @Transactional
-    public Group createGroup(String name, String description, List<String> phoneList) {
-        Group groupInfo = groupRepository.save(Group.createGroup(name, description));
+    public Group createGroup(
+        Channel channel, String name, String description, List<String> phoneList) {
+        Group groupInfo = groupRepository.save(Group.createGroup(channel, name, description));
 
         // 휴대전화 목록에 맞는 유저를 group에 추가해준다.
         generateGroupUserInfo(groupInfo, phoneList);
@@ -62,19 +64,20 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<Group> findGroupListNotIn(List<Long> exceptGroupIds) {
+    public List<Group> findGroupListNotIn(Channel channel, List<Long> exceptGroupIds) {
         if (exceptGroupIds == null || exceptGroupIds.isEmpty()) {
             // 제외할 ID가 없으면 전체 그룹 조회
-            return groupRepository.findAll();
+            return groupRepository.findAllByChannel(channel);
         }
-        return groupRepository.findByIdNotIn(exceptGroupIds);
+        return groupRepository.findByChannelAndIdNotIn(channel, exceptGroupIds);
     }
 
     @Override
-    public Page<Group> findGroupList(Pageable pageable) {
+    public Page<Group> findGroupList(Channel channel, Pageable pageable) {
 
-        Page<Group> groupsPageList = groupRepository.findAll(pageable);
+        Page<Group> groupsPageList = groupRepository.findAllByChannel(channel, pageable);
 
+        // 메모리로 불러 놓기 위한 반복문
         for (Group group : groupsPageList.toList()) {
             for (UserGroup userGroup : group.getUserGroupList()) {
                 userGroup.getUser();

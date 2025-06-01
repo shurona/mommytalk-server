@@ -23,20 +23,22 @@ public class Channel extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column
+    @Column(unique = true)
     private String name;
 
     @Column
     private String description;
 
-    @Column(name = "channel_id")
+    @Column(name = "channel_id", unique = true)
     private String channelId; // 채널 정보
 
-    public static Channel createChannel(String name, String description, String channelId) {
+    @Column(name = "access_token")
+    private String accessToken;
+
+    public static Channel createChannel(String name, String description) {
         Channel channel = new Channel();
         channel.name = name;
         channel.description = description;
-        channel.channelId = channelId;
         return channel;
     }
 
