@@ -23,9 +23,7 @@
       </thead>
       <tbody>
       <tr th:each="msg : ${messages}">
-        <!-- <td th:text="${#temporals.format(msg.sendDateTime, 'yyyy.MM.dd HH:mm')}"></td> -->
         <td th:attr="data-utc=${#temporals.format(msg.sendDateTime, 'yyyy-MM-dd HH:mm')}">
-          <!-- <span th:text="'(UTC) ' + ${#temporals.format(msg.sendDateTime, 'yyyy.MM.dd HH:mm')}" /> -->
         </td>
         <td th:text="${msg.content}"></td>
         <td th:text="${msg.receiverCount}"></td>

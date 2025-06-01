@@ -25,20 +25,25 @@
       <tbody>
       <tr th:each="user : ${friends}">
         <td th:text="${user.lineId}">xxxxx</td>
-        <td th:text="${user.phoneNumber}">070-1234-5678</td>
+        <td ondblclick="enableEdit(this)" th:data-phone-number="${user.phoneNumber}"
+            th:data-user-id="${user.id}" th:text="${user.phoneNumber}">010-1234-1234
+        </td>
         <td th:text="${#temporals.format(user.joinDate, 'yyyy.MM.dd HH:mm')}">2025.02.01 12:00</td>
       </tr>
       </tbody>
     </table>
 
-    <div class="search-bar">
-      <input name="query" placeholder="검색어를 입력하세요" type="text">
+    <form class="search-bar"
+          method="get"
+          th:action="@{/admin/channels/{channelId}/friends/list(channelId=${channelInfo.id})}">
+      <input name="query" placeholder="검색어를 입력하세요" type="text"/>
       <button type="submit">검색</button>
-    </div>
+    </form>
 
     <!-- 페이징 -->
     <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo})}"></div>
   </div>
 </div>
+<script th:src="@{/js/friend-list.js}"></script>
 </body>
 </html>

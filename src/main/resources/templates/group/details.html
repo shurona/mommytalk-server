@@ -84,7 +84,7 @@
           <button class="delete-btn" type="button" onclick="deleteSelectedFriends()">선택 삭제</button>
         </div>
         <div class="action-row">
-            <button class="list-btn" type="button" onclick="location.href='/admin/groups/list'">목록으로</button>
+            <button class="list-btn" type="button" th:onclick="|location.href='@{/admin/channels/{channelId}/groups/list(channelId=${channelInfo.id})}'|">목록으로</button>
         </div>
       </div>
       
@@ -104,7 +104,7 @@
     </div>
   </div>
 </div>
-<div id="groupMeta" th:data-group-id="${group.id}"></div>
+<div id="groupMeta" th:data-group-id="${group.id}" th:data-channel_id="${channelInfo.id}"></div>
 <script th:src="@{/js/group-detail.js}"></script>
 </body>
 </html>

@@ -33,7 +33,7 @@
       <tr th:each="group : ${groups}">
         <td><input name="selectedGroups" th:value="${group.id}" type="checkbox"></td>
         <td>
-          <a th:href="@{/admin/groups/{id}(id=${group.id})}" th:text="${group.name}"></a>
+          <a th:href="@{/admin/channels/{channelId}/groups/{id}(channelId=${channelInfo.id} ,id=${group.id})}" th:text="${group.name}"></a>
         </td>
         <td th:text="${group.friendCount + '명 / ' + group.totalCount + '명'}">2명 / 2명</td>
         <td>
@@ -61,7 +61,7 @@
       <span class="close" onclick="closeCreateGroupModal()">&times;</span>
     </div>
 
-    <form th:action="@{/admin/group/create}" method="post" class="group-form">
+    <form th:action="@{/admin/channels/{channelId}/groups(channelId=${channelInfo.id})}" method="post" class="group-form">
       <div class="form-section">
         <label for="groupName">그룹명</label>
         <input id="groupName" maxlength="20" name="groupName" placeholder="그룹명을 입력해주세요" type="text">
@@ -96,6 +96,7 @@
   </div>
 </div>
 
+<div id="groupMeta" th:data-channel-id="${channelInfo.id}"></div>
 <script th:src="@{/js/group-list.js}"></script>
 </body>
 </html>

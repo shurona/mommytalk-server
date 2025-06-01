@@ -44,8 +44,7 @@ function addPhoneNumbersToGroup() {
 
   // 그룹 ID 가져오기
   const groupId = document.getElementById('groupMeta').dataset.groupId;
-
-  console.log(phoneNumbers, groupId);
+  const channelId = document.getElementById('groupMeta').dataset.channelId;
 
 
   // friendsNames 배열로 변환 및 휴대전화 번호 형식 검증 후 오류 메시지 출력
@@ -67,7 +66,7 @@ function addPhoneNumbersToGroup() {
   }
 
   // /admin/groups post 요청으로 데이터 전송
-  fetch(`/admin/groups/${groupId}/users`, {
+  fetch(`/admin/channels/${channelId}/groups/${groupId}/users`, {
     method: 'POST',
     body: JSON.stringify({ phoneNumberList }),
     headers: {
@@ -84,6 +83,8 @@ function deleteSelectedFriends() {
   const checkboxes = document.querySelectorAll("tbody input[name='selectedFriends']:checked");
   const groupId = document.getElementById('groupMeta').dataset.groupId;
 
+  const channelId = document.getElementById('groupMeta').dataset.channelId;
+
   // 선택된 친구가 없으면 경고 메시지 출력
   if (checkboxes.length === 0) {
     alert('삭제할 친구를 선택해주세요.');
@@ -95,7 +96,7 @@ function deleteSelectedFriends() {
   const userGroupIds = Array.from(checkboxes).map(cb => cb.value);
 
   // 삭제 요청 보내기
-  fetch(`/admin/groups/${groupId}/users`, {
+  fetch(`/admin/channels/${channelId}/groups/${groupId}/users`, {
     method: 'DELETE',
     body: JSON.stringify({ userGroupIds: userGroupIds }),
     headers: {
