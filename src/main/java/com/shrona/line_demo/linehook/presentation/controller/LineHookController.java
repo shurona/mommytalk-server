@@ -55,10 +55,18 @@ public class LineHookController {
                     case "message":
                         // text일 시 저장
                         if (event.message().type().equals("text")) {
-                            channelHookService.saveLineMessage(
+                            boolean isPhoneSave = channelHookService.saveLineMessage(
                                 MOMMY_TALK_CHANNEL_ID,
                                 event.source().userId(),
                                 event.message().text());
+                            
+                            // 휴대번호가 저장되었으면 메시지 전송 로직 실행
+                            if (isPhoneSave) {
+                                channelHookService.sendLineMessageAfterSuccess(
+                                    MOMMY_TALK_CHANNEL_ID,
+                                    event.source().userId(),
+                                    event.message().text());
+                            }
                         }
                         break;
 
@@ -85,7 +93,7 @@ public class LineHookController {
 
         return ResponseEntity.ok().build();
     }
-    
+
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<String> handleMissingRequestHeader(MissingRequestHeaderException ex) {
