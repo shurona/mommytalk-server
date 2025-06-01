@@ -1,6 +1,9 @@
 package com.shrona.line_demo.line.application;
 
+import com.shrona.line_demo.line.domain.Channel;
+import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -9,27 +12,44 @@ public interface LineService {
     /**
      * 라인 아이디를 기준으로 라인 유저 조회
      */
-    public LineUser findLineUserByLineId(String lineId);
+    public Optional<LineUser> findLineUserByLineId(String lineId);
 
     /**
      * 라인 유저 목록 조회
      */
-    public Page<LineUser> findLineUserList(Pageable pageable);
+    public Page<ChannelLineUser> findChannelLineUserListByChannel(
+        Channel channel, Pageable pageable);
 
     /**
-     * 라인 친구 추가 이후에 메시지를 기록할 때 저장해주는 메소드
+     * 라인 유저 목록 조건 조회
      */
-    public void saveLineMessage(String lineId, String content);
+    public Page<ChannelLineUser> findChannelLineUserListByChannelAndQuery(
+        Channel channel, String Query, Pageable pageable);
 
     /**
-     * LineId의 상태를 Follow를 true로 변경해준다.
+     * ChannelLineUser를 조회하고 없으면 생성
      */
-    public LineUser followLineUserByLineId(String lineId);
-
+    public ChannelLineUser findOrCreateChannelLineUser(Channel channel, LineUser lineUser);
 
     /**
-     * LineId의 상태를 Follow를 False로 변경해준다.
+     * 라인 유저를 조회하고 없으면 생성해준다.
      */
-    public void unfollowLineUserByLineId(String lineId);
+    public LineUser findOrCreateLineUser(String lineId);
+
+    /**
+     * 라인 유저 아이디를 기준으로 휴대전화를 수정한다.
+     */
+    public LineUser updateLineUserPhoneNumber(Long id, String phoneNumber);
+
+    /**
+     * 라인 유저와 채널 아이디를 기준으로 팔로우 해준다.
+     */
+    public ChannelLineUser followChannelAndLineUser(Channel channel, LineUser lineUser);
+
+    /**
+     * 라인 유저와 채널 아이디를 기준으로 언팔로우 해준다.
+     */
+    public void unfollowChannelAndLineUser(Channel channel, LineUser lineUser);
+
 
 }
