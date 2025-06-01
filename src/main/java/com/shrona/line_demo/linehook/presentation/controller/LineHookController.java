@@ -1,10 +1,10 @@
-package com.shrona.line_demo.line.presentation.controller;
+package com.shrona.line_demo.linehook.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.shrona.line_demo.line.application.LineService;
-import com.shrona.line_demo.line.presentation.dtos.LineEvent;
-import com.shrona.line_demo.line.presentation.dtos.WebHookRequestDto;
-import com.shrona.line_demo.line.presentation.validation.LineValidation;
+import com.shrona.line_demo.linehook.application.ChannelHookService;
+import com.shrona.line_demo.linehook.presentation.dtos.LineEvent;
+import com.shrona.line_demo.linehook.presentation.dtos.WebHookRequestDto;
+import com.shrona.line_demo.linehook.validation.LineValidation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LineHookController {
 
+    private final static long MOMMY_TALK_CHANNEL_ID = 1L;
     // service
-    private final LineService lineService;
+    private final ChannelHookService channelHookService;
     private final LineValidation lineValidation;
-
     // object Mapper
     private final ObjectMapper objectMapper;
 
@@ -55,34 +55,37 @@ public class LineHookController {
                     case "message":
                         // text일 시 저장
                         if (event.message().type().equals("text")) {
-                            lineService.saveLineMessage(event.source().userId(),
+                            channelHookService.saveLineMessage(
+                                MOMMY_TALK_CHANNEL_ID,
+                                event.source().userId(),
                                 event.message().text());
                         }
                         break;
 
                     case "follow":
-                        lineService.followLineUserByLineId(event.source().userId());
+                        channelHookService.followLineUserByLineId(
+                            MOMMY_TALK_CHANNEL_ID,
+                            event.source().userId());
                         break;
 
                     case "unfollow":
-                        lineService.unfollowLineUserByLineId(event.source().userId());
+                        channelHookService.unfollowLineUserByLineId(
+                            MOMMY_TALK_CHANNEL_ID,
+                            event.source().userId());
                         break;
 
                     default:
-                        log.info("unsupported event type : " + requestBodyOrigin.toString());
+                        log.info("unsupported event type : " + requestBodyOrigin);
                         break;
                 }
-
             }
-
-
         } catch (Exception e) {
             log.error(e.getMessage());
         }
 
         return ResponseEntity.ok().build();
     }
-
+    
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<String> handleMissingRequestHeader(MissingRequestHeaderException ex) {

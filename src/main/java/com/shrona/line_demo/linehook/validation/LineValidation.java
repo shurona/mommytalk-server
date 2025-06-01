@@ -1,4 +1,4 @@
-package com.shrona.line_demo.line.presentation.validation;
+package com.shrona.line_demo.linehook.validation;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
