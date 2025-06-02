@@ -23,10 +23,12 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction(BaseEntity.DEFAULT_CONDITION)
 @Table(name = "_user")
 public class User extends BaseEntity {
 
@@ -84,6 +86,7 @@ public class User extends BaseEntity {
      * 존재하는 유저에게 라인 정보를 넣어준다.
      */
     public void matchUserWithLine(LineUser lineUser) {
+        this.phoneNumber = lineUser.getPhoneNumber();
         this.lineUser = lineUser;
         this.lineId = lineUser.getLineId();
     }
@@ -92,6 +95,10 @@ public class User extends BaseEntity {
         this.lineId = null;
         this.lineUser = null;
         this.phoneNumber = null;
+    }
+
+    public void deleteUser() {
+        this.isDeleted = true;
     }
 
 }

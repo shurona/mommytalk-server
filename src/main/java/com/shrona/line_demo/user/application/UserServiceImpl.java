@@ -6,6 +6,7 @@ import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
 import com.shrona.line_demo.user.common.utils.UserUtils;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
+import com.shrona.line_demo.user.infrastructure.UserGroupJpaRepository;
 import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ public class UserServiceImpl implements UserService {
     // jpa
     private final UserJpaRepository userRepository;
     private final LineUserJpaRepository lineUserRepository;
+    private final UserGroupJpaRepository userGroupRepository;
 
     // 휴대폰 관련 process 처리
     private final PhoneProcess phoneProcess;
@@ -96,6 +98,11 @@ public class UserServiceImpl implements UserService {
         return combineUsers(newUsers, existingUsers);
     }
 
+    @Transactional
+    public void deleteUser(User user) {
+        user.deleteUser();
+        userRepository.flush();
+    }
 
     /**
      * 새로 생긴 유저와 존재하는 유저 목록을 하나로 합쳐서 List로 반환한다.

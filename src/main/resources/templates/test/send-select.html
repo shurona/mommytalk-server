@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>테스트 발송 대상</title> 
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+</head>
+<body>
+<div class="layout-wrapper">
+  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+  <div class="container">
+    <h2 class="page-title">테스트 발송 대상</h2>
+    <div class="input-group">
+      <input type="text" name="phoneNumber" placeholder="전화번호" />
+      <button type="button" onclick="registerUser()">입력</button>
+    </div>
+    <table class="phone-table">
+      <thead>
+        <tr>
+          <th>어드민 전화번호</th>
+          <th>라인 아이디</th>
+          <th>삭제 요청</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="user : ${testUserList}">
+          <td th:text="${user.phoneNumber}">010-0000-0000</td>
+          <td th:text="${user.lineId}">라인 아이디</td>
+          <td>
+            <button th:onclick="deleteTestUser([[${user.id}]])" type="button">삭제</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+</div>
+
+<style>
+  .layout-wrapper {
+    display: flex;
+  }
+
+  .layout-wrapper > div:first-child {
+    flex: 0 0 240px; /* Fixed width for sidebar */
+  }
+  .container {
+    flex: 1;
+    padding: 20px;
+  }
+  .page-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 20px 0;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+  }
+
+  .input-group {
+    margin-bottom: 20px;
+  }
+
+  .input-group input[type="text"] {
+    width: 250px;
+    padding: 8px 12px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .input-group button {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
+
+  .input-group button:hover {
+    background-color: #f0f0f0;
+  }
+
+  .phone-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  .phone-table th, .phone-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .phone-table th {
+    background-color: #f5f5f5;
+  }
+
+  .phone-table button {
+    padding: 6px 12px;
+    border: 1px solid #999;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
+
+  .phone-table button:hover {
+    background-color: #f8d7da;
+  }
+</style>
+<script>
+  function deleteTestUser(id) {
+    const channelId = [[${channelInfo.id}]]; // 채널 아이디
+    console.log('삭제 요청 ID:', id + " : " + channelId);
+    fetch(`/admin/channels/${channelId}/test/user`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id: id
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('요청 실패');
+      }
+    })
+    .then(data => {
+      console.log('성공:', data);
+      window.location.reload();
+    })
+    .catch(error => {
+      console.error('에러 발생:', error);
+      alert('오류가 발생했습니다.');
+    });
+  }
+
+  function registerUser(honeNumber) {
+    const channelId = [[${channelInfo.id}]]; // 채널 아이디
+    // 입력된 전화번호 갖고 오기
+    const input = document.querySelector('input[name="phoneNumber"]');
+    const phoneNumber = input.value;
+
+    if (!phoneNumber) {
+      alert('전화번호를 입력하세요.');
+      return;
+    }
+
+    fetch(`/admin/channels/${channelId}/test/user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        channelId: channelId,
+        phoneNumber: phoneNumber
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('요청 실패');
+      }
+    })
+    .then(data => {
+      console.log('등록 성공:', data);
+      window.location.reload(); // 성공 시 페이지 새로고침
+    })
+    .catch(error => {
+      console.error('에러 발생:', error);
+    });
+  }
+</script>
+</body>
+</html>

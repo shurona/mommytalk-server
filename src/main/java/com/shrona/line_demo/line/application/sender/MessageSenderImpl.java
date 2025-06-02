@@ -1,7 +1,7 @@
 package com.shrona.line_demo.line.application.sender;
 
 import com.shrona.line_demo.admin.application.AdminService;
-import com.shrona.line_demo.admin.domain.AdminUser;
+import com.shrona.line_demo.admin.presentation.form.TestUserForm;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.domain.MessageLog;
@@ -40,9 +40,9 @@ public class MessageSenderImpl implements MessageSender {
     private final LineMessageSingleSenderClient lineMessageSingleSenderClient;
     // Service
     private final GroupService groupService;
-    private final AdminService adminService;
     // repository
     private final MessageLogJpaRepository messageRepository;
+    private final AdminService adminService;
 
     @Transactional
     public void sendLineMessageByReservation() {
@@ -90,12 +90,15 @@ public class MessageSenderImpl implements MessageSender {
     public boolean sendTestLineMessage(Channel channel, String text) {
 
         // Admin 라인 채널을 갖고 온다.
-        List<String> lineIdList = adminService.findAdminUserList().stream()
-            .map(AdminUser::getLineId)
-            .filter(l -> l != null && !l.isEmpty())
-            .toList();
+        List<String> lineIdList = adminService.findAllTestUser(channel)
+            .stream().map(TestUserForm::lineId)
+            .filter(s -> !s.isBlank()).toList();
 
         log.info("[테스트 메시지] 메시지 발송 아이디 목록 {}", lineIdList);
+
+        if (lineIdList.isEmpty()) {
+            return true;
+        }
 
         String accessToken = channel.getAccessToken();
 

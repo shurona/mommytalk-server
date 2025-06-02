@@ -11,9 +11,10 @@ import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.ChannelLineUserJpaRepository;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
+import com.shrona.line_demo.user.application.GroupService;
+import com.shrona.line_demo.user.application.UserService;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
-import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,8 +30,11 @@ public class LineServiceImpl implements LineService {
 
     // repository
     private final LineUserJpaRepository lineUserRepository;
-    private final UserJpaRepository userRepository;
     private final ChannelLineUserJpaRepository channelLineUserRepository;
+
+    // service
+    private final UserService userService;
+    private final GroupService groupService;
 
 
     @Override
@@ -127,15 +131,21 @@ public class LineServiceImpl implements LineService {
     private void updateUserAfterLineUserPhoneChanged(
         LineUser lineUser, PhoneNumber beforePhoneNumber, PhoneNumber afterPhoneNumber) {
 
-        Optional<User> beforeNumber = userRepository.findByPhoneNumber(beforePhoneNumber);
-        Optional<User> afterNumber = userRepository.findByPhoneNumber(afterPhoneNumber);
+        // 기존 휴대전화 유저
+        User beforeNumber = userService.findUserByPhoneNumber(beforePhoneNumber.getPhoneNumber());
+        if (beforeNumber == null) {
+            beforeNumber = userService.createUser(beforePhoneNumber.getPhoneNumber());
+        }
 
-        // 이미 존재하면 라인유저 정보를 지워준다.
-        beforeNumber.ifPresent(User::clearLineUserAndPhoneNumber);
+        // 변경될 휴대 전화 유저
+        User afterNumber = userService.findUserByPhoneNumber(
+            afterPhoneNumber.getPhoneNumber());
+
+        // 변경 될 User 정보(afterNumber)를 기존 유저 정보로 병합시켜준다.
+        groupService.mergeUserGroupBeforeToAfter(afterNumber, beforeNumber);
 
         // 현재 입력받은 번호는 라인유저의 정보를 변경해준다.
-        afterNumber.ifPresent(user -> user.matchUserWithLine(lineUser));
-
+        beforeNumber.matchUserWithLine(lineUser);
     }
 
 

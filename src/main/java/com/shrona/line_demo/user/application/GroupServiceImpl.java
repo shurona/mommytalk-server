@@ -172,6 +172,45 @@ public class GroupServiceImpl implements GroupService {
     }
 
     /**
+     * UserGroup을 다룬다.
+     */
+    @Transactional
+    public void mergeUserGroupBeforeToAfter(User before, User after) {
+
+        // 변경 이후 User가 존재한다면 속하는 UserGroup을 불러온다.
+        List<UserGroup> afterUserGroupList = userGroupRepository.findAllByUser(after);
+
+        // 변경 이전의 UserGroup 목록을 갖고 온다.
+        List<UserGroup> beforeUserGroupList = userGroupRepository.findAllByUser(before);
+
+        // 미리 속했던 user의 UserGroup 목록을 갖고 온다.
+        Set<Long> conflictIds = afterUserGroupList.stream()
+            .map(g -> g.getGroup().getId())
+            .collect(Collectors.toSet());
+
+        // 겹치지 않는 afterUserGroup의 User를 after User로 변경해준다.
+        if (after != null) {
+            beforeUserGroupList.stream()
+                .filter(ug -> !conflictIds.contains(ug.getGroup().getId()))
+                .forEach(ug -> ug.changeUser(after));
+        }
+
+        // 겹치는 afterGroupUser는 삭제해준다.
+        List<Long> deleteUGIds = beforeUserGroupList.stream()
+            .filter(ug -> conflictIds.contains(ug.getGroup().getId()))
+            .map(UserGroup::getId).toList();
+
+        // 초기화
+        userGroupRepository.deleteAllById(deleteUGIds);
+
+        // beforeUser의 User는 삭제처리한다.
+        if (before != null) {
+            before.clearLineUserAndPhoneNumber();
+            userService.deleteUser(before);
+        }
+    }
+
+    /**
      * phoneNumber 목록을 조사해서 없는 번호는 입력해준다.
      */
     @Transactional

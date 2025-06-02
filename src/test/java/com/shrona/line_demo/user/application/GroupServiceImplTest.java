@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.infrastructure.ChannelJpaRepository;
 import com.shrona.line_demo.user.domain.Group;
+import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.UserGroup;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -20,23 +21,24 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 class GroupServiceImplTest {
 
+    User userOne;
+    User userTwo;
+    String phoneOne = "010-2222-3333";
+    String phoneTwo = "010-3123-1231";
     @Autowired
     private GroupServiceImpl groupService;
-
     @Autowired
     private UserServiceImpl userService;
     @Autowired
     private ChannelJpaRepository channelRepository;
-
     @PersistenceContext
     private EntityManager em;
-
     private Channel channel;
 
     @BeforeEach
     public void createUserForTest() {
-        userService.createUser("010-2222-3333");
-        userService.createUser("010-3123-1231");
+        userOne = userService.createUser(phoneOne);
+        userTwo = userService.createUser(phoneTwo);
 
         // 채널 정보 저장
         channel = channelRepository.save(Channel.createChannel("이름", "설명"));
@@ -49,8 +51,8 @@ class GroupServiceImplTest {
         String name = "그룹 이름";
         String description = "그룹 설명";
 
-        String one = "010-2222-3333";
-        String two = "010-3123-1231";
+        String one = phoneOne;
+        String two = phoneTwo;
         String unCorrect = "02-322-3232";
 
         // when
@@ -73,8 +75,8 @@ class GroupServiceImplTest {
         String name = "그룹 이름";
         String description = "그룹 설명";
 
-        String one = "010-2222-3333";
-        String two = "010-3123-1231";
+        String one = phoneOne;
+        String two = phoneTwo;
         String wrongInfo = "01-2022-1234";
 
         // 먼저 그룹 생성
@@ -106,7 +108,7 @@ class GroupServiceImplTest {
         String newName = "새 그룹";
         String newDescription = "";
 
-        String one = "010-2222-3333";
+        String one = phoneOne;
 
         // 먼저 그룹 생성
         Group group = groupService.createGroup(
@@ -127,8 +129,8 @@ class GroupServiceImplTest {
         String name = "그룹 이름";
         String description = "그룹 설명";
 
-        String one = "010-2222-3333";
-        String two = "010-3123-1231";
+        String one = phoneOne;
+        String two = phoneTwo;
         String unCorrect = "02-322-3232";
 
         // when
@@ -148,8 +150,8 @@ class GroupServiceImplTest {
         String name = "그룹 이름";
         String description = "그룹 설명";
 
-        String one = "010-2222-3333";
-        String two = "010-3123-1231";
+        String one = phoneOne;
+        String two = phoneTwo;
         String three = "010-3123-1235";
         String wrongInfo = "01-2022-1234";
 
@@ -175,8 +177,8 @@ class GroupServiceImplTest {
         String name = "그룹 이름";
         String description = "그룹 설명";
 
-        String one = "010-2222-3333";
-        String two = "010-3123-1231";
+        String one = phoneOne;
+        String two = phoneTwo;
         String three = "010-3123-1235";
         String wrongInfo = "01-2022-1234";
 
@@ -203,8 +205,8 @@ class GroupServiceImplTest {
         String name = "그룹 이름";
         String description = "그룹 설명";
 
-        String one = "010-2222-3333";
-        String two = "010-3123-1231";
+        String one = phoneOne;
+        String two = phoneTwo;
         String three = "010-3123-1235";
         String wrongInfo = "01-2022-1234";
 
@@ -221,5 +223,48 @@ class GroupServiceImplTest {
 
         // then
         assertThat(afterDelete.getUserGroupList().size()).isEqualTo(0);
+    }
+
+
+    @DisplayName("유저를 옮기면 UserGroup의 병합 잘 되는지 테스트")
+    @Test
+    public void mergeUserGroup() {
+        // given
+        Group group = groupService.createGroup(
+            channel, "name", "description", List.of(phoneOne, phoneTwo));
+        Group groupTwo = groupService.createGroup(
+            channel, "name-2", "description-2", List.of(phoneOne));
+        Group groupThree = groupService.createGroup(
+            channel, "name-3", "description-3", List.of(phoneOne));
+
+        // 영속성 삭제
+        em.flush();
+        em.clear();
+
+        // 영속성에 재등록
+        User checkUser = userService.findUserByPhoneNumber(phoneOne);
+
+        // when
+        groupService.mergeUserGroupBeforeToAfter(checkUser, userTwo);
+
+        // then
+        Group groupInfoOne = groupService.findGroupById(group.getId(), true);
+        Group groupInfoTwo = groupService.findGroupById(groupTwo.getId(), true);
+        Group groupInfoThree = groupService.findGroupById(groupThree.getId(), true);
+
+        List<UserGroup> ugTwoList = groupInfoTwo.getUserGroupList();
+        List<UserGroup> ugThreeList = groupInfoThree.getUserGroupList();
+        assertThat(groupInfoOne.getUserGroupList().size()).isEqualTo(1);
+        assertThat(ugTwoList.size()).isEqualTo(1);
+        assertThat(ugTwoList.get(0).getUser().getPhoneNumber().getPhoneNumber())
+            .isEqualTo(phoneTwo);
+        assertThat(ugThreeList.size()).isEqualTo(1);
+        assertThat(ugThreeList.get(0).getUser().getPhoneNumber().getPhoneNumber())
+            .isEqualTo(phoneTwo);
+
+        // 유저 삭제 확인
+        checkUser = userService.findUserByPhoneNumber(phoneOne);
+        assertThat(checkUser).isNull();
+
     }
 }

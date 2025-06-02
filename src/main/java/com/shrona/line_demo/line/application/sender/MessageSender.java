@@ -17,7 +17,7 @@ public interface MessageSender {
     public void sendLineMessageByReservationByMessageIds(List<Long> messageIds);
 
     /**
-     * admin user의 라인 계정으로 테스트 메시지를 전달한다.
+     * test user의 라인 계정으로 테스트 메시지를 전달한다.
      */
     public boolean sendTestLineMessage(Channel channel, String text);
 

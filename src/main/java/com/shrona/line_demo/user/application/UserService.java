@@ -26,4 +26,9 @@ public interface UserService {
      */
     public List<User> findOrCreateUsersByPhoneNumbers(List<String> phoneNumberList);
 
+    /**
+     * User 정보 삭제
+     */
+    public void deleteUser(User user);
+
 }

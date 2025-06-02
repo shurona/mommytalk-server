@@ -60,7 +60,6 @@ class LineServiceImplTest {
         // then
         // 변환 확인
         assertThat(updatedLineUser.getPhoneNumber().getPhoneNumber()).isEqualTo(newPhoneNumber);
-        assertThat(afterUser.getLineUser().getId()).isEqualTo(savedLineUser.getId());
 
         // when
         User updatedUser = userRepository.findByPhoneNumber(
@@ -72,6 +71,7 @@ class LineServiceImplTest {
         // then
         assertThat(beforeUser).isNull();
         assertThat(updatedUser).isNotNull();
+        assertThat(updatedUser.getLineId()).isEqualTo(updatedLineUser.getLineId());
     }
 
     @Test

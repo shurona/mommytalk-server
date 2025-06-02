@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -12,6 +12,9 @@ import com.shrona.line_demo.line.common.exception.LineException;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
 import com.shrona.line_demo.linehook.infrastructure.LineMessageJpaRepository;
+import com.shrona.line_demo.user.application.GroupService;
+import com.shrona.line_demo.user.application.UserService;
+import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
 import java.util.Optional;
@@ -36,6 +39,11 @@ class LineServiceMockTest {
     private LineUserJpaRepository lineUserRepository;
     @Mock
     private LineMessageJpaRepository lineMessageRepository;
+    @Mock
+    private GroupService groupService;
+
+    @Mock
+    private UserService userService;
 
 
     @DisplayName("휴대전화 입력 변환 테스트")
@@ -61,13 +69,14 @@ class LineServiceMockTest {
     public void 라인유저_휴대전화_변경_테스트() {
 
         PhoneNumber mockPhoneNumber = mock(PhoneNumber.class);
+        User mockUser = mock(User.class);
         String phoneNumber = "010-2323-2323";
+        LineUser testLine = LineUser.createLineUser("lineIdId");
+        testLine.settingPhoneNumber(PhoneNumber.changeWithoutError("010-1234-1234"));
         when(lineUserRepository.findById(anyLong())).thenReturn(Optional.of(
-            LineUser.createLineUser("lineIdId")));
-        when(userJpaRepository.findByPhoneNumber(any(PhoneNumber.class))).thenReturn(
-            Optional.empty());
-        when(userJpaRepository.findByPhoneNumber(eq(null))).thenReturn(
-            Optional.empty());
+            testLine));
+        when(userService.findUserByPhoneNumber(any(String.class))).thenReturn(mockUser);
+        doNothing().when(groupService).mergeUserGroupBeforeToAfter(any(), any());
 
         LineUser lineUser = lineService.updateLineUserPhoneNumber(1L, phoneNumber);
 
