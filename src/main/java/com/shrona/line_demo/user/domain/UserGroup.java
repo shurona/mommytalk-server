@@ -40,6 +40,10 @@ public class UserGroup extends BaseEntity {
         return userGroup;
     }
 
+    public void changeUser(User user) {
+        this.user = user;
+    }
+
     public void deleteUserGroup() {
         this.isDeleted = true;
     }
