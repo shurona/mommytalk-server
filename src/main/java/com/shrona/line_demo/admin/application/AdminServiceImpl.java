@@ -1,7 +1,12 @@
 package com.shrona.line_demo.admin.application;
 
 import com.shrona.line_demo.admin.domain.AdminUser;
+import com.shrona.line_demo.admin.domain.TestUser;
 import com.shrona.line_demo.admin.infrastructure.AdminJpaRepository;
+import com.shrona.line_demo.admin.infrastructure.TestUserJpaRepository;
+import com.shrona.line_demo.admin.presentation.form.TestUserForm;
+import com.shrona.line_demo.line.domain.Channel;
+import com.shrona.line_demo.line.domain.LineUser;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AdminServiceImpl implements AdminService {
 
+    // repository
     private final AdminJpaRepository adminRepository;
+    private final TestUserJpaRepository testUserRepository;
+
+    // passwordEncoder
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -44,5 +53,29 @@ public class AdminServiceImpl implements AdminService {
 
         return adminRepository.save(
             AdminUser.createAdminUser(loginId, passwordEncoder.encode(password), lineId));
+    }
+
+    @Override
+    public List<TestUserForm> findAllTestUser(Channel channel) {
+        return testUserRepository.findAllByChannel(channel).stream()
+            .map(TestUserForm::of).toList();
+    }
+
+    @Transactional
+    public void registerTestNumber(Channel channel, LineUser lineUser) {
+        Optional<TestUser> testUser = testUserRepository
+            .findByChannelAndLineUser(channel, lineUser);
+        if (testUser.isEmpty()) {
+            testUserRepository.save(TestUser.createTestUser(channel, lineUser, "설명"));
+        }
+    }
+
+    @Transactional
+    public void deleteTestUser(Channel channel, Long id) {
+        Optional<TestUser> byId = testUserRepository.findById(id);
+        if (byId.isEmpty()) {
+            return;
+        }
+        testUserRepository.deleteById(id);
     }
 }

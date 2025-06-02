@@ -1,6 +1,9 @@
 package com.shrona.line_demo.admin.application;
 
 import com.shrona.line_demo.admin.domain.AdminUser;
+import com.shrona.line_demo.admin.presentation.form.TestUserForm;
+import com.shrona.line_demo.line.domain.Channel;
+import com.shrona.line_demo.line.domain.LineUser;
 import java.util.List;
 
 public interface AdminService {
@@ -8,12 +11,12 @@ public interface AdminService {
     /**
      * Admin User 생성(현재 local에서만 사용)
      */
-    AdminUser createAdminUser(String loginId, String password, String lineId);
+    public AdminUser createAdminUser(String loginId, String password, String lineId);
 
     /**
      * 로그인 아이디를 기준으로 유저 조회
      */
-    AdminUser findByLoginId(String loginId);
+    public AdminUser findByLoginId(String loginId);
 
     /**
      * 비밀번호 검증
@@ -23,6 +26,20 @@ public interface AdminService {
     /**
      * Admin User 목록 조회(현재는 메시지 테스트를 위함)
      */
-    List<AdminUser> findAdminUserList();
+    public List<AdminUser> findAdminUserList();
 
+    /**
+     * 테스트 대상 목록 조회
+     */
+    public List<TestUserForm> findAllTestUser(Channel channel);
+
+    /**
+     * 테스트 유저를 등록한다.
+     */
+    public void registerTestNumber(Channel channel, LineUser lineUser);
+
+    /**
+     * 테스트 유저 삭제
+     */
+    public void deleteTestUser(Channel channel, Long id);
 }
