@@ -48,7 +48,12 @@ function addPhoneNumbersToGroup() {
 
 
   // friendsNames 배열로 변환 및 휴대전화 번호 형식 검증 후 오류 메시지 출력
-  const phoneNumberList = phoneNumbers.split('\n');
+  let phoneNumberList = phoneNumbers.split('\n');
+
+  // 공백 제거 후 빈 값 필터링
+  phoneNumberList = phoneNumberList
+    .map(num => num.trim())
+    .filter(num => num.length > 0);
 
   // 휴대전화번호 목록이 비어있으면 오류 메시지 출력
   if(phoneNumberList.length === 0) {

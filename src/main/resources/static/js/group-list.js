@@ -68,13 +68,19 @@ document.getElementById('createGroupModal').addEventListener('submit', function(
   const form = event.target; // 또는 event.currentTarget
 
   // friendsNames 배열로 변환 및 휴대전화 번호 형식 검증 후 오류 메시지 출력
-  const phoneNumberList = phoneNumbers.split('\n');
+  let phoneNumberList = phoneNumbers.split('\n');
 
   // 휴대전화번호 목록이 비어있으면 오류 메시지 출력
   if(phoneNumberList.length === 0) {
     alert('휴대전화번호를 입력해주세요.');
     return;
   }
+
+  // 공백 제거 후 빈 값 필터링
+  phoneNumberList = phoneNumberList
+    .map(num => num.trim())
+    .filter(num => num.length > 0);
+
 
   // 휴대전화번호 형식 검증
   for (let i = 0; i < phoneNumberList.length; i++) {
