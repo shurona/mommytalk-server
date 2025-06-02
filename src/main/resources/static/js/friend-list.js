@@ -39,6 +39,12 @@ function savePhone(input, userId) {
     return;
   }
 
+  // 한 번더 확인
+  if (!confirm(`정말로 ${beforePhone}을(를) ${newPhone}(으)로 변경하시겠습니까?`)) {
+    td.innerText = beforePhone; // 기존 번호로 되돌림
+    return;
+  }
+
   fetch(`/admin/friends/${userId}`, {
     method: 'POST',
     headers: {
