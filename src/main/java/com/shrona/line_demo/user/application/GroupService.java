@@ -2,6 +2,7 @@ package com.shrona.line_demo.user.application;
 
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.user.domain.Group;
+import com.shrona.line_demo.user.domain.User;
 import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Page;
@@ -69,4 +70,10 @@ public interface GroupService {
      * 그룹에서 데이터베이스 아이디를 기준으로 유저 목록 삭제
      */
     public void deleteUserFromGroupByIds(Long id, List<Long> ids);
+
+
+    /**
+     * 기존의 User의 휴대전화가 변경되면 UserGroup을 Before에서 After로 변경해준다.
+     */
+    public void mergeUserGroupBeforeToAfter(User before, User after);
 }
