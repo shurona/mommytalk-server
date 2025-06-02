@@ -35,7 +35,7 @@ public class MessageLog extends BaseEntity {
     @Column
     private ReservationStatus status;
 
-    @Column
+    @Column(length = 1000)
     private String content;
 
     @Column(name = "reserve_time")
