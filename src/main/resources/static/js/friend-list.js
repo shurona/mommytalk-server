@@ -1,9 +1,13 @@
 function enableEdit(td) {
+  // td가 이미 input을 가지고 있다면 아무것도 하지 않음
+  if (td.querySelector('input')) {
+    return;
+  }
   const currentValue = td.getAttribute('data-phone-number');
   const userId = td.getAttribute('data-user-id');
     td.innerHTML = `<input value="${currentValue}" 
                          onblur="savePhone(this, ${userId})" 
-                         onkeydown="handleKey(event, this, ${userId})" />`;
+                         />`;
   td.querySelector('input').focus();
 }
 
@@ -20,7 +24,7 @@ function handleKey(event, input, userId) {
 
 
 function savePhone(input, userId) {
-  const newPhone = input.value;
+  const newPhone = input.value.trim();
   const td = input.parentElement;
   const beforePhone = td.getAttribute('data-phone-number');
 
