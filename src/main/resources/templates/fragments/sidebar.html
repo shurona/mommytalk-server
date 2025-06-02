@@ -27,7 +27,11 @@
             th:classappend="${currentPath == '/admin/channels/' + channelInfo.id + '/groups/list'} ? 'active'">
           <a th:href="@{/admin/channels/{channelId}/groups/list(channelId=${channelInfo.id})}"><span>구매자 그룹</span></a>
         </li>
-        <li class="menu-section"><span>테스트 발송 대상 설정</span></li>
+        <li class="menu-section">테스트 설정</li>
+        <li class="menu-item"
+            th:classappend="${currentPath == '/admin/channels/' + channelInfo.id + '/test/user'} ? 'active'">
+          <a th:href="@{/admin/channels/{channelId}/test/user(channelId=${channelInfo.id})}"><span>테스트 발송 대상 설정</span></a>
+        </li>
       </ul>
     </nav>
   </aside>
