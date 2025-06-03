@@ -132,6 +132,9 @@ public class GroupController {
         return "group/details";
     }
 
+    /**
+     * 그룹에 유저 추가
+     */
     @PostMapping("/{id}/users")
     public ResponseEntity<?> addUserToGroup(
         @PathVariable("id") Long groupId,
