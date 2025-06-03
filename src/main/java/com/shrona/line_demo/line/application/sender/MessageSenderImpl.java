@@ -5,14 +5,13 @@ import com.shrona.line_demo.admin.presentation.form.TestUserForm;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.domain.MessageLog;
+import com.shrona.line_demo.line.domain.MessageLogLineInfo;
 import com.shrona.line_demo.line.domain.type.ReservationStatus;
 import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
 import com.shrona.line_demo.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.line_demo.line.infrastructure.sender.LineMessageSingleSenderClient;
 import com.shrona.line_demo.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
 import com.shrona.line_demo.line.infrastructure.sender.dto.LineMessageSingleRequestBody;
-import com.shrona.line_demo.user.application.GroupService;
-import com.shrona.line_demo.user.domain.Group;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -38,8 +37,6 @@ public class MessageSenderImpl implements MessageSender {
     // restClient
     private final LineMessageSenderClient lineMessageSenderClient;
     private final LineMessageSingleSenderClient lineMessageSingleSenderClient;
-    // Service
-    private final GroupService groupService;
     // repository
     private final MessageLogJpaRepository messageRepository;
     private final AdminService adminService;
@@ -142,14 +139,10 @@ public class MessageSenderImpl implements MessageSender {
      */
     private int sendMessageToLine(MessageLog messageLog) {
         // 그룹 목록에서 User의 lineId를 추출
-        Group groupInfo = groupService.findGroupById(messageLog.getGroup().getId(), true);
-        List<String> lineIdList = groupInfo.getUserGroupList().stream()
-            .filter(
-                gu -> gu.getUser().getLineId() != null)// 연결된 라인 아이디가 있는지 확인한다.
-            .filter(gu -> !gu.getUser().getLineId().isEmpty())
-            .map(gu -> gu.getUser().getLineId()).toList();
+        List<String> lineIdList = messageLog.getMessageLogLineInfoList().stream()
+            .map(MessageLogLineInfo::getLineId).toList();
 
-        String accessToken = groupInfo.getChannel().getAccessToken();
+        String accessToken = messageLog.getChannel().getAccessToken();
         // 목록 및 accessToken이 비어 있으면 보내지 않는다.
         if (lineIdList.isEmpty() || accessToken.isBlank()) {
             return SUCCESS;

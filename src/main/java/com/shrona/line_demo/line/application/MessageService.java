@@ -5,6 +5,7 @@ import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.domain.MessageType;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -48,5 +49,10 @@ public interface MessageService {
      * 예약 된 메시지 목록 조회
      */
     public List<MessageLog> findReservedAllMessage();
+
+    /**
+     * 로그의 라인 아이디 갯수를 갖고 온다.
+     */
+    public Map<Long, Integer> findLineIdCountByLog(List<Long> list);
 
 }

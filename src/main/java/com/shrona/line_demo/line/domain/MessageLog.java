@@ -1,5 +1,7 @@
 package com.shrona.line_demo.line.domain;
 
+import static jakarta.persistence.CascadeType.PERSIST;
+
 import com.shrona.line_demo.common.entity.BaseEntity;
 import com.shrona.line_demo.line.domain.type.ReservationStatus;
 import com.shrona.line_demo.user.domain.Group;
@@ -13,11 +15,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
@@ -56,6 +62,11 @@ public class MessageLog extends BaseEntity {
     @JoinColumn(name = "channel_id")
     private Channel channel;
 
+    @BatchSize(size = 500)
+    @OneToMany(mappedBy = "messageLog", cascade = PERSIST)
+    private List<MessageLogLineInfo> messageLogLineInfoList = new ArrayList<>();
+
+
     public static MessageLog messageLog(
         Channel channel, MessageType type, Group group, LocalDateTime reserveTime, String content) {
         MessageLog log = new MessageLog();
@@ -65,7 +76,14 @@ public class MessageLog extends BaseEntity {
         log.messageType = type;
         log.status = ReservationStatus.PREPARE;
         log.content = content;
+
         return log;
+    }
+
+    // 연관관계 메소드
+    public void addMessageLogLineInfo(MessageLogLineInfo info) {
+        messageLogLineInfoList.add(info);
+        info.setMessageLogInfo(this);
     }
 
     public void changeStatusAfterSend() {
