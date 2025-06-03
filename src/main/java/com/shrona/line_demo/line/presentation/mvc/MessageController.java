@@ -101,8 +101,9 @@ public class MessageController {
             PageRequest.of(pageNumber, 15, sort));
 
         // groupId : 유저 갯수 Map을 조회한다.
-        Map<Long, Integer> groupUserCount = groupService.findGroupUserCount(
-            messageLogList.map(m -> m.getGroup().getId()).toList());
+        Map<Long, Integer> logLineIdCount = messageService.findLineIdCountByLog(
+            messageLogList.stream().map(MessageLog::getId).toList()
+        );
 
         // 페이징 정보
         model.addAttribute("pagingInfo",
@@ -112,7 +113,7 @@ public class MessageController {
 
         // 메시지 목록 정보
         model.addAttribute("messages",
-            messageLogList.map(m -> MessageListForm.of(m, groupUserCount)).toList());
+            messageLogList.map(m -> MessageListForm.of(m, logLineIdCount)).toList());
 
         // 채널 정보 모델에 등록
         registerChannelToModel(channelInfo.get(), model);
