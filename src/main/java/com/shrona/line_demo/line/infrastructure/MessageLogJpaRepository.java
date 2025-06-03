@@ -2,6 +2,7 @@ package com.shrona.line_demo.line.infrastructure;
 
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.MessageLog;
+import com.shrona.line_demo.line.infrastructure.dao.LogLineIdCount;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -27,4 +28,12 @@ public interface MessageLogJpaRepository extends JpaRepository<MessageLog, Long>
      * 채널을 기준으로 페이지 목록 조회
      */
     Page<MessageLog> findAllByChannel(Channel channel, Pageable pageable);
+
+    @Query(
+        "SELECT new com.shrona.line_demo.line.infrastructure.dao.LogLineIdCount(m.id, COUNT(ml)) " +
+            "FROM MessageLog m LEFT JOIN m.messageLogLineInfoList ml " +
+            "where m.id in :ids " +
+            "GROUP BY m.id")
+    List<LogLineIdCount> findLineCountPerLog(List<Long> ids);
+
 }

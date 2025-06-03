@@ -3,14 +3,18 @@ package com.shrona.line_demo.line.application;
 import com.shrona.line_demo.line.application.utils.MessageUtils;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.MessageLog;
+import com.shrona.line_demo.line.domain.MessageLogLineInfo;
 import com.shrona.line_demo.line.domain.MessageType;
 import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
 import com.shrona.line_demo.line.infrastructure.MessageTypeJpaRepository;
+import com.shrona.line_demo.line.infrastructure.dao.LogLineIdCount;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -57,7 +61,7 @@ public class MessageServiceImpl implements MessageService {
         }
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> MessageLog.messageLog(channel, typeInfo.get(), g, reserveTime, content))
+            .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(), reserveTime, content))
             .toList());
 
         // commit이 된 이후에 실행을 한다.
@@ -88,7 +92,7 @@ public class MessageServiceImpl implements MessageService {
         }
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> MessageLog.messageLog(channel, typeInfo.get(), g, reserveTime, content))
+            .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(), reserveTime, content))
             .toList());
 
         // commit이 된 이후에 실행을 한다.
@@ -123,5 +127,38 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public List<MessageLog> findReservedAllMessage() {
         return messageLogRepository.findAllByReservedMessage(LocalDateTime.now());
+    }
+
+    @Override
+    public Map<Long, Integer> findLineIdCountByLog(List<Long> logIds) {
+        // 사용처
+        return messageLogRepository.findLineCountPerLog(logIds)
+            .stream()
+            .collect(Collectors.toMap(
+                LogLineIdCount::id,
+                middle -> middle.count().intValue()
+            ));
+    }
+
+    /**
+     * MessageLog를 생성해 주는 메소드
+     */
+    private MessageLog createMessageLogForGroup(Group g, Channel channel, MessageType type,
+        LocalDateTime reserveTime, String content) {
+        List<String> lineIds = groupService.findGroupById(g.getId(), true)
+            .getUserGroupList()
+            .stream()
+            .filter(gu -> gu.getUser().getLineId() != null)
+            .map(gu -> gu.getUser().getLineId())
+            .toList();
+
+        MessageLog messageLog = MessageLog.messageLog(channel, type, g, reserveTime, content);
+
+        lineIds.forEach(l -> {
+            messageLog.addMessageLogLineInfo(
+                MessageLogLineInfo.createLineInfo(messageLog, l));
+        });
+
+        return messageLog;
     }
 }
