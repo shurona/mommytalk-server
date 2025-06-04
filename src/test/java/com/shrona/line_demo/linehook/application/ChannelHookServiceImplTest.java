@@ -113,12 +113,14 @@ class ChannelHookServiceImplTest {
         assertThat(b).isFalse();
     }
 
+    //TODO: 여기 자꾸 테스트 에러 생김 확인해보자
     @Test
     public void 성공_휴대전화_입력_시_단일전송_로직_테스트() {
         // given
         doNothing().when(messageSender).sendSingleMessageWithContents(any(), any(), anyString());
-        when(lineService.findLineUserByLineId(anyString())).thenReturn(
-            Optional.of(mock(LineUser.class)));
+        LineUser mockLineUser = mock(LineUser.class);
+        when(mockLineUser.getLineId()).thenReturn("lineId1");
+        when(lineService.findLineUserByLineId(anyString())).thenReturn(Optional.of(mockLineUser));
 
         String phoneNumber = "010-1234-1234";
 
@@ -135,8 +137,9 @@ class ChannelHookServiceImplTest {
     public void 잘못된_휴대전화_입력_시_단일전송_로직_테스트() {
         // given
         doNothing().when(messageSender).sendSingleMessageWithContents(any(), any(), anyString());
-        when(lineService.findLineUserByLineId(anyString())).thenReturn(
-            Optional.of(mock(LineUser.class)));
+        LineUser mockLineUser = mock(LineUser.class);
+        when(mockLineUser.getLineId()).thenReturn("lineId1");
+        when(lineService.findLineUserByLineId(anyString())).thenReturn(Optional.of(mockLineUser));
 
         String wrongPhoneNumber = "010-12-1234";
 
