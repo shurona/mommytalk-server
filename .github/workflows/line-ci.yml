@@ -55,7 +55,6 @@ jobs:
         env:
           ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
           ECR_NAMESPACE: ${{ vars.ECR_NAMESPACE }}
-          SERVICE: ${{ vars.SERVICE }}
         run: |
           commit_hash=$(git rev-parse --short HEAD)
           imageName="$ECR_REGISTRY/$ECR_NAMESPACE/$SERVICE"
