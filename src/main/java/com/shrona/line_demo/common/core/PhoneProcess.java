@@ -12,8 +12,10 @@ public class PhoneProcess {
         휴대전화 입력 검증
      */
     public boolean isValidFormat(String input) {
-        String regex = "(\\d{3}([- ])\\d{3,4}\\2\\d{4})|(0\\d0\\d{7,8})";
-        return input.matches(regex);
+        String regexOne = "(\\d{3}([- ])\\d{3,4}\\2\\d{4})";
+
+        String regexTwo = "(0\\d0\\d{7,8})";
+        return input.matches(regexOne) || input.matches(regexTwo);
     }
 
 

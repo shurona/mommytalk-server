@@ -115,19 +115,16 @@ public class ChannelHookServiceImpl implements ChannelHookService {
     public void sendLineMessageAfterSuccess(Long channelId, String lineId, String phoneNumber) {
         Optional<LineUser> lineUser = lineService.findLineUserByLineId(lineId);
         if (lineUser.isEmpty()) {
-            System.out.println("라인 비는 곳");
             return;
         }
         Optional<Channel> channel = channelService.findChannelById(channelId);
         // 채널 정보가 없으면 패스 => 잘못된 요청
         if (channel.isEmpty()) {
-            System.out.println("채널 정보 없음");
             return;
         }
 
         // 휴대폰 번호 재 확인
         if (!phoneProcess.isValidFormat(phoneNumber)) {
-            System.out.println("잘못된 휴대 전화");
             return;
         }
 

@@ -10,7 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shrona.line_demo.line.application.LineService;
-import com.shrona.line_demo.line.application.sender.MessageSender;
+import com.shrona.line_demo.line.application.utils.MessageUtils;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
@@ -20,6 +20,7 @@ import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,21 +35,17 @@ class ChannelHookServiceImplTest {
 
     @Autowired
     private ChannelHookServiceImpl channelHookService;
-
     @Autowired
     private UserJpaRepository userRepository;
-
     @Autowired
     private LineUserJpaRepository lineUserRepository;
-
     @Autowired
     private ChannelJpaRepository channelJpaRepository;
-
     @Autowired
     private ChannelLineUserJpaRepository channelLineUserRepository;
 
     @MockitoBean
-    private MessageSender messageSender;
+    private MessageUtils messageUtils;
 
     @MockitoBean
     private LineService lineService;
@@ -117,7 +114,8 @@ class ChannelHookServiceImplTest {
     @Test
     public void 성공_휴대전화_입력_시_단일전송_로직_테스트() {
         // given
-        doNothing().when(messageSender).sendSingleMessageWithContents(any(), any(), anyString());
+        doNothing().when(messageUtils).registerSingleTask(
+            any(Channel.class), any(LineUser.class), anyString(), any(LocalDateTime.class));
         LineUser mockLineUser = mock(LineUser.class);
         when(mockLineUser.getLineId()).thenReturn("lineId1");
         when(lineService.findLineUserByLineId(anyString())).thenReturn(Optional.of(mockLineUser));
@@ -129,14 +127,15 @@ class ChannelHookServiceImplTest {
             phoneNumber);
 
         // then
-        verify(messageSender).sendSingleMessageWithContents(any(Channel.class), any(LineUser.class),
-            anyString());
+        verify(messageUtils).registerSingleTask(
+            any(Channel.class), any(LineUser.class), anyString(), any(LocalDateTime.class));
     }
 
     @Test
     public void 잘못된_휴대전화_입력_시_단일전송_로직_테스트() {
         // given
-        doNothing().when(messageSender).sendSingleMessageWithContents(any(), any(), anyString());
+        doNothing().when(messageUtils).registerSingleTask(
+            any(Channel.class), any(LineUser.class), anyString(), any(LocalDateTime.class));
         LineUser mockLineUser = mock(LineUser.class);
         when(mockLineUser.getLineId()).thenReturn("lineId1");
         when(lineService.findLineUserByLineId(anyString())).thenReturn(Optional.of(mockLineUser));
@@ -148,10 +147,7 @@ class ChannelHookServiceImplTest {
             wrongPhoneNumber);
 
         // then
-        verify(messageSender, never())
-            .sendSingleMessageWithContents(any(Channel.class),
-                any(LineUser.class),
-                anyString());
+        verify(messageUtils, never()).registerTaskSchedule(any(), any(LocalDateTime.class));
     }
 
 }
