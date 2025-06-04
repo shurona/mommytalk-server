@@ -57,7 +57,7 @@ jobs:
           ECR_NAMESPACE: ${{ vars.ECR_NAMESPACE }}
         run: |
           commit_hash=$(git rev-parse --short HEAD)
-          imageName="$ECR_REGISTRY/$ECR_NAMESPACE/$SERVICE"
+          imageName="$ECR_REGISTRY/$ECR_NAMESPACE"
           docker build -t "$imageName:latest" .
           docker tag "$imageName:latest" "$imageName:$commit_hash"
           docker push "$imageName:latest"
