@@ -24,11 +24,11 @@
       </thead>
       <tbody>
       <tr th:each="user : ${friends}">
-        <td th:text="${user.lineId}">xxxxx</td>
-        <td ondblclick="enableEdit(this)" th:data-phone-number="${user.phoneNumber}"
+        <td width="40%" th:text="${user.lineId}">xxxxx</td>
+        <td width="20%" ondblclick="enableEdit(this)" th:data-phone-number="${user.phoneNumber}"
             th:data-user-id="${user.id}" th:text="${user.phoneNumber}">010-1234-1234
         </td>
-        <td th:text="${#temporals.format(user.joinDate, 'yyyy.MM.dd HH:mm')}">2025.02.01 12:00</td>
+        <td width="20%" th:text="${#temporals.format(user.joinDate, 'yyyy.MM.dd HH:mm')}">2025.02.01 12:00</td>
       </tr>
       </tbody>
     </table>

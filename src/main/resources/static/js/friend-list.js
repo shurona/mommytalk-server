@@ -52,16 +52,16 @@ function savePhone(input, userId) {
     },
     body: JSON.stringify({ phone: newPhone })
   })
-  .then((response) => {
-    if(!response.ok) {
-      throw new Error("잘못된 요청입니다.");
-    }
+  .then(async (response) => {
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || '서버 에러');
+  }
     td.innerText = newPhone;
     td.setAttribute('data-phone-number', newPhone);
-    
   })
   .catch(error => {
-    alert('변경 중 에러 발생 ' + error.message);
-    td.innerText = beforePhone; // 에러 발생 시 복원
+    alert('변경 중 에러 발생 : ' + error.message);
+    td.innerText = beforePhone;
   });
 }

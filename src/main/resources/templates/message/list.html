@@ -23,11 +23,11 @@
       </thead>
       <tbody>
       <tr th:each="msg : ${messages}">
-        <td th:attr="data-utc=${#temporals.format(msg.sendDateTime, 'yyyy-MM-dd HH:mm')}">
+        <td width="20%" th:attr="data-utc=${#temporals.format(msg.sendDateTime, 'yyyy-MM-dd HH:mm')}">
         </td>
-        <td th:text="${msg.content}"></td>
-        <td th:text="${msg.receiverCount}"></td>
-        <td th:text="${msg.status}"></td>
+        <td width="60%" th:text="${msg.content}"></td>
+        <td width="15%" th:text="${msg.receiverCount}"></td>
+        <td width="20%" th:text="${msg.status}"></td>
       </tr>
       </tbody>
     </table>
