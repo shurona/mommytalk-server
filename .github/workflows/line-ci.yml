@@ -55,47 +55,46 @@ jobs:
         env:
           ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
           ECR_NAMESPACE: ${{ vars.ECR_NAMESPACE }}
+          SERVICE: ${{ vars.SERVICE }}
         run: |
           commit_hash=$(git rev-parse --short HEAD)
-          imageName="$ECR_REGISTRY/$ECR_NAMESPACE"
+          imageName="$ECR_REGISTRY/$ECR_NAMESPACE/$SERVICE"
           docker build -t "$imageName:latest" .
           docker tag "$imageName:latest" "$imageName:$commit_hash"
           docker push "$imageName:latest"
           docker push "$imageName:$commit_hash"
-      
-
-      # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-      # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
-      #
-      # - name: Setup Gradle
-      #   uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
-      #   with:
-      #     gradle-version: '8.5'
-      #
-      # - name: Build with Gradle 8.5
-      #   run: gradle build
+  
 
   # 배포
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Build output to artifact
-        uses: actions/download-artifact@v4
+      - name: Configure ssh setup
+        uses: webfactory/ssh-agent@v0.7.0
         with:
-          name: build output
-          #          path: |
-          #            build/libs/
-          #            information/pm2-setting/
-          path: ./downloaded-artifact   # 하나의 폴더로 들어간다.
-      - name: Check current folder
-        run: ls downloaded-artifact
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
       - name: Deploy to ec2
+        env:
+          ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
+          ECR_NAMESPACE: ${{ vars.ECR_NAMESPACE }}
         run: |
-          ls
-          echo "${{secrets.EC2_SSH_KEY}}" > private_key.pem
-#          chmod 600 private_key.pem
-#          scp -i private_key.pem -o StrictHostKeyChecking=no downloaded-artifact/build/libs/line-demo-0.0.1.jar ${{secrets.EC2_USER}}@${{secrets.EC2_HOST}}:/home/${{secrets.EC2_USER}}/workspace/
-#          scp -i private_key.pem -o StrictHostKeyChecking=no downloaded-artifact/information/pm2-setting/server.json ${{secrets.EC2_USER}}@${{secrets.EC2_HOST}}:/home/${{secrets.EC2_USER}}/workspace/
-#          ssh -i private_key.pem -o StrictHostKeyChecking=no ${{secrets.EC2_USER}}@${{secrets.EC2_HOST}} "nohup pm2 restart /home/${{secrets.EC2_USER}}/workspace/server.json > app.log 2>&1 &"
-#          rm -f private_key.pem
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+          "set -e
+            export ECR_REGISTRY='$ECR_REGISTRY'
+            export ECR_NAMESPACE='$ECR_NAMESPACE'
+            export SERVICE='$SERVICE'
+          
+             aws ecr get-login-password | sudo docker login \
+               --username AWS \
+               --password-stdin ${{ vars.ECR_REGISTRY }}
+
+             sudo docker pull $ECR_REGISTRY/$ECR_NAMESPACE/$SERVICE:latest
+             sudo docker stop ${{ vars.SERVICE }} || true
+             sudo docker rm ${{ vars.SERVICE }} || true
+             sudo docker run -d \
+               --name ${{ vars.SERVICE }} \
+               -p 8080:8080 \
+               $ECR_REGISTRY/$ECR_NAMESPACE:latest"
