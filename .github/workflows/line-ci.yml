@@ -89,8 +89,8 @@ jobs:
           export SERVICE='${{ vars.SERVICE }}'
           
           aws ecr get-login-password | sudo docker login --username AWS --password-stdin \$ECR_REGISTRY
-          sudo docker pull \$ECR_REGISTRY/\$ECR_NAMESPACE:latest
+          sudo docker pull \$ECR_REGISTRY/\$ECR_NAMESPACE/\$SERVICE:latest
           sudo docker stop \$SERVICE || true
           sudo docker rm \$SERVICE || true
-          sudo docker run -d --name \$SERVICE -p 8080:8080 \$ECR_REGISTRY/\$ECR_NAMESPACE:latest
+          sudo docker run -d --name \$SERVICE -p 8080:8080 \$ECR_REGISTRY/\$ECR_NAMESPACE/\$SERVICE:latest
           "
