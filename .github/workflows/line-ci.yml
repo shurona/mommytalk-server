@@ -55,10 +55,9 @@ jobs:
         env:
           ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
           ECR_NAMESPACE: ${{ vars.ECR_NAMESPACE }}
-          SERVICE: ${{ vars.SERVICE }}
         run: |
           commit_hash=$(git rev-parse --short HEAD)
-          imageName="$ECR_REGISTRY/$ECR_NAMESPACE/$SERVICE"
+          imageName="$ECR_REGISTRY/$ECR_NAMESPACE"
           docker build -t "$imageName:latest" .
           docker tag "$imageName:latest" "$imageName:$commit_hash"
           docker push "$imageName:latest"
@@ -82,19 +81,15 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-          "set -e
-            export ECR_REGISTRY='$ECR_REGISTRY'
-            export ECR_NAMESPACE='$ECR_NAMESPACE'
-            export SERVICE='$SERVICE'
+          "
+          set -e
+          export ECR_REGISTRY='${{ vars.ECR_REGISTRY }}'
+          export ECR_NAMESPACE='${{ vars.ECR_NAMESPACE }}'
+          export SERVICE='${{ vars.SERVICE }}'
           
-             aws ecr get-login-password | sudo docker login \
-               --username AWS \
-               --password-stdin ${{ vars.ECR_REGISTRY }}
-
-             sudo docker pull $ECR_REGISTRY/$ECR_NAMESPACE/$SERVICE:latest
-             sudo docker stop ${{ vars.SERVICE }} || true
-             sudo docker rm ${{ vars.SERVICE }} || true
-             sudo docker run -d \
-               --name ${{ vars.SERVICE }} \
-               -p 8080:8080 \
-               $ECR_REGISTRY/$ECR_NAMESPACE:latest"
+          aws ecr get-login-password | sudo docker login --username AWS --password-stdin \$ECR_REGISTRY
+          sudo docker pull \$ECR_REGISTRY/\$ECR_NAMESPACE:latest
+          sudo docker stop \$SERVICE || true
+          sudo docker rm \$SERVICE || true
+          sudo docker run -d --name \$SERVICE -p 8080:8080 \$ECR_REGISTRY/\$ECR_NAMESPACE:latest
+          "
