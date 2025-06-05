@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum UserErrorCode {
 
-    ;
+    INVALID_PHONE_NUMBER_INPUT(HttpStatus.BAD_REQUEST, "잘못된 휴대전화 입력입니다");
 
     private HttpStatus status;
     private String message;
