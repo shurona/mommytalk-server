@@ -47,7 +47,7 @@ public class LineValidation {
             byte[] source = canonicalJson.getBytes(UTF_8);
             String signature = Base64.getEncoder().encodeToString(mac.doFinal(source));
 
-            log.info(signature + " : " + signature.equals(header));
+            log.info(channelId + " : " + signature + " : " + signature.equals(header));
 
             if (!signature.equals(header)) {
                 log.error("잘못된 접근 입니다.");
