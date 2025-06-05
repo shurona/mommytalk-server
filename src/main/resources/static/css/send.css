@@ -27,7 +27,7 @@
 
 .message-input-group {
     flex: 2;
-    margin-right: 36px;
+    margin-right: 50px;
 }
 
 .preview-group {
@@ -86,42 +86,32 @@
   word-break: break-word;
 }
 
-.preview-link {
-    color: #1680fa;
-    text-decoration: underline;
-}
-
 .target-row .form-group {
-    width: 100%;
+  width: 100%;
 }
 
 .target-options {
-    display: flex;
-    gap: 32px;
-    margin-bottom: 12px;
-}
-
-.target-options label {
-    font-weight: normal;
-    font-size: 1em;
+  display: flex;
+  gap: 100px;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .custom-dropdown {
   position: relative;
-  display: block; /* 부모 너비에 맞추기 위해 block */
+  display: block; 
   width: 100%;
   max-width: 240px; /* ✅ 원한다면 제한 설정 */
-  font-family: "Segoe UI", sans-serif;
 }
 
 .dropdown-toggle {
   width: 100%;
-  padding: 10px 14px;
+  padding: 8px 14px;
   cursor: pointer;
   border: 1px solid #ccc;
   background-color: #fff;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 12px;
   text-align: left;
   box-sizing: border-box;
 }
@@ -132,20 +122,22 @@
   left: 0;
   width: 100%;
   background-color: #fff;
-  border: 1px solid #a084f7;
+  border: 1px solid #16141b;
   border-radius: 8px;
   padding: 10px;
-  box-shadow: 0 8px 20px rgba(160, 132, 247, 0.15);
+  box-shadow: 0 8px 20px rgba(41, 40, 42, 0.15);
   display: none;
   box-sizing: border-box;
   z-index: 10;
+  max-height: 300px; /* Add max height */
+  overflow-y: auto;  /* Enable vertical scroll */
 }
 
 .dropdown-menu label {
-  display: flex;
+  display: block;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: 5px;
+  padding: 1px 1px;
   width: 100%;
   font-size: 14px;
   cursor: pointer;
@@ -166,68 +158,6 @@
     width: 100%;
 }
 
-.datetime-inputs {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 6px;
-}
-
-.datetime-inputs input[type="text"] {
-    width: 80px;
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid #bbb;
-}
-
-.datetime-inputs select {
-    padding: 6px;
-    border-radius: 4px;
-    border: 1px solid #bbb;
-}
-
-.button-row {
-    display: flex;
-    justify-content: flex-end;
-    gap: 18px;
-    margin-top: 40px;
-}
-
-.btn {
-    padding: 12px 32px;
-    font-size: 1.1em;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    background: #e0e0e0;
-    color: #222;
-    font-weight: bold;
-    transition: background 0.2s;
-}
-
-.btn-primary {
-    background: #bbb;
-    color: #222;
-}
-
-.btn-test {
-    background: #fff;
-    color: #222;
-    border: 1px solid #bbb;
-}
-
-.btn:hover {
-    background: #d1d1d1;
-}
-
-/* 에러 처리 */
-.res-error {
-    color: #e74c3c;
-    font-size: 0.95em;
-    margin-bottom: 12px;
-    /* input과 에러 메시지 간격 조정 */
-    margin-top: -4px;
-}
 
 /* Flatpickr input appearance */
 input#sendDateTime.flatpickr {
@@ -237,4 +167,67 @@ input#sendDateTime.flatpickr {
   border-radius: 6px;
   border: 1px solid #bbb;
   box-sizing: border-box;
+}
+
+
+.group-selection-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 32px;
+  justify-content: flex-start;
+}
+
+.group-box {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  width: 190px;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+}
+
+/* group box */
+.group-box label {
+  display: flex;
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.btn {
+  padding: 10px 24px;
+  font-size: 1em;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #e0e0e0;
+  color: #222;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.btn-test {
+  background: #fff;
+  color: #222;
+  border: 1px solid #bbb;
+}
+
+.btn-primary {
+  background: #bbb;
+  color: #222;
+}
+
+/* 에러 처리 */
+.res-error {
+    color: #e74c3c;
+    font-size: 0.95em;
+    margin-bottom: 12px;
+    /* input과 에러 메시지 간격 조정 */
+    margin-top: -4px;
 }
