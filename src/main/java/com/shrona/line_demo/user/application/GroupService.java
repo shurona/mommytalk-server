@@ -91,5 +91,5 @@ public interface GroupService {
     /**
      * 기존의 User의 휴대전화가 변경되면 UserGroup을 Before에서 After로 변경해준다.
      */
-    public void mergeUserGroupBeforeToAfter(User before, User after);
+    public void mergeUserGroupBeforeToAfter(User source, User target);
 }

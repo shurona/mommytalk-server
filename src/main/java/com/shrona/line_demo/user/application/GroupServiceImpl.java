@@ -186,31 +186,31 @@ public class GroupServiceImpl implements GroupService {
     }
 
     /**
-     * UserGroup을 다룬다.
+     * 유저가 변경 될 때 UserGroup의 User를  source -> target으로 변경해준다.
      */
     @Transactional
-    public void mergeUserGroupBeforeToAfter(User before, User after) {
+    public void mergeUserGroupBeforeToAfter(User source, User target) {
 
-        // 변경 이후 User가 존재한다면 속하는 UserGroup을 불러온다.
-        List<UserGroup> afterUserGroupList = userGroupRepository.findAllByUser(after);
+        // 변경 이후가 될 UserGroup 목록
+        List<UserGroup> targetUserGroupList = userGroupRepository.findAllByUser(target);
 
-        // 변경 이전의 UserGroup 목록을 갖고 온다.
-        List<UserGroup> beforeUserGroupList = userGroupRepository.findAllByUser(before);
+        // 변경이 될 유저 그룹 목록
+        List<UserGroup> sourceUserGroupList = userGroupRepository.findAllByUser(source);
 
-        // 미리 속했던 user의 UserGroup 목록을 갖고 온다.
-        Set<Long> conflictIds = afterUserGroupList.stream()
+        // 변경 목표인 user의 UserGroup 목록을 갖고 온다.
+        Set<Long> conflictIds = targetUserGroupList.stream()
             .map(g -> g.getGroup().getId())
             .collect(Collectors.toSet());
 
         // 겹치지 않는 afterUserGroup의 User를 after User로 변경해준다.
-        if (after != null) {
-            beforeUserGroupList.stream()
+        if (target != null) {
+            sourceUserGroupList.stream()
                 .filter(ug -> !conflictIds.contains(ug.getGroup().getId()))
-                .forEach(ug -> ug.changeUser(after));
+                .forEach(ug -> ug.changeUser(target));
         }
 
         // 겹치는 afterGroupUser는 삭제해준다.
-        List<Long> deleteUGIds = beforeUserGroupList.stream()
+        List<Long> deleteUGIds = sourceUserGroupList.stream()
             .filter(ug -> conflictIds.contains(ug.getGroup().getId()))
             .map(UserGroup::getId).toList();
 
@@ -218,9 +218,9 @@ public class GroupServiceImpl implements GroupService {
         userGroupRepository.deleteAllById(deleteUGIds);
 
         // beforeUser의 User는 삭제처리한다.
-        if (before != null) {
-            before.clearLineUserAndPhoneNumber();
-            userService.deleteUser(before);
+        if (source != null) {
+            source.clearLineUserAndPhoneNumber();
+            userService.deleteUser(source);
         }
     }
 
