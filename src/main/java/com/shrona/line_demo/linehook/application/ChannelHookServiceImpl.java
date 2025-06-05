@@ -84,6 +84,11 @@ public class ChannelHookServiceImpl implements ChannelHookService {
         // 메시지 저장
         lineMessageRepository.save(LineMessage.createLineMessage(channelLineUser, content));
 
+        // 라인 유저가 휴대전화가 존재하면 휴대전화 확인로직을 실행하지 않는다.
+        if (lineUserInfo.getPhoneNumber() != null) {
+            return false;
+        }
+
         // 휴대전화 번호 형식인지 확인 후 로직 처리
         return validatePhoneAndMatchUser(content, channelLineUser);
     }
