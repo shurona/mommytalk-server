@@ -18,7 +18,6 @@ spring:
 
 line:
   secret-key: "LINE_CHANNEL_SECRET"
-  access-token: "LINE_CHANNEL_ACCESS_TOKEN"
   base-url: "LINE_BASE_URL"
 
 
