@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserUtils {
 
-    // Helper Methods
+    // Users의 휴대전화를 Set형식으로 변환
     public Set<PhoneNumber> extractPhoneNumbers(List<User> users) {
         return users.stream()
             .map(User::getPhoneNumber)

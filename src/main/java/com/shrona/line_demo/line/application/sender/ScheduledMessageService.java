@@ -28,6 +28,7 @@ public class ScheduledMessageService {
     @EventListener(ApplicationReadyEvent.class)
     public void initScheduledMessage() {
 
+        // 서버 시작할 때 쓰레드 확인
         logThreadSize();
         List<MessageLog> reservedMessageList = messageRepository.findAllByReservedMessage(
             LocalDateTime.now());

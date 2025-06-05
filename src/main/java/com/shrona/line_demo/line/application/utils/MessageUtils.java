@@ -48,7 +48,7 @@ public class MessageUtils {
         // task 등록
         taskScheduler.schedule(task, Instant.now().plusSeconds(delaySeconds));
 
-        log.info("{}초 이후로 실행이 등록되었습니다. ", delaySeconds);
+        log.info("{}초 이후로 그룹 전송 실행이 등록되었습니다. ", delaySeconds);
     }
 
     /**
@@ -68,7 +68,7 @@ public class MessageUtils {
         // task 등록
         taskScheduler.schedule(task, Instant.now().plusSeconds(delaySeconds));
 
-        log.info("{}초 이후로 실행이 등록되었습니다. ", delaySeconds);
+        log.info("{}초 이후로 단일 전송 실행이 등록되었습니다. ", delaySeconds);
     }
 
 }

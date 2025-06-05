@@ -28,11 +28,11 @@ import org.springframework.web.client.RestClientResponseException;
 @Service
 public class MessageSenderImpl implements MessageSender {
 
-    // status int
+    // 메시지 전송 status
     private static final int FAIL = 0;
     private static final int SUCCESS = 1;
+    // multi send의 chunk size
     private static final int CHUNK_SIZE = 500;
-    //
     private static final String prefixHeader = "Bearer ";
     // restClient
     private final LineMessageSenderClient lineMessageSenderClient;
@@ -128,7 +128,7 @@ public class MessageSenderImpl implements MessageSender {
                 LineMessageSingleRequestBody.of(lineUser.getLineId(), text));
         } catch (Exception e) {
             // TODO: 어떻게 처리할까
-            log.error("에러 발생 : " + e.getMessage());
+            log.error("[단일 전송 에러] 에러 원인 {}", e.getMessage());
         }
         // thread sleep
         sleepThreadForRateLimit();

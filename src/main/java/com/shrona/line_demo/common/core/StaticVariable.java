@@ -6,7 +6,7 @@ public class StaticVariable {
      * 로그인 세션
      */
     public final static String LOGIN_USER = "login-session";
-    public final static int LOGIN_SESSION_TIME = 30 * 60;
+    public final static int LOGIN_SESSION_TIME = 60 * 60;
 
     /**
      * 로그인 view

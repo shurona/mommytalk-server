@@ -254,8 +254,10 @@ class GroupServiceImplTest {
 
         List<UserGroup> ugTwoList = groupInfoTwo.getUserGroupList();
         List<UserGroup> ugThreeList = groupInfoThree.getUserGroupList();
+
         assertThat(groupInfoOne.getUserGroupList().size()).isEqualTo(1);
         assertThat(ugTwoList.size()).isEqualTo(1);
+        // 다른 그룹들이 변경 되었는 지 확인
         assertThat(ugTwoList.get(0).getUser().getPhoneNumber().getPhoneNumber())
             .isEqualTo(phoneTwo);
         assertThat(ugThreeList.size()).isEqualTo(1);

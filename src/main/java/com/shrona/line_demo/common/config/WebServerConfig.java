@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 
 @Configuration
-public class WebServerCustomizerConfig implements
+public class WebServerConfig implements
     WebServerFactoryCustomizer<ConfigurableWebServerFactory> {
 
     /**

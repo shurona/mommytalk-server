@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 로컬 테스트 용 클래스
+ */
 @Profile({"local"})
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin")
@@ -62,7 +65,7 @@ public class AdminRestController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         boolean isPhoneSave = channelHookService.saveLineMessage(1L, lineId, content);
-        
+
         // 휴대번호가 저장되었으면 메시지 전송 로직 실행
         if (isPhoneSave) {
             channelHookService.sendLineMessageAfterSuccess(
