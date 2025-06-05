@@ -20,13 +20,18 @@ class PhoneProcessTest {
     @Test
     void 유효하지_않은_전화번호_필터링() {
         // given
-        List<String> inputs = Arrays.asList("010-1234-5678", "INVALID", "02-987-6543");
+        List<String> inputs = Arrays.asList(
+            "010-1234-5678", "010 6789 2222",
+            "INVALID", "02-987-6543", "010-1222 9872",
+            "01012341234", "0101231234");
 
         // when
         List<PhoneNumber> userList = phoneProcess.validateAndConvertPhoneNumbers(inputs);
 
+        System.out.println(userList);
+
         // then
-        assertThat(userList.size()).isEqualTo(1);
+        assertThat(userList.size()).isEqualTo(4);
     }
 
     @DisplayName("휴대전화 입력 정합성 테스트")
