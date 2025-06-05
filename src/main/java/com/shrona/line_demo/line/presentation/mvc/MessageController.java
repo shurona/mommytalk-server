@@ -146,22 +146,11 @@ public class MessageController {
         if (form.targetType().equals(GROUP.getType())) {
             // 그룹 타겟 전송인데 그룹이 비어있는 경우
             if (form.includeGroup() == null || form.includeGroup().isEmpty()) {
-                bindingResult.rejectValue("includeGroup", "error.non-group", "포함할 친구 그룹을 선택하세요.");
-
-                // group 목록 추가
-                registerGroupModel(channelInfo.get(), model);
-                // 채널 정보 모델에 등록
-                registerChannelToModel(channelInfo.get(), model);
-
-                // model의 기본 데이터를 초기화 해주고 binding result 새로 매핑해준다.
-                model.addAttribute("messageForm", initMessageSendFormByForm(form));
-                model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "messageForm", bindingResult);
-
-                return "message/send";
+                return groupFillAndReturn(model, form, bindingResult, channelInfo);
             }
             messageService.createMessageSelectGroup(
                 channelInfo.get(),
-                1L, form.includeGroup(),
+                1L, form.includeGroup(), form.excludeGroup(),
                 localDateTime,
                 form.content());
         }
@@ -173,6 +162,7 @@ public class MessageController {
 
         return "redirect:/admin/channels/" + channelId + "/messages/list";
     }
+
 
     /**
      * 테스트 요청
@@ -196,6 +186,26 @@ public class MessageController {
         }
 
 
+    }
+
+    /**
+     * 그룹이 비어 있으면 다시 전달해준다.
+     */
+    private String groupFillAndReturn(Model model, MessageSendForm form,
+        BindingResult bindingResult,
+        Optional<Channel> channelInfo) {
+        bindingResult.rejectValue("includeGroup", "error.non-group", "포함할 친구 그룹을 선택하세요.");
+
+        // group 목록 추가
+        registerGroupModel(channelInfo.get(), model);
+        // 채널 정보 모델에 등록
+        registerChannelToModel(channelInfo.get(), model);
+
+        // model의 기본 데이터를 초기화 해주고 binding result 새로 매핑해준다.
+        model.addAttribute("messageForm", initMessageSendFormByForm(form));
+        model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "messageForm", bindingResult);
+
+        return "message/send";
     }
 
     /**

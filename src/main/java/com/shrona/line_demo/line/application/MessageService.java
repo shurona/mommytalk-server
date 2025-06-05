@@ -20,8 +20,9 @@ public interface MessageService {
      * 메시지 생성(발송 시 사용)
      */
     public List<MessageLog> createMessageSelectGroup
-    (Channel channel, Long messageTypeId, List<Long> groupId, LocalDateTime reserveTime,
-        String content);
+    (Channel channel, Long messageTypeId,
+        List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
+        LocalDateTime reserveTime, String content);
 
     /**
      * 모든 그룹에 메시지 전송(제외 그룹 확인)

@@ -11,9 +11,11 @@ import com.shrona.line_demo.line.infrastructure.dao.LogLineIdCount;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.domain.Group;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,18 +52,24 @@ public class MessageServiceImpl implements MessageService {
 
     @Transactional
     public List<MessageLog> createMessageSelectGroup
-        (Channel channel, Long messageTypeId, List<Long> groupIds, LocalDateTime reserveTime,
+        (Channel channel, Long messageTypeId,
+            List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
+            LocalDateTime reserveTime,
             String content) {
 
+        // 제외할 LineIds를 갖고 온다.
+        Set<String> exceptLineIds = getExceptLineIds(selectedExGroupIds);
+
         Optional<MessageType> typeInfo = messageTypeRepository.findById(messageTypeId);
-        List<Group> groupInfo = groupService.findGroupByIdList(groupIds);
+        List<Group> groupInfo = groupService.findGroupByIdList(selectedGroupIds);
 
         if (typeInfo.isEmpty() || groupInfo.isEmpty()) {
             return null;
         }
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(), reserveTime, content))
+            .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(),
+                reserveTime, content, exceptLineIds))
             .toList());
 
         // commit이 된 이후에 실행을 한다.
@@ -84,6 +92,8 @@ public class MessageServiceImpl implements MessageService {
 
         Optional<MessageType> typeInfo = messageTypeRepository.findById(messageTypeId);
 
+        Set<String> exceptLineIds = getExceptLineIds(exceptGroupIds);
+
         // todo: 추후에 그룹이 많아지면 loop으로 처리
         List<Group> groupInfo = groupService.findGroupListNotIn(channel, exceptGroupIds);
 
@@ -92,7 +102,8 @@ public class MessageServiceImpl implements MessageService {
         }
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(), reserveTime, content))
+            .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(),
+                reserveTime, content, exceptLineIds))
             .toList());
 
         // commit이 된 이후에 실행을 한다.
@@ -144,11 +155,12 @@ public class MessageServiceImpl implements MessageService {
      * MessageLog를 생성해 주는 메소드
      */
     private MessageLog createMessageLogForGroup(Group g, Channel channel, MessageType type,
-        LocalDateTime reserveTime, String content) {
+        LocalDateTime reserveTime, String content, Set<String> exceptLineIds) {
         List<String> lineIds = groupService.findGroupById(g.getId(), true)
             .getUserGroupList()
             .stream()
             .filter(gu -> gu.getUser().getLineId() != null)
+            .filter(gu -> !exceptLineIds.contains(gu.getUser().getLineId()))
             .map(gu -> gu.getUser().getLineId())
             .toList();
 
@@ -161,4 +173,18 @@ public class MessageServiceImpl implements MessageService {
 
         return messageLog;
     }
+
+    /**
+     * 제외할 라인 Id 목록을 갖고 온다.
+     */
+    private Set<String> getExceptLineIds(List<Long> selectedExGroupIds) {
+        Set<String> exceptLineIds;
+        if (selectedExGroupIds != null) {
+            exceptLineIds = new HashSet<>(groupService.findLineIdsByGroupIds(selectedExGroupIds));
+        } else {
+            exceptLineIds = new HashSet<>();
+        }
+        return exceptLineIds;
+    }
+
 }

@@ -27,6 +27,11 @@ public interface GroupService {
     public List<Group> findGroupByIdList(List<Long> id);
 
     /**
+     * 그룹 아이디에 해당하는 라인 아이디 조회
+     */
+    public List<String> findLineIdsByGroupIds(List<Long> groupList);
+
+    /**
      * 그룹아이디가 존재하지 않는 그룹 목록 조회
      */
     public List<Group> findGroupListNotIn(Channel channel, List<Long> ids);

@@ -64,6 +64,11 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public List<String> findLineIdsByGroupIds(List<Long> groupList) {
+        return groupRepository.findLineIdsByGroupIds(groupList);
+    }
+
+    @Override
     public List<Group> findGroupListNotIn(Channel channel, List<Long> exceptGroupIds) {
         if (exceptGroupIds == null || exceptGroupIds.isEmpty()) {
             // 제외할 ID가 없으면 전체 그룹 조회

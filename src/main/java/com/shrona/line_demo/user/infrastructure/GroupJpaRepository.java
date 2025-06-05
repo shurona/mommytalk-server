@@ -31,4 +31,16 @@ public interface GroupJpaRepository extends JpaRepository<Group, Long> {
      * 채널에 속한 그룹 목록 조회
      */
     Page<Group> findAllByChannel(Channel channel, Pageable pageable);
+
+    /**
+     * 그룹 아이디를 기준으로 속한 라인 아이디를 조사한다.
+     */
+    @Query("""
+        SELECT DISTINCT ug.user.lineId
+        FROM UserGroup ug
+        WHERE ug.group.id IN :groupIds
+        AND ug.user.lineId IS NOT NULL
+        """)
+    List<String> findLineIdsByGroupIds(List<Long> groupIds);
+
 }
