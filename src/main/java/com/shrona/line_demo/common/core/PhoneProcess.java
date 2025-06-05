@@ -1,5 +1,8 @@
 package com.shrona.line_demo.common.core;
 
+import static com.shrona.line_demo.user.domain.vo.PhoneNumber.PHONE_NUMBER_PATTERN;
+import static com.shrona.line_demo.user.domain.vo.PhoneNumber.PHONE_NUMBER_PATTERN_TWO;
+
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import java.util.List;
 import java.util.Objects;
@@ -12,10 +15,7 @@ public class PhoneProcess {
         휴대전화 입력 검증
      */
     public boolean isValidFormat(String input) {
-        String regexOne = "(\\d{3}([- ])\\d{3,4}\\2\\d{4})";
-
-        String regexTwo = "(0\\d0\\d{7,8})";
-        return input.matches(regexOne) || input.matches(regexTwo);
+        return input.matches(PHONE_NUMBER_PATTERN) || input.matches(PHONE_NUMBER_PATTERN_TWO);
     }
 
 
