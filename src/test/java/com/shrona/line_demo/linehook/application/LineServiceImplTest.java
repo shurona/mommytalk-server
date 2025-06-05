@@ -86,5 +86,11 @@ class LineServiceImplTest {
         ).isInstanceOf(LineException.class);
     }
 
+    @Test
+    @DisplayName("이미 존재하는 번호로 변경 시 예외 발생")
+    void 이미_설정된_경우_막는다() {
+
+    }
+
 
 }
