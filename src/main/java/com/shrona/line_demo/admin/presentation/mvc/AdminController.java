@@ -1,6 +1,6 @@
 package com.shrona.line_demo.admin.presentation.mvc;
 
-import static com.shrona.line_demo.common.core.StaticVariable.HOME_VIEW;
+import static com.shrona.line_demo.common.utils.StaticVariable.HOME_VIEW;
 
 import com.shrona.line_demo.admin.application.AdminService;
 import com.shrona.line_demo.admin.domain.AdminUser;
@@ -8,9 +8,9 @@ import com.shrona.line_demo.admin.presentation.dtos.AdminAddPhoneNumberRequestBo
 import com.shrona.line_demo.admin.presentation.dtos.AdminDeleteTestUser;
 import com.shrona.line_demo.admin.presentation.form.LoginForm;
 import com.shrona.line_demo.admin.presentation.form.TestUserForm;
-import com.shrona.line_demo.common.core.StaticVariable;
 import com.shrona.line_demo.common.dto.ChannelForm;
 import com.shrona.line_demo.common.session.UserSession;
+import com.shrona.line_demo.common.utils.StaticVariable;
 import com.shrona.line_demo.line.application.ChannelService;
 import com.shrona.line_demo.line.application.LineService;
 import com.shrona.line_demo.line.domain.Channel;

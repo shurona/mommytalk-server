@@ -1,4 +1,4 @@
-package com.shrona.line_demo.common.core;
+package com.shrona.line_demo.common.utils;
 
 import static com.shrona.line_demo.user.domain.vo.PhoneNumber.PHONE_NUMBER_PATTERN;
 import static com.shrona.line_demo.user.domain.vo.PhoneNumber.PHONE_NUMBER_PATTERN_TWO;

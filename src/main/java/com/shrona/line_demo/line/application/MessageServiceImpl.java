@@ -159,9 +159,9 @@ public class MessageServiceImpl implements MessageService {
         List<String> lineIds = groupService.findGroupById(g.getId(), true)
             .getUserGroupList()
             .stream()
-            .filter(gu -> gu.getUser().getLineId() != null)
-            .filter(gu -> !exceptLineIds.contains(gu.getUser().getLineId()))
-            .map(gu -> gu.getUser().getLineId())
+            .filter(gu -> gu.getUser().getLineId() != null) // 라인 아이디가 있는 경우
+            .filter(gu -> !exceptLineIds.contains(gu.getUser().getLineId())) // 제외 라인아이디에 없는 경우
+            .map(gu -> gu.getUser().getLineId()) // 라인 아이디를 추출한다.
             .toList();
 
         MessageLog messageLog = MessageLog.messageLog(channel, type, g, reserveTime, content);

@@ -1,4 +1,4 @@
-package com.shrona.line_demo.common.core;
+package com.shrona.line_demo.common.utils;
 
 public class StaticVariable {
 

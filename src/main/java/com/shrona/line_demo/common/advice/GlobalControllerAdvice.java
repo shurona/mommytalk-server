@@ -1,4 +1,4 @@
-package com.shrona.line_demo.common.core;
+package com.shrona.line_demo.common.advice;
 
 import com.shrona.line_demo.common.dto.ErrorResponseDto;
 import com.shrona.line_demo.line.common.exception.LineException;

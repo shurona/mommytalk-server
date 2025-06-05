@@ -1,6 +1,6 @@
 package com.shrona.line_demo.common.config;
 
-import static com.shrona.line_demo.common.core.StaticVariable.POOL_SIZE;
+import static com.shrona.line_demo.common.utils.StaticVariable.POOL_SIZE;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

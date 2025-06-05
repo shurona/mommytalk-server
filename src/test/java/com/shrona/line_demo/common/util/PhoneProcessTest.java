@@ -1,7 +1,8 @@
-package com.shrona.line_demo.common.core;
+package com.shrona.line_demo.common.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.shrona.line_demo.common.utils.PhoneProcess;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import java.util.Arrays;
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.shrona.line_demo.user.presentation.controller;
 
-import static com.shrona.line_demo.common.core.StaticVariable.HOME_VIEW;
+import static com.shrona.line_demo.common.utils.StaticVariable.HOME_VIEW;
 
 import com.shrona.line_demo.common.dto.ChannelForm;
 import com.shrona.line_demo.common.dto.PagingForm;

@@ -1,6 +1,6 @@
 package com.shrona.line_demo.user.application;
 
-import com.shrona.line_demo.common.core.PhoneProcess;
+import com.shrona.line_demo.common.utils.PhoneProcess;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
 import com.shrona.line_demo.user.common.utils.UserUtils;

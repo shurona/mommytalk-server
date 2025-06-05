@@ -1,6 +1,6 @@
 package com.shrona.line_demo.line.application.utils;
 
-import static com.shrona.line_demo.common.core.StaticVariable.NO_DELAY;
+import static com.shrona.line_demo.common.utils.StaticVariable.NO_DELAY;
 
 import com.shrona.line_demo.line.application.sender.MessageSender;
 import com.shrona.line_demo.line.domain.Channel;
