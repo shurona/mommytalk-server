@@ -41,7 +41,7 @@ public class LineHookController {
 
         // 잘못된 접근은 제한 처리
         // hook처리여서 ok 처리
-        if (!lineValidation.checkLineSignature(requestBodyOrigin, header)) {
+        if (!lineValidation.checkLineSignature(requestBodyOrigin, header, MOMMY_TALK_CHANNEL_ID)) {
             return ResponseEntity.ok().build();
         }
 
@@ -59,7 +59,7 @@ public class LineHookController {
                                 MOMMY_TALK_CHANNEL_ID,
                                 event.source().userId(),
                                 event.message().text());
-                            
+
                             // 휴대번호가 저장되었으면 메시지 전송 로직 실행
                             if (isPhoneSave) {
                                 channelHookService.sendLineMessageAfterSuccess(

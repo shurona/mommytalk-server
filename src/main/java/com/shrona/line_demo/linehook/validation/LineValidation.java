@@ -4,12 +4,15 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.shrona.line_demo.line.domain.Channel;
+import com.shrona.line_demo.line.infrastructure.ChannelJpaRepository;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -17,14 +20,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class LineValidation {
 
-    private final Environment environment;
     private final ObjectMapper objectMapper;
 
-    public boolean checkLineSignature(String body, String header) {
+    private final ChannelJpaRepository channelRepository;
+
+    public boolean checkLineSignature(String body, String header, Long channelId) {
 
         try {
+            Optional<Channel> channelInfo = channelRepository.findById(channelId);
+
+            if (channelInfo.isEmpty()) {
+                return false;
+            }
+
+            // channel secret key
             String channelSecret =
-                this.environment.getProperty("line.secret-key");// Channel secret string
+                base64ToUtf8(channelInfo.get().getChannelId());// Channel secret string
 
             // 들어온 body의 키 정렬
             objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
@@ -50,5 +61,10 @@ public class LineValidation {
         return true;
     }
 
+
+    private String base64ToUtf8(String accessToken) {
+        byte[] decodedBytes = Base64.getDecoder().decode(accessToken);
+        return new String(decodedBytes, StandardCharsets.UTF_8);
+    }
 
 }
