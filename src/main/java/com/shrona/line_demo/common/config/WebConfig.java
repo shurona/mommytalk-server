@@ -22,7 +22,10 @@ public class WebConfig implements WebMvcConfigurer {
         return new BCryptPasswordEncoder();
     }
 
-    //    @Bean
+
+    /**
+     * Body를 복사하는 Filter Bean(현재는 사용하지 않음)
+     */
     public FilterRegistrationBean<LineHookFilter> myFilter() {
         FilterRegistrationBean<LineHookFilter> registrationBean = new FilterRegistrationBean<>(
             new LineHookFilter(environment));
@@ -33,13 +36,19 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 로그인 interceptor
         registry.addInterceptor(new LoginInterceptor())
             .order(1)
             .addPathPatterns("/**")
             .excludePathPatterns("/", "/admin", "/admin/", "/admin/v1/login", "/api/v1/admin",
                 "/logout", "/css/**", "/*.ico", "/error",
-                "/mommy-test" // hook
+                "/mommy-talk", "shrona-test" // hook
             );
+
+        // 채널 관련 요청 interceptor
+//        registry.addInterceptor(new ChannelIdInterceptor())
+//            .order(2)
+//            .addPathPatterns("/admin/channels/**");
     }
 
 }
