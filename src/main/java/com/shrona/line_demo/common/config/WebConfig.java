@@ -42,7 +42,7 @@ public class WebConfig implements WebMvcConfigurer {
             .addPathPatterns("/**")
             .excludePathPatterns("/", "/admin", "/admin/", "/admin/v1/login", "/api/v1/admin",
                 "/logout", "/css/**", "/*.ico", "/error",
-                "/mommy-talk", "shrona-test" // hook
+                "/mommy-talk", "/shrona-test" // hook
             );
 
         // 채널 관련 요청 interceptor
