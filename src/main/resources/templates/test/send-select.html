@@ -121,12 +121,11 @@
         id: id
       })
     })
-    .then(response => {
+    .then(async(data) => {
       if (!response.ok) {
+        const errorData = await response.json();
         throw new Error('요청 실패');
       }
-    })
-    .then(data => {
       console.log('성공:', data);
       window.location.reload();
     })
@@ -157,9 +156,10 @@
         phoneNumber: phoneNumber
       })
     })
-    .then(response => {
+    .then(async(response) => {
       if (!response.ok) {
-        throw new Error('요청 실패');
+        const errorData = await response.json();
+        throw new Error(errorData.message || '등록 실패');
       }
     })
     .then(data => {
@@ -167,7 +167,7 @@
       window.location.reload(); // 성공 시 페이지 새로고침
     })
     .catch(error => {
-      console.error('에러 발생:', error);
+      alert('등록 중 에러 발생 : ' + error.message);
     });
   }
 </script>

@@ -41,7 +41,7 @@
     </form>
 
     <!-- 페이징 -->
-    <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo})}"></div>
+    <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo}, requestUrl=${currentPath})}"></div>
   </div>
 </div>
 <script th:src="@{/js/friend-list.js}"></script>

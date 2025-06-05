@@ -48,7 +48,8 @@
       <button class="delete-btn" onclick="removeSelectedGroups()">선택 삭제</button>
     </div>
 
-    <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo})}"></div>
+    <!-- 페이징 -->
+    <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo}, requestUrl=${currentPath})}"></div>
   </div>
 </div>
 

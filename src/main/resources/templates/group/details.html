@@ -5,6 +5,7 @@
   <title>구매자 그룹 상세</title>
   <link rel="stylesheet" th:href="@{/css/sidebar.css}">
   <link rel="stylesheet" th:href="@{/css/group-detail.css}">
+  <link rel="stylesheet" th:href="@{/css/pagination.css}">
 </head>
 <body>
 <div class="container">
@@ -88,6 +89,8 @@
       </div>
       
     </section>
+    <!-- 페이징 -->
+    <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo}, requestUrl=${currentPath})}"></div>
   </div>
 </div>
 

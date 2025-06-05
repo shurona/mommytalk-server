@@ -13,7 +13,7 @@
   margin-bottom: 32px;
 }
 .group-info-section {
-  margin-bottom: 36px;
+  margin-bottom: 10px;
   position: relative;
 }
 .group-info-table {
@@ -54,7 +54,7 @@
 /* 테이블 파트  */
 .friend-list-section {
   position: relative;
-  margin-top: 28px;
+  margin-top: 15;
 }
 .friend-table {
   width: 100%;
@@ -62,7 +62,7 @@
   background: #fafafa;
   border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   table-layout: fixed; /* 열 너비 일정하게 맞춤 */
 }
 
