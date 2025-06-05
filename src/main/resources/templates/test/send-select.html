@@ -140,7 +140,7 @@
     const channelId = [[${channelInfo.id}]]; // 채널 아이디
     // 입력된 전화번호 갖고 오기
     const input = document.querySelector('input[name="phoneNumber"]');
-    const phoneNumber = input.value;
+    const phoneNumber = input.value.trim();
 
     if (!phoneNumber) {
       alert('전화번호를 입력하세요.');

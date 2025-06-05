@@ -27,10 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
 function updateTargetUI() {
   const target = document.querySelector('input[name="targetType"]:checked').value;
   const includeBox = document.getElementById('includeGroupBox');
-  const excludeBox = document.getElementById('excludeGroupBox');
   
   includeBox.style.display = target === 'GROUP' ? 'block' : 'none';
-  excludeBox.style.display = target === 'ALL' ? 'block' : 'none';
 }
 
 // 페이지 로드 시 초기화

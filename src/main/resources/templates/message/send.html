@@ -5,7 +5,7 @@
   <title>메시지 보내기 | Mommytalk english</title>
   <link rel="stylesheet" th:href="@{/css/send.css}">
   <link rel="stylesheet" th:href="@{/css/sidebar.css}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
 <body>
@@ -16,7 +16,8 @@
   <!-- 메인 컨텐츠 -->
   <main class="main-content">
     <h2 class="main-title">메시지 보내기</h2>
-    <form class="message-form" method="post" th:action="@{/admin/channels/{channelId}/messages/v1/send(channelId=${channelInfo.id})}"
+    <form class="message-form" method="post"
+          th:action="@{/admin/channels/{channelId}/messages/v1/send(channelId=${channelInfo.id})}"
           th:object="${messageForm}">
       <div class="form-row">
         <!-- 메시지 입력 -->
@@ -35,9 +36,7 @@
           <label class="form-label">프리뷰</label>
           <div class="preview-box">
             <!-- 실제 미리보기 내용은 서버에서 렌더링하거나 JS로 동적 표시 -->
-            <div class="preview-message">
-
-            </div>
+            <div class="preview-message"></div>
           </div>
         </div>
       </div>
@@ -46,37 +45,29 @@
       <div class="form-row target-row">
         <div class="form-group">
           <label class="form-label">메시지 타겟</label>
-
-          <!-- 라디오 버튼 2개 -->
           <div class="target-options">
             <label>
               <input name="targetType" onclick="updateTargetUI()"
-                     th:checked="*{targetType} == 'ALL'"
-                     type="radio" value="ALL"> 전체 친구 발송
+                     th:checked="*{targetType} == 'ALL'" type="radio" value="ALL"> 전체 친구 발송
             </label>
             <label>
               <input name="targetType" onclick="updateTargetUI()"
-                     th:checked="*{targetType} == 'GROUP'"
-                     type="radio" value="GROUP"> 포함할 친구 그룹
+                     th:checked="*{targetType} == 'GROUP'" type="radio" value="GROUP"> 포함할 친구 그룹
             </label>
           </div>
-          <div class="target-selects">
-            <!-- 포함 선택 영역 -->
-            <div class="target-select-group" id="includeGroupBox" style="display: none;">
-              <label>포함할 친구그룹 (<span id="includeCount">0</span>)</label>
-              <!-- 드롭다운 버튼 -->
+          <div class="group-selection-wrapper">
+            <div class="group-box" id="excludeGroupBox" style="display: block;">
+              <label>제외할 친구 그룹 (<span id="excludeCount">0</span>)</label>
               <div class="custom-dropdown">
-                <button class="dropdown-toggle" onclick="toggleDropdown('includeDropdown', event)"
+                <button class="dropdown-toggle" onclick="toggleDropdown('excludeDropdown', event)"
                         type="button">그룹선택 ▾
                 </button>
-                <!-- 드롭다운 박스 -->
-                <div class="dropdown-menu" id="includeDropdown">
+                <div class="dropdown-menu" id="excludeDropdown">
                   <div class="checkbox-list">
                     <label th:each="groupId : ${groupForm.keySet()}">
-                      <input name="includeGroup"
-                             th:checked="${#lists.contains(messageForm.includeGroup, groupId)}"
-                             th:text="${groupForm.get(groupId)}"
-                             th:value="${groupId}"
+                      <input name="excludeGroup"
+                             th:checked="${#lists.contains(messageForm.excludeGroup, groupId)}"
+                             th:text="${groupForm.get(groupId)}" th:value="${groupId}"
                              type="checkbox">
                     </label>
                   </div>
@@ -84,23 +75,18 @@
               </div>
             </div>
 
-            <!-- 제외 선택 영역 -->
-            <div class="target-select-group" id="excludeGroupBox" style="display: none;">
-              <label>제외할 친구그룹 (<span id="excludeCount">0</span>)</label>
-              <!-- 드롭다운 버튼 -->
+            <div class="group-box" id="includeGroupBox" style="display: none;">
+              <label>포함할 친구 그룹 (<span id="includeCount">0</span>)</label>
               <div class="custom-dropdown">
-
-                <button class="dropdown-toggle" onclick="toggleDropdown('excludeDropdown', event)"
+                <button class="dropdown-toggle" onclick="toggleDropdown('includeDropdown', event)"
                         type="button">그룹선택 ▾
                 </button>
-                <!-- 드롭다운 박스 -->
-                <div class="dropdown-menu" id="excludeDropdown">
+                <div class="dropdown-menu" id="includeDropdown">
                   <div class="checkbox-list">
                     <label th:each="groupId : ${groupForm.keySet()}">
-                      <input name="excludeGroup"
-                             th:checked="${#lists.contains(messageForm.excludeGroup, groupId)}"
-                             th:text="${groupForm.get(groupId)}"
-                             th:value="${groupId}"
+                      <input name="includeGroup"
+                             th:checked="${#lists.contains(messageForm.includeGroup, groupId)}"
+                             th:text="${groupForm.get(groupId)}" th:value="${groupId}"
                              type="checkbox">
                     </label>
                   </div>
@@ -117,9 +103,11 @@
       <div class="form-row schedule-row">
         <div class="form-group">
           <label class="form-label">발송 날짜/시간 설정</label>
-          <input type="text" id="sendDateTime" name="sendDateTime" th:field="*{sendDateTime}"
-                 class="form-control flatpickr" placeholder="발송 날짜/시간을 선택하세요">
-          <input type="hidden" id="sendDateTimeUtc" name="sendDateTimeUtc" th:field="*{sendDateTimeUtc}">
+          <input class="form-control flatpickr" id="sendDateTime" name="sendDateTime"
+                 placeholder="발송 날짜/시간을 선택하세요"
+                 th:field="*{sendDateTime}" type="text">
+          <input id="sendDateTimeUtc" name="sendDateTimeUtc" th:field="*{sendDateTimeUtc}"
+                 type="hidden">
           <small class="form-text res-error" th:errors="*{sendDateTime}"
                  th:if="${#fields.hasErrors('sendDateTime')}">날짜 데이터가 잘못 입력되었습니다.</small>
         </div>
@@ -127,7 +115,7 @@
 
       <!-- 하단 버튼 -->
       <div class="form-row button-row">
-        <button class="btn btn-test" type="button" onclick="sendTestMessage()">테스트 발송</button>
+        <button class="btn btn-test" onclick="sendTestMessage()" type="button">테스트 발송</button>
         <button class="btn btn-primary" type="submit">등록</button>
       </div>
     </form>
