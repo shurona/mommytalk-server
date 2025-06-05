@@ -78,10 +78,18 @@ function addPhoneNumbersToGroup() {
       'Content-Type': 'application/json'
     }
   })
-  .then(() => {
-    window.location.reload();
+  .then(async(response) => {
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || '등록 실패');
+    }
   })
-  .catch(error => console.error('Error:', error));
+  .then(data => {
+    window.location.reload(); // 성공 시 페이지 새로고침
+  })
+  .catch(error => {
+    alert('등록 중 에러 발생 : ' + error.message);
+  });
 }
 
 function deleteSelectedFriends() {
@@ -108,8 +116,16 @@ function deleteSelectedFriends() {
       'Content-Type': 'application/json'
     }
   })
-  .then(() => {
-    window.location.reload();
+  .then(async(response) => {
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || '등록 실패');
+    }
   })
-  .catch(error => console.error('Error:', error));
+  .then(data => {
+    window.location.reload(); // 성공 시 페이지 새로고침
+  })
+  .catch(error => {
+    alert('삭제 중 에러 발생 : ' + error.message);
+  });
 }

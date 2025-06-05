@@ -3,6 +3,7 @@ package com.shrona.line_demo.user.application;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.user.domain.Group;
 import com.shrona.line_demo.user.domain.User;
+import com.shrona.line_demo.user.domain.UserGroup;
 import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Page;
@@ -27,7 +28,12 @@ public interface GroupService {
     public List<Group> findGroupByIdList(List<Long> id);
 
     /**
-     * 그룹 아이디에 해당하는 라인 아이디 조회
+     * 그룹에 해당하는 유저 그룹 목록 조회(페이징 정보 추가)
+     */
+    public Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable);
+
+    /**
+     * 그룹 아이디에 해당하는 라인 아이디 목록 조회
      */
     public List<String> findLineIdsByGroupIds(List<Long> groupList);
 
@@ -42,9 +48,14 @@ public interface GroupService {
     public Page<Group> findGroupList(Channel channel, Pageable pageable);
 
     /**
-     * 그룹 별로 유저 숫자 조회
+     * 그룹 별로 라인 유저 숫자 매핑
      */
-    public Map<Long, Integer> findGroupUserCount(List<Long> groupIds);
+    public Map<Long, Integer> findGroupLineUserCount(List<Long> groupIds);
+
+    /**
+     * 그룹 별로 전체 유저 숫자 매핑
+     */
+    public Map<Long, Integer> findGroupAllUserCount(List<Long> groupIds);
 
     /**
      * 그룹에 전화번호 추가

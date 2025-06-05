@@ -19,6 +19,7 @@ import com.shrona.line_demo.line.presentation.form.ChannelListForm;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -135,7 +136,7 @@ public class AdminController {
             requestBody.phoneNumber());
 
         if (lineUserByPhoneNumber.isEmpty()) {
-            return ResponseEntity.ok().build();
+            return ResponseEntity.badRequest().body(Map.of("message", "없는 번호 입니다."));
         }
 
         adminService.registerTestNumber(channelInfo.get(), lineUserByPhoneNumber.get());

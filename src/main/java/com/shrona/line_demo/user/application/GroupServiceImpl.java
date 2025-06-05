@@ -8,6 +8,7 @@ import com.shrona.line_demo.user.domain.UserGroup;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import com.shrona.line_demo.user.infrastructure.GroupJpaRepository;
 import com.shrona.line_demo.user.infrastructure.UserGroupJpaRepository;
+import com.shrona.line_demo.user.infrastructure.dao.GroupUserCount;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,11 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable) {
+        return userGroupRepository.findAllByGroupId(group, pageable);
+    }
+
+    @Override
     public List<String> findLineIdsByGroupIds(List<Long> groupList) {
         return groupRepository.findLineIdsByGroupIds(groupList);
     }
@@ -80,27 +86,30 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Page<Group> findGroupList(Channel channel, Pageable pageable) {
 
-        Page<Group> groupsPageList = groupRepository.findAllByChannel(channel, pageable);
-
-        // 메모리로 불러 놓기 위한 반복문
-        for (Group group : groupsPageList.toList()) {
-            for (UserGroup userGroup : group.getUserGroupList()) {
-                userGroup.getUser();
-            }
-        }
-        return groupsPageList;
+        return groupRepository.findAllByChannel(channel, pageable);
     }
 
     @Override
-    public Map<Long, Integer> findGroupUserCount(List<Long> groupIds) {
+    public Map<Long, Integer> findGroupLineUserCount(List<Long> groupIds) {
 
-        List<Object[]> groupUserCounts = userGroupRepository.countByGroupIds(groupIds);
+        List<GroupUserCount> groupUserCounts = userGroupRepository.countByGroupIds(groupIds);
 
-        // Object List를 int int로 변환
         return groupUserCounts.stream()
             .collect(Collectors.toMap(
-                arr -> (Long) arr[0],
-                arr -> ((Long) arr[1]).intValue()
+                GroupUserCount::groupId,
+                arr -> arr.ct().intValue()
+            ));
+    }
+
+    @Override
+    public Map<Long, Integer> findGroupAllUserCount(List<Long> groupIds) {
+        List<GroupUserCount> groupUserCounts = userGroupRepository.countAllUsersByGroupIds(
+            groupIds);
+
+        return groupUserCounts.stream()
+            .collect(Collectors.toMap(
+                GroupUserCount::groupId,
+                arr -> arr.ct().intValue()
             ));
     }
 

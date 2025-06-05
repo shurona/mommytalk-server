@@ -38,8 +38,6 @@ public class LineUserController {
         @RequestParam(value = "page", defaultValue = "0") int pageNumber,
         Model model
     ) {
-        String lineFriendListViewUrl = "/admin/channels/" + channelId + "/friends/list";
-
         Optional<Channel> channelInfo = channelService.findChannelById(channelId);
         // 채널정보가 없는 경우 그냥 홈으로 보낸다.
         if (channelInfo.isEmpty()) {
@@ -59,8 +57,7 @@ public class LineUserController {
         // 모델을 등록하는 부분
         model.addAttribute("pagingInfo",
             PagingForm.of(
-                lineUserList.getNumber(), lineUserList.getTotalPages(),
-                lineFriendListViewUrl));
+                lineUserList.getNumber(), lineUserList.getTotalPages()));
 
         // 모델 등록하는 부분
         model.addAttribute("friends", lineUserList.toList()

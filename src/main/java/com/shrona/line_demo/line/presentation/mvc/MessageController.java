@@ -108,8 +108,7 @@ public class MessageController {
         // 페이징 정보
         model.addAttribute("pagingInfo",
             PagingForm.of(
-                messageLogList.getNumber(), messageLogList.getTotalPages(),
-                messageListUrl));
+                messageLogList.getNumber(), messageLogList.getTotalPages()));
 
         // 메시지 목록 정보
         model.addAttribute("messages",
@@ -172,7 +171,6 @@ public class MessageController {
         @PathVariable("channelId") Long channelId,
         @RequestBody MessageTestForm form
     ) {
-
         Optional<Channel> channelInfo = channelService.findChannelById(channelId);
         // 채널정보가 없는 경우 그냥 홈으로 보낸다.
         if (channelInfo.isEmpty()) {
