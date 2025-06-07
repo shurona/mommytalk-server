@@ -37,7 +37,7 @@ public class MessageUtils {
      */
     public void registerTaskSchedule(List<MessageLog> messageLogList, LocalDateTime reserveTime) {
 
-        // 메시지 센더를 Runner로 처리
+        // 메시지 Sender를 Runner로 처리
         Runnable task = () -> messageSender.sendLineMessageByReservationByMessageIds(
             messageLogList.stream().map(MessageLog::getId).toList()
         );

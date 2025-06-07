@@ -54,8 +54,7 @@ public class MessageServiceImpl implements MessageService {
     public List<MessageLog> createMessageSelectGroup
         (Channel channel, Long messageTypeId,
             List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
-            LocalDateTime reserveTime,
-            String content) {
+            LocalDateTime reserveTime, String content) {
 
         // 제외할 LineIds를 갖고 온다.
         Set<String> exceptLineIds = getExceptLineIds(selectedExGroupIds);

@@ -2,6 +2,7 @@ package com.shrona.line_demo.common.advice;
 
 import com.shrona.line_demo.common.dto.ErrorResponseDto;
 import com.shrona.line_demo.line.common.exception.LineException;
+import com.shrona.line_demo.user.common.exception.UserException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,13 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(LineException.class)
     public ResponseEntity<ErrorResponseDto> handleLineException(LineException ex) {
+        ErrorResponseDto response = new ErrorResponseDto(
+            ex.getMessage());
+        return ResponseEntity.status(ex.getCode().getStatus()).body(response);
+    }
+
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ErrorResponseDto> handleUserException(UserException ex) {
         ErrorResponseDto response = new ErrorResponseDto(
             ex.getMessage());
         return ResponseEntity.status(ex.getCode().getStatus()).body(response);
