@@ -1,6 +1,6 @@
 package com.shrona.line_demo.common.interceptor;
 
-import com.shrona.line_demo.common.core.StaticVariable;
+import com.shrona.line_demo.common.utils.StaticVariable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
