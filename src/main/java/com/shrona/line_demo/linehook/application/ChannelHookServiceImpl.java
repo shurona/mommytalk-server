@@ -138,6 +138,10 @@ public class ChannelHookServiceImpl implements ChannelHookService {
 
         messageUtils.registerSingleTask(channel.get(),
             lineUser.get(),
-            "휴대전화가 등록되었습니다. : " + phoneNumber, LocalDateTime.now());
+            """
+                ✨ありがとうございます！
+                ご購入情報の確認が完了しました。
+                まもなくサービスを開始いたしますので、少々お待ちください😊
+                """ + phoneNumber, LocalDateTime.now());
     }
 }

@@ -6,6 +6,8 @@ import com.shrona.line_demo.common.dto.ChannelForm;
 import com.shrona.line_demo.common.dto.PagingForm;
 import com.shrona.line_demo.line.application.ChannelService;
 import com.shrona.line_demo.line.application.LineService;
+import com.shrona.line_demo.line.common.exception.LineErrorCode;
+import com.shrona.line_demo.line.common.exception.LineException;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
@@ -82,7 +84,7 @@ public class LineUserController {
             requestDto.phone());
 
         if (lineUser == null) {
-            return ResponseEntity.badRequest().body("잘못된 입력입니다.");
+            throw new LineException(LineErrorCode.BAD_REQUEST);
         }
 
         return ResponseEntity.ok().build();
