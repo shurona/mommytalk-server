@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum ReservationStatus {
     PREPARE("PREPARE"),
     FAIL("FAIL"),
-    COMPLETE("COMPLETE");
+    COMPLETE("COMPLETE"),
+    CANCEL("CANCEL");
 
     private final String status;
 

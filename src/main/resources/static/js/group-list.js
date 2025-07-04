@@ -62,10 +62,21 @@ document.getElementById('createGroupModal').addEventListener('submit', function(
   event.preventDefault();
   const name = document.getElementById('groupName').value;
   const description = document.getElementById('groupDescription').value;
-  const phoneNumbers = document.getElementById('friendNames').value;
+  const phoneNumbers = document.getElementById('friendNames').value;  
 
   // event.target은 form 요소를 가리킵니다.
   const form = event.target; // 또는 event.currentTarget
+
+    // 그룹명과 설명 유효성 검사 추가
+  if (name === '') {
+    alert('그룹명을 입력해주세요.');
+    return; // 모달을 닫지 않고 함수 종료
+  }
+  
+  if (description === '') {
+    alert('그룹 설명을 입력해주세요.');
+    return; // 모달을 닫지 않고 함수 종료
+  }
 
   // friendsNames 배열로 변환 및 휴대전화 번호 형식 검증 후 오류 메시지 출력
   let phoneNumberList = phoneNumbers.split('\n');
