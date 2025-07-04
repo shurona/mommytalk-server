@@ -3,6 +3,8 @@ package com.shrona.line_demo.line.domain;
 import static jakarta.persistence.CascadeType.PERSIST;
 
 import com.shrona.line_demo.common.entity.BaseEntity;
+import com.shrona.line_demo.line.common.exception.LineErrorCode;
+import com.shrona.line_demo.line.common.exception.LineException;
 import com.shrona.line_demo.line.domain.type.ReservationStatus;
 import com.shrona.line_demo.user.domain.Group;
 import jakarta.persistence.Column;
@@ -86,9 +88,31 @@ public class MessageLog extends BaseEntity {
         info.setMessageLogInfo(this);
     }
 
+    /**
+     * 전송 후 메시지 성공 상태로 변경
+     */
     public void changeStatusAfterSend() {
         this.status = ReservationStatus.COMPLETE;
         this.sentTime = LocalDateTime.now();
+    }
+
+    /**
+     * 메시지 전달 취소
+     */
+    public void cancelStatusBeforeSend() {
+        this.status = ReservationStatus.CANCEL;
+        this.sentTime = LocalDateTime.now();
+    }
+
+    public void updateMessage(String content) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime fiveMinutesBeforeReservation = reserveTime.minusMinutes(5);
+
+        if (now.isAfter(fiveMinutesBeforeReservation)) {
+            throw new LineException(LineErrorCode.EDIT_RESERVED_TIME_EXPIRED);
+        }
+
+        this.content = content;
     }
 
     public void failedStatusBecauseError() {
