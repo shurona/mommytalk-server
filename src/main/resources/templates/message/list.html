@@ -19,16 +19,21 @@
         <th>내용</th>
         <th>발송수</th>
         <th>상태</th>
+        <th>액션</th>
       </tr>
       </thead>
       <tbody>
-      <tr th:each="msg : ${messages}">
-        <td width="20%" th:attr="data-utc=${#temporals.format(msg.sendDateTime, 'yyyy-MM-dd HH:mm')}">
-        </td>
-        <td width="60%" th:text="${msg.content}"></td>
-        <td width="15%" th:text="${msg.receiverCount}"></td>
-        <td width="20%" th:text="${msg.status}"></td>
-      </tr>
+        <tr th:each="msg : ${messages}">
+          <td th:attr="data-utc=${#temporals.format(msg.sendDateTime, 'yyyy-MM-dd HH:mm')}"></td>
+          <td th:text="${msg.content}" th:attr="data-content=${msg.content}"></td>
+          <td th:text="${msg.receiverCount}"></td>
+          <td th:text="${msg.status}"></td>
+          <td>
+            <button th:if="${msg.status == 'PREPARE'}" 
+                    class="edit-btn" 
+                    th:onclick="|openEditModal(${msg.id})|">수정</button>
+          </td>
+        </tr>
       </tbody>
     </table>
 
@@ -36,6 +41,30 @@
     <div th:replace="~{fragments/pagination :: pagination(pagingInfo=${pagingInfo}, requestUrl=${currentPath})}"></div>
   </div>
 </div>
+
+<!-- 수정 모달 -->
+<div id="editModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>메시지 수정</h3>
+      <span class="close" onclick="closeEditModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="editForm">
+        <div class="form-group">
+          <label for="editContent">메시지 내용:</label>
+          <textarea id="editContent" rows="5" placeholder="메시지 내용을 입력하세요" required></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="cancel-btn" onclick="closeEditModal()">닫기</button>
+      <button type="button" class="delete-btn" onclick="cancelMessage()">메시지 취소</button>
+      <button type="button" class="save-btn" onclick="updateMessage()">수정 저장</button>
+    </div>
+  </div>
+</div>
+
 <script>
   document.querySelectorAll('td[data-utc]').forEach(td => {
     const utc = td.getAttribute('data-utc');
@@ -48,5 +77,7 @@
     td.textContent = `${y}-${m}-${d} ${h}:${min}`;
   });
 </script>
+<div id="groupMeta" th:data-channel-id="${channelInfo.id}"></div>
+<script th:src="@{/js/message-list.js}"></script>
 </body>
 </html>
