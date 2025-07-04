@@ -56,4 +56,13 @@ public interface MessageService {
      */
     public Map<Long, Integer> findLineIdCountByLog(List<Long> list);
 
+    /**
+     * 메시지 내용 변경
+     */
+    public MessageLog cancelSendMessage(Long messageId);
+
+    /**
+     * 메시지 내용 변경
+     */
+    public MessageLog updateMessageLog(Long messageId, String content);
 }
