@@ -86,7 +86,7 @@ public class MessageSenderImpl implements MessageSender {
     @Override
     public boolean sendTestLineMessage(Channel channel, String text) {
 
-        // Admin 라인 채널을 갖고 온다.
+        // 테스트 유저 목록을 갖고 온다.
         List<String> lineIdList = adminService.findAllTestUser(channel)
             .stream().map(TestUserForm::lineId)
             .filter(s -> !s.isBlank()).toList();
