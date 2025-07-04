@@ -11,6 +11,7 @@ import com.shrona.line_demo.line.application.MessageService;
 import com.shrona.line_demo.line.application.sender.MessageSender;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.MessageLog;
+import com.shrona.line_demo.line.presentation.dtos.MessageLogUpdateRequestDto;
 import com.shrona.line_demo.line.presentation.form.MessageListForm;
 import com.shrona.line_demo.line.presentation.form.MessageSendForm;
 import com.shrona.line_demo.line.presentation.form.MessageTestForm;
@@ -34,6 +35,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -86,8 +88,6 @@ public class MessageController {
         @RequestParam(value = "page", defaultValue = "0") int pageNumber,
         Model model
     ) {
-        // 메시지 목록 url
-        String messageListUrl = "/admin/messages/list";
 
         Optional<Channel> channelInfo = channelService.findChannelById(channelId);
         // 채널정보가 없는 경우 그냥 홈으로 보낸다.
@@ -162,9 +162,36 @@ public class MessageController {
         return "redirect:/admin/channels/" + channelId + "/messages/list";
     }
 
+    /**
+     * 메시지를 취소 하는 함수
+     */
+    @PatchMapping("/{messageId}/cancel")
+    public ResponseEntity<?> cancelMessageLog(
+        @PathVariable("channelId") Long channelId, // 채널 아이디
+        @PathVariable("messageId") Long messageId // 메시지 아이디
+    ) {
+
+        messageService.cancelSendMessage(messageId);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{messageId}")
+    public ResponseEntity<?> updateMessageLog(
+        @PathVariable("channelId") Long channelId, // 채널 아이디
+        @PathVariable("messageId") Long messageId, // 메시지 아이디
+        @RequestBody MessageLogUpdateRequestDto requestDto
+    ) {
+
+        messageService.updateMessageLog(messageId, requestDto.content());
+
+        return ResponseEntity.ok().build();
+
+    }
+
 
     /**
-     * 테스트 요청
+     * 테스트 전송 요청
      */
     @PostMapping("/v1/send/test")
     public ResponseEntity<?> testDeliver(
