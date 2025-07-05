@@ -16,4 +16,9 @@ public interface ChannelService {
      */
     public Optional<Channel> findChannelById(Long id);
 
+    /**
+     * 채널의 휴대전화 등록 시 첫 메시지 업데이트
+     */
+    public Channel updateInviteMessage(Long channelId, String message);
+
 }

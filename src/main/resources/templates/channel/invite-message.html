@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>초대 메시지 설정</title>
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/invite-message.css}">
+</head>
+<body>
+<div class="layout-wrapper">
+  <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+  <div class="container">
+    <h2 class="page-title">초대 메시지 설정</h2>
+    
+    <div class="content-wrapper">
+      <div class="form-section">
+        <form id="inviteMessageForm">
+          <div class="form-group">
+            <label for="inviteMessage">현재 초대 메시지:</label>
+            <textarea 
+              id="inviteMessage" 
+              name="inviteMessage" 
+              th:text="${inviteMessage}"
+              placeholder="초대 메시지를 입력하세요..."
+              rows="8">
+            </textarea>
+            <div class="char-count">
+              <span id="charCount">0</span> / 500자
+            </div>
+          </div>
+          
+          <div class="button-group">
+            <button type="button" class="reset-btn" onclick="resetMessage()">초기화</button>
+            <button type="submit" class="save-btn">메시지 수정</button>
+          </div>
+        </form>
+      </div>
+      
+      <div class="preview-section">
+        <h3>미리보기</h3>
+        <div class="message-preview">
+          <div class="preview-content" id="previewContent">
+            <span th:text="${inviteMessage}">현재 초대 메시지가 여기에 표시됩니다.</span>
+          </div>
+        </div>
+        <div class="preview-info">
+          <p>💡 이 메시지는 새로운 사용자가 휴대전화를 등록하면 자동으로 발송됩니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="channelMeta" th:data-channel-id="${channelInfo.id}"></div>
+<script th:src="@{/js/invite-message.js}"></script>
+</body>
+</html>

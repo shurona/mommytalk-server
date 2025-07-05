@@ -32,6 +32,10 @@
             th:classappend="${currentPath == '/admin/channels/' + channelInfo.id + '/test/user'} ? 'active'">
           <a th:href="@{/admin/channels/{channelId}/test/user(channelId=${channelInfo.id})}"><span>테스트 발송 대상 설정</span></a>
         </li>
+        <li class="menu-item"
+            th:classappend="${currentPath == '/admin/channels/' + channelInfo.id + '/invite-message'} ? 'active'">
+          <a th:href="@{/admin/channels/{channelId}/invite-message(channelId=${channelInfo.id})}"><span>초대 메시지 설정</span></a>
+        </li>
       </ul>
     </nav>
   </aside>

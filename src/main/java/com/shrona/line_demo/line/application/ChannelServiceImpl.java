@@ -9,7 +9,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class ChannelServiceImpl implements ChannelService {
@@ -28,5 +30,14 @@ public class ChannelServiceImpl implements ChannelService {
     @Override
     public Optional<Channel> findChannelById(Long id) {
         return channelRepository.findById(id);
+    }
+
+    @Transactional
+    public Channel updateInviteMessage(Long channelId, String message) {
+        Channel channel = channelRepository.findById(channelId)
+            .orElseThrow(
+                () -> new IllegalArgumentException("Channel not found with id: " + channelId));
+        channel.updateInviteMessage(message);
+        return channel;
     }
 }

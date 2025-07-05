@@ -35,11 +35,18 @@ public class Channel extends BaseEntity {
     @Column(name = "access_token")
     private String accessToken;
 
+    @Column(name = "invite_message", length = 1000)
+    private String inviteMessage;
+
     public static Channel createChannel(String name, String description) {
         Channel channel = new Channel();
         channel.name = name;
         channel.description = description;
         return channel;
+    }
+
+    public void updateInviteMessage(String message) {
+        this.inviteMessage = message;
     }
 
 }

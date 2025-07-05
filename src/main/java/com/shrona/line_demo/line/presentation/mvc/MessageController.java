@@ -209,8 +209,6 @@ public class MessageController {
         } else {
             return ResponseEntity.internalServerError().build();
         }
-
-
     }
 
     /**
