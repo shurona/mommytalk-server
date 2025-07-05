@@ -125,11 +125,40 @@ public class LineServiceImpl implements LineService {
 
     }
 
+    @Transactional
+    public void clearLineUserPhoneNumber(String lineId) {
+//        Optional<LineUser> lineInfoOpt = lineUserRepository.findByLineId(lineId);
+//        if (lineInfoOpt.isEmpty()) {
+//            return;
+//        }
+//
+//        LineUser lineUser = lineInfoOpt.get();
+//        PhoneNumber phoneNumber = lineUser.getPhoneNumber();
+//        if (phoneNumber == null || phoneNumber.getPhoneNumber() == null) {
+//            return;
+//        }
+//
+//        userService.deleteUserGroupAndUserInfo(phoneNumber.getPhoneNumber());
+//        lineUser.clearPhoneNumber();
+    }
+
     /**
      * 라인 유저의 휴대폰 변경 시 User에도 반영이 되도록 적용
      */
     private void updateUserAfterLineUserPhoneChanged(
         LineUser lineUser, PhoneNumber beforePhoneNumber, PhoneNumber afterPhoneNumber) {
+
+        // 만약 beforePhoneNumber가 null이면 afterNumber의 유저에 병합해준다.
+        // afterNumber에서 중복 여부는 확인한다.
+        if (beforePhoneNumber == null) {
+            User userInfo = userService.findUserByPhoneNumber(
+                afterPhoneNumber.getPhoneNumber());
+
+            if (userInfo != null) {
+                userInfo.matchUserWithLine(lineUser);
+            }
+            return;
+        }
 
         // 기존 휴대전화 유저
         User beforeNumber = userService.findUserByPhoneNumber(beforePhoneNumber.getPhoneNumber());
