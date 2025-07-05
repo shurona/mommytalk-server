@@ -3,25 +3,19 @@ function enableEdit(td) {
   if (td.querySelector('input')) {
     return;
   }
-  const currentValue = td.getAttribute('data-phone-number');
+  let currentValue = td.getAttribute('data-phone-number');
+
+  // null 값 처리
+  if (currentValue === 'null' || currentValue === null || currentValue === undefined) {
+    currentValue = '';
+  }
+
   const userId = td.getAttribute('data-user-id');
     td.innerHTML = `<input value="${currentValue}" 
                          onblur="savePhone(this, ${userId})" 
                          />`;
   td.querySelector('input').focus();
 }
-
-function handleKey(event, input, userId) {
-  const td = input.parentElement;
-  const beforePhone = td.getAttribute('data-phone-number');
-  if (event.key === 'Enter') {
-    // savePhone(input, userId);
-  } else if (event.key === 'Escape') {
-    td.innerText = beforePhone; // Escape 누르면 기존 값으로 복원
-    return false;
-  }
-}
-
 
 function savePhone(input, userId) {
   const newPhone = input.value.trim();
