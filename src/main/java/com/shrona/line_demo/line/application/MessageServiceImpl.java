@@ -174,7 +174,7 @@ public class MessageServiceImpl implements MessageService {
                 return messageLog;
             })
             .orElseThrow(() -> {
-                log.error("메시지 발송 취소 실패: 존재하지 않는 messageId={}", messageId);
+                log.error("메시지 업데이트 실패: 존재하지 않는 messageId={}", messageId);
                 return new IllegalArgumentException("존재하지 않는 메시지 ID: " + messageId);
             });
     }
