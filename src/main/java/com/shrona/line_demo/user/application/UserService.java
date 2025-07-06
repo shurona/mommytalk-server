@@ -5,7 +5,6 @@ import java.util.List;
 
 public interface UserService {
 
-
     /**
      * 유저 생성
      */
@@ -31,4 +30,8 @@ public interface UserService {
      */
     public void deleteUser(User user);
 
+    /**
+     * 휴대전화 번호를 기준으로 UserGroup과 User 정보 삭제
+     */
+    public void deleteUserGroupAndUserInfo(String phoneNumber);
 }

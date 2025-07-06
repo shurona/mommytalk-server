@@ -6,6 +6,7 @@ import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
 import com.shrona.line_demo.user.common.utils.UserUtils;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
+import com.shrona.line_demo.user.infrastructure.UserGroupJpaRepository;
 import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ public class UserServiceImpl implements UserService {
     // jpa
     private final UserJpaRepository userRepository;
     private final LineUserJpaRepository lineUserRepository;
+    private final UserGroupJpaRepository userGroupRepository;
 
     // 휴대폰 관련 process 처리
     private final PhoneProcess phoneProcess;
@@ -100,6 +102,21 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(User user) {
         user.deleteUser();
         userRepository.flush();
+    }
+
+    @Transactional
+    public void deleteUserGroupAndUserInfo(String phoneNumber) {
+        Optional<User> userInfo = userRepository.findByPhoneNumber(
+            PhoneNumber.changeWithoutError(phoneNumber));
+
+        if (userInfo.isPresent()) {
+            User user = userInfo.get();
+            // SQLRestriction을 무시하고 삭제
+            userGroupRepository.deleteAllByUserIdWithoutRestriction(user.getId());
+
+            // 그 다음 User 삭제
+            userRepository.delete(user);
+        }
     }
 
     /**
