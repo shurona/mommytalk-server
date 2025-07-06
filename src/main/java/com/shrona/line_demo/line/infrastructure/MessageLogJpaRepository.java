@@ -16,7 +16,13 @@ public interface MessageLogJpaRepository extends JpaRepository<MessageLog, Long>
      * 준비 상태인 현재 시간보다 이전인 모든 메시지를 조회한다
      */
     @Query("select log from MessageLog log where log.reserveTime <= :now and log.status = 'PREPARE'")
-    List<MessageLog> findAllByReservedMessage(LocalDateTime now);
+    List<MessageLog> findAllByReservedMessageBeforeNow(LocalDateTime now);
+
+    /**
+     * 준비 상태인 현재 시간보다 이전인 모든 메시지를 조회한다
+     */
+    @Query("select log from MessageLog log where log.status = 'PREPARE'")
+    List<MessageLog> findAllByReservedMessage();
 
     /**
      * 준비 상태인 현재 시간보다 이전인 채널에 속한 메시지를 조회한다

@@ -46,7 +46,7 @@ public class MessageSenderImpl implements MessageSender {
 
         // Message 중에 sender가 이전 및 대기 중인 메시지 목록을 조회
         List<MessageLog> reservedMessage =
-            messageRepository.findAllByReservedMessage(LocalDateTime.now());
+            messageRepository.findAllByReservedMessageBeforeNow(LocalDateTime.now());
 
         for (MessageLog messageLog : reservedMessage) {
             // 메시지 전송

@@ -136,7 +136,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public List<MessageLog> findReservedAllMessage() {
-        return messageLogRepository.findAllByReservedMessage(LocalDateTime.now());
+        return messageLogRepository.findAllByReservedMessageBeforeNow(LocalDateTime.now());
     }
 
     @Override

@@ -48,7 +48,7 @@ public class LineMessageDeliveryMockTest {
         MessageLogLineInfo mockML = mock(MessageLogLineInfo.class);
         Channel mockChannel = mock(Channel.class);
 
-        when(messageRepository.findAllByReservedMessage(
+        when(messageRepository.findAllByReservedMessageBeforeNow(
             any(LocalDateTime.class)))
             .thenReturn(List.of(mockMessageLog));
         when(mockMessageLog.getMessageLogLineInfoList()).thenReturn(List.of(mockML));
@@ -75,7 +75,7 @@ public class LineMessageDeliveryMockTest {
         MessageLogLineInfo mockML = mock(MessageLogLineInfo.class);
         Channel mockChannel = mock(Channel.class);
 
-        when(messageRepository.findAllByReservedMessage(
+        when(messageRepository.findAllByReservedMessageBeforeNow(
             any(LocalDateTime.class)))
             .thenReturn(List.of(mockMessageLog));
         when(mockMessageLog.getMessageLogLineInfoList()).thenReturn(List.of(mockML));

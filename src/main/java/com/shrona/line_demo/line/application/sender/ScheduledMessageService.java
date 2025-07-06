@@ -3,7 +3,6 @@ package com.shrona.line_demo.line.application.sender;
 import com.shrona.line_demo.line.application.utils.MessageUtils;
 import com.shrona.line_demo.line.domain.MessageLog;
 import com.shrona.line_demo.line.infrastructure.MessageLogJpaRepository;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +29,7 @@ public class ScheduledMessageService {
 
         // 서버 시작할 때 쓰레드 확인
         logThreadSize();
-        List<MessageLog> reservedMessageList = messageRepository.findAllByReservedMessage(
-            LocalDateTime.now());
+        List<MessageLog> reservedMessageList = messageRepository.findAllByReservedMessage();
 
         // 반복문으로 등록해준다.
         reservedMessageList.stream()
