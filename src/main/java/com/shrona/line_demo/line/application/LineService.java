@@ -56,5 +56,10 @@ public interface LineService {
      */
     public void unfollowChannelAndLineUser(Channel channel, LineUser lineUser);
 
+    /**
+     * 라인 유저의 휴대전화를 초기화
+     */
+    public void clearLineUserPhoneNumber(String lineId);
+
 
 }

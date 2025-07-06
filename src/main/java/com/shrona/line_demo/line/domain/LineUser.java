@@ -43,6 +43,9 @@ public class LineUser extends BaseEntity {
         return lineUser;
     }
 
+    public void clearPhoneNumber() {
+        this.phoneNumber = null;
+    }
 
     public void settingPhoneNumber(PhoneNumber phone) {
         // null이 아닌 경우에만 바꿔준다.
