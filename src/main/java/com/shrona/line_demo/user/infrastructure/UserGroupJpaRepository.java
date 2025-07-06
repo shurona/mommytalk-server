@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface UserGroupJpaRepository extends JpaRepository<UserGroup, Long> {
@@ -34,4 +35,8 @@ public interface UserGroupJpaRepository extends JpaRepository<UserGroup, Long> {
      */
     @Query("SELECT ug FROM UserGroup ug LEFT JOIN FETCH ug.user WHERE ug.group = :group")
     Page<UserGroup> findAllByGroupId(Group group, Pageable pageable);
+
+    @Modifying
+    @Query(value = "DELETE FROM user_group WHERE user_id = :userId", nativeQuery = true)
+    void deleteAllByUserIdWithoutRestriction(Long userId);
 }
