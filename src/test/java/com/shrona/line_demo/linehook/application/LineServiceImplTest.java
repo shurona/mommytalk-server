@@ -29,54 +29,54 @@ class LineServiceImplTest {
     private LineUserJpaRepository lineUserRepository;
     @Autowired
     private UserJpaRepository userRepository;
+
     private LineUser savedLineUser;
-    private User afterUser;
+    private LineUser SavedLineUserTwo;
+
 
     private String beforePhoneNumber = "010-1234-5678";
-    private String newPhoneNumber = "010-8765-4321";
+    private String afterPhoneNumber = "010-8765-4321";
 
     @BeforeEach
     void beforeEach() {
         // 테스트용 LineUser와 User 저장
-        PhoneNumber phoneNumber = PhoneNumber.changeWithoutError(beforePhoneNumber);
         savedLineUser = lineUserRepository.save(LineUser.createLineUser("lineId"));
-        savedLineUser.settingPhoneNumber(phoneNumber);
-        userRepository.save(User.createUser(phoneNumber));
-        afterUser = userRepository.save(
-            User.createUser(PhoneNumber.changeWithoutError(newPhoneNumber)));
+        SavedLineUserTwo = lineUserRepository.save(LineUser.createLineUser("lineId-2"));
+
+        // 테스트용 유저 저장
+        userRepository.save(User.createUserWithLine(
+            PhoneNumber.changeWithoutError(beforePhoneNumber), savedLineUser));
+        userRepository.save(
+            User.createUser(PhoneNumber.changeWithoutError(afterPhoneNumber)));
 
 
     }
 
     @Test
-    @DisplayName("라인유저의 휴대폰 번호 변경 시 User에도 반영된다")
+    @DisplayName("라인유저의 휴대전화 번호 변경 정상 로직")
     void updateLineUserPhoneNumber_success() {
         // given
+        String newPhoneNumber = "010-8765-4991";
 
         // when
         LineUser updatedLineUser = lineUserService.updateLineUserPhoneNumber(savedLineUser.getId(),
             newPhoneNumber);
 
         // then
-        // 변환 확인
-        assertThat(updatedLineUser.getPhoneNumber().getPhoneNumber()).isEqualTo(newPhoneNumber);
-
-        // when
         User updatedUser = userRepository.findByPhoneNumber(
             PhoneNumber.changeWithoutError(newPhoneNumber)).orElse(null);
 
         User beforeUser = userRepository.findByPhoneNumber(
             PhoneNumber.changeWithoutError(beforePhoneNumber)).orElse(null);
 
-        // then
         assertThat(beforeUser).isNull();
         assertThat(updatedUser).isNotNull();
-        assertThat(updatedUser.getLineId()).isEqualTo(updatedLineUser.getLineId());
+        assertThat(updatedUser.getLineUser().getLineId()).isEqualTo(updatedLineUser.getLineId());
     }
 
     @Test
-    @DisplayName("이미 존재하는 번호로 변경 시 예외 발생")
-    void updateLineUserPhoneNumber_duplicatePhone() {
+    @DisplayName("이미 존재하는 번호 - 라인 유저가 이미 있는 경우")
+    void 번호가_존재하지만_라인_유저가_있는_경우() {
         // given
         String duplicatePhone = beforePhoneNumber;
 
@@ -85,12 +85,5 @@ class LineServiceImplTest {
             lineUserService.updateLineUserPhoneNumber(savedLineUser.getId(), duplicatePhone)
         ).isInstanceOf(LineException.class);
     }
-
-    @Test
-    @DisplayName("이미 존재하는 번호로 변경 시 예외 발생")
-    void 이미_설정된_경우_막는다() {
-
-    }
-
 
 }

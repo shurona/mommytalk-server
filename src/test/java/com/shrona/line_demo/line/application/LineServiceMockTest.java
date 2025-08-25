@@ -1,11 +1,12 @@
 package com.shrona.line_demo.line.application;
 
+import static com.shrona.line_demo.line.common.exception.LineErrorCode.DUPLICATE_PHONE_NUMBER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shrona.line_demo.line.common.exception.LineException;
@@ -18,7 +19,6 @@ import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
 import java.util.Optional;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,26 +64,60 @@ class LineServiceMockTest {
 
     }
 
-    @DisplayName("라인유저 휴대전화 번호 변경 테스트")
+    @DisplayName("라인유저 휴대전화 번호 정상 변경 테스트")
     @Test
     public void 라인유저_휴대전화_변경_테스트() {
+        // given
+        Long lineUserId = 1L;
+        String newPhoneNumber = "010-2323-2323";
 
-        PhoneNumber mockPhoneNumber = mock(PhoneNumber.class);
-        User mockUser = mock(User.class);
-        String phoneNumber = "010-2323-2323";
-        LineUser testLine = LineUser.createLineUser("lineIdId");
-        testLine.settingPhoneNumber(PhoneNumber.changeWithoutError("010-1234-1234"));
-        when(lineUserRepository.findById(anyLong())).thenReturn(Optional.of(
-            testLine));
-        when(userService.findUserByPhoneNumber(any(String.class))).thenReturn(mockUser);
-        doNothing().when(groupService).mergeUserGroupBeforeToAfter(any(), any());
+        LineUser testLineUser = LineUser.createLineUser("testLineId");
+        User existingUser = spy(User.createUser(PhoneNumber.changeWithoutError("010-1111-1111")));
 
-        LineUser lineUser = lineService.updateLineUserPhoneNumber(1L, phoneNumber);
+        // Mock 설정
+        when(lineUserRepository.findById(lineUserId))
+            .thenReturn(Optional.of(testLineUser));
+        when(userService.findUserByPhoneNumber(newPhoneNumber))
+            .thenReturn(null); // 중복 없음
+        when(userService.findUserByLineUser(testLineUser))
+            .thenReturn(Optional.of(existingUser));
 
-        Assertions.assertThat(lineUser.getPhoneNumber().getPhoneNumber()).isEqualTo(phoneNumber);
+        // when
+        LineUser result = lineService.updateLineUserPhoneNumber(lineUserId, newPhoneNumber);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result).isSameAs(testLineUser);
+
+        // 중요: User의 updatePhoneNumber가 호출되었는지 확인
+        verify(existingUser).updatePhoneNumber(any(PhoneNumber.class));
+
     }
 
-    @DisplayName("라인유저 휴대전화 번호 잘못 변경 테스트")
+    @DisplayName("중복된 전화번호로 변경 시도 시 예외 테스트")
+    @Test
+    public void 중복_전화번호_변경_예외_테스트() {
+        // given
+        Long lineUserId = 1L;
+        String duplicatePhoneNumber = "010-2323-2323";
+
+        LineUser testLineUser = LineUser.createLineUser("testLineId");
+        User existingUserWithSamePhone = User.createUser(
+            PhoneNumber.changeWithoutError(duplicatePhoneNumber));
+
+        when(lineUserRepository.findById(lineUserId))
+            .thenReturn(Optional.of(testLineUser));
+        when(userService.findUserByPhoneNumber(duplicatePhoneNumber))
+            .thenReturn(existingUserWithSamePhone); // 중복 전화번호 존재
+
+        // when & then
+        assertThatThrownBy(() ->
+            lineService.updateLineUserPhoneNumber(lineUserId, duplicatePhoneNumber))
+            .isInstanceOf(LineException.class)
+            .hasMessageContaining(DUPLICATE_PHONE_NUMBER.getMessage());
+    }
+
+    @DisplayName("잘못된 전화번호 형식 예외 테스트")
     @Test
     public void 라인유저_휴대전화_잘못변경_테스트() {
 

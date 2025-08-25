@@ -7,6 +7,7 @@ import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.ChannelJpaRepository;
+import com.shrona.line_demo.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import jakarta.persistence.EntityManager;
@@ -74,12 +75,6 @@ class UserServiceImplTest {
         lineService.followChannelAndLineUser(channel, line4);
         lineService.followChannelAndLineUser(channel, line5);
 
-        line1.settingPhoneNumber(new PhoneNumber(number6));
-        line2.settingPhoneNumber(new PhoneNumber(number7));
-        line3.settingPhoneNumber(new PhoneNumber(number8));
-        line4.settingPhoneNumber(new PhoneNumber(number9));
-        line5.settingPhoneNumber(new PhoneNumber(number10));
-
         userList = new ArrayList<>(List.of(
             User.createUser(new PhoneNumber(number1)),
             User.createUser(new PhoneNumber(number2)),
@@ -100,8 +95,8 @@ class UserServiceImplTest {
     public void 기본_설정_테스트() {
         // 초기 테스트 확인
         assertThat(userList.size()).isEqualTo(10);
-        
-        List<ChannelLineUser> lineUserList = lineService.findChannelLineUserListByChannel(
+
+        List<ChannelLineUserWithPhoneDao> lineUserList = lineService.findChannelLineUserListByChannel(
                 channel, PageRequest.of(0, 100))
             .stream().toList();
 
@@ -121,14 +116,14 @@ class UserServiceImplTest {
         phoneNumberList.add(wrongPhone);
 
         // when
-        List<User> userListAfterSave = userService.findOrCreateUsersByPhoneNumbers(
+        List<User> userListAfterSave = userService.findOrCreateUsersWithLinesByPhoneNumbers(
             phoneNumberList);
 
         // then
         assertThat(userListAfterSave.size()).isEqualTo(11);
     }
 
-    @DisplayName("라인 유저가 존재하면 매칭이 되는지 테스트")
+    @DisplayName("라인 유저가 존재할 때 휴대전화 추가 시 정상 로직 테스트")
     @Test
     void 라인_유저_매칭_테스트() {
 
@@ -138,24 +133,29 @@ class UserServiceImplTest {
         String lineId = "newLineId";
 
         LineUser lineUser = lineService.findOrCreateLineUser(lineId);
-
         ChannelLineUser channelLineUser = lineService.followChannelAndLineUser(
             channel, lineUser);
-        lineUser.settingPhoneNumber(new PhoneNumber(correctPhone));
+        entityManager.persist(User.createUserWithLine(
+            PhoneNumber.changeWithoutError(correctPhone), lineUser
+        ));
 
+        // 영속성 컨텍스트에 저장되어 있는 데이터 반영
         entityManager.flush();
 
         phoneNumberList.add(correctPhone);
         phoneNumberList.add(wrongPhone);
 
         // when
-        List<User> userListAfterSave = userService.findOrCreateUsersByPhoneNumbers(
+        List<User> userListAfterSave = userService.findOrCreateUsersWithLinesByPhoneNumbers(
             phoneNumberList);
 
         User newUser = userService.findUserByPhoneNumber(correctPhone);
 
         // then
-        assertThat(newUser.getLineId()).isEqualTo(lineId);
+        // 유저와 라인 아이디 매핑 확인
+        assertThat(newUser.getLineUser().getLineId()).isEqualTo(lineId);
+        // 이미 저장된 번호 10개 + 위에서 저장 1개
+        assertThat(userListAfterSave.size()).isEqualTo(11);
     }
 
 }

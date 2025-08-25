@@ -105,6 +105,21 @@ public class User extends BaseEntity {
     }
 
     /**
+     * 휴대전화 있는 지 확인
+     */
+    public boolean hasPhoneNumber() {
+        return phoneNumber != null;
+    }
+
+    /**
+     * 라인 유저 있는 지 확인
+     */
+    public boolean hasLineUser() {
+        return lineUser != null;
+    }
+
+
+    /**
      * User에 휴대전화와 LineUser를 동시에 등록해준다.
      */
     public void updateLineAndPhoneNumber(LineUser lineUser, PhoneNumber phone) {

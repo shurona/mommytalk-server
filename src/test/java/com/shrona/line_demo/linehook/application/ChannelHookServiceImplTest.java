@@ -82,31 +82,39 @@ class ChannelHookServiceImplTest {
     @Test
     public void 휴대전화_입력시_비어있는_경우_조회_및_변경() {
         // given
-        assertThat(userBlankLineUser.getLineId()).isNull();
+        assertThat(userBlankLineUser.getLineUser()).isNull();
+        String givenPhoneNumber = "010-1234-1234";
 
         when(lineService.findLineUserByPhoneNumber(anyString())).thenReturn(
             Optional.empty());
 
         // when
-        boolean b = channelHookService.validatePhoneAndMatchUser("010-1234-1234",
+        boolean b = channelHookService.validatePhoneAndMatchUser(givenPhoneNumber,
             channelLineUserTwo);
+
+        System.out.println("이런 시발 : " + b);
+
+        userBlankLineUser = userRepository.findByPhoneNumber(
+            PhoneNumber.changeWithoutError(givenPhoneNumber)).get();
+
         // then
-        assertThat(userBlankLineUser.getLineId()).isEqualTo(lineUserTwo.getLineId());
+        assertThat(userBlankLineUser.getLineUser().getLineId()).isEqualTo(lineUserTwo.getLineId());
         assertThat(b).isTrue();
     }
 
     @Test
     public void 휴대전화_입력시_이미있는_경우_미_변경() {
         // given
-        assertThat(userWithLineUser.getLineId()).isEqualTo(lineUserOne.getLineId());
-        when(lineService.findLineUserByPhoneNumber(anyString())).thenReturn(
-            Optional.of(mock(LineUser.class)));
+        // 테스트할 유저가 lineUser가 등록되어 있는 지 확인
+        assertThat(userWithLineUser.getLineUser().getLineId())
+            .isEqualTo(lineUserOne.getLineId());
 
         // when
         boolean b = channelHookService.validatePhoneAndMatchUser("010-1234-1235",
             channelLineUserTwo);
         // then
-        assertThat(userWithLineUser.getLineId()).isEqualTo(lineUserOne.getLineId());
+        assertThat(userWithLineUser.getLineUser().getLineId())
+            .isEqualTo(lineUserOne.getLineId());
         assertThat(b).isFalse();
     }
 
@@ -115,7 +123,7 @@ class ChannelHookServiceImplTest {
     public void 성공_휴대전화_입력_시_단일전송_로직_테스트() {
         // given
         doNothing().when(messageUtils).registerSingleTask(
-            any(Channel.class), any(LineUser.class), anyString(), any(LocalDateTime.class));
+            any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
         LineUser mockLineUser = mock(LineUser.class);
         when(mockLineUser.getLineId()).thenReturn("lineId1");
         when(lineService.findLineUserByLineId(anyString())).thenReturn(Optional.of(mockLineUser));
@@ -128,7 +136,7 @@ class ChannelHookServiceImplTest {
 
         // then
         verify(messageUtils).registerSingleTask(
-            any(Channel.class), any(LineUser.class), anyString(), any(LocalDateTime.class));
+            any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
     }
 
     @Test
