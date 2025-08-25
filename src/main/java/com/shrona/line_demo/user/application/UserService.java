@@ -1,7 +1,9 @@
 package com.shrona.line_demo.user.application;
 
+import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.user.domain.User;
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
 
@@ -16,6 +18,11 @@ public interface UserService {
     public User findUserByPhoneNumber(String phoneNumber);
 
     /**
+     * 라인 유저를 기준으로 유저조회
+     */
+    public Optional<User> findUserByLineUser(LineUser lineUser);
+
+    /**
      * 유저 목록 조회
      */
     public List<User> findUserList();
@@ -23,7 +30,7 @@ public interface UserService {
     /**
      * 휴대전화 번호 입력을 기준으로 없는 유저는 생성 후 조회
      */
-    public List<User> findOrCreateUsersByPhoneNumbers(List<String> phoneNumberList);
+    public List<User> findOrCreateUsersWithLinesByPhoneNumbers(List<String> phoneNumberList);
 
     /**
      * User 정보 삭제

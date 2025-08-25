@@ -62,8 +62,11 @@ public class GroupController {
         Page<Group> groupWithPage = groupService.findGroupList(
             channelInfo.get(), PageRequest.of(pageNumber, 20));
 
+        // Line 유저가 등록된 모든 유저의 숫자를 구한다.
         Map<Long, Integer> groupLineUserCount = groupService.findGroupLineUserCount(
             groupWithPage.stream().map(Group::getId).toList());
+
+        // Line이 등록되지 않은 모든 유저의 숫자를 구한다.
         Map<Long, Integer> groupAllUserCount = groupService.findGroupAllUserCount(
             groupWithPage.stream().map(Group::getId).toList());
 

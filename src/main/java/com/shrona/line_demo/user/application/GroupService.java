@@ -58,7 +58,7 @@ public interface GroupService {
     public Map<Long, Integer> findGroupAllUserCount(List<Long> groupIds);
 
     /**
-     * 그룹에 전화번호 추가
+     * 그룹에 전화번호 추가(구)
      */
     public void addUserToGroup(Long groupId, List<String> phoneNumberList);
 

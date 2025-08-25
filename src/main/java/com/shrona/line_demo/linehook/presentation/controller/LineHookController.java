@@ -41,7 +41,7 @@ public class LineHookController {
     ) {
 
         // 잘못된 접근은 제한 처리
-        // hook처리여서 ok 처리
+        // hook 요청이라서 예외처리 하지 않고 ok로 반환
         if (!lineValidation.checkLineSignature(requestBodyOrigin, header, MOMMY_TALK_CHANNEL_ID)) {
             return ResponseEntity.ok().build();
         }

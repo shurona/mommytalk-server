@@ -1,9 +1,7 @@
 package com.shrona.line_demo.line.domain;
 
 import com.shrona.line_demo.common.entity.BaseEntity;
-import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,9 +27,6 @@ public class LineUser extends BaseEntity {
     @Column(name = "line_id", unique = true)
     private String lineId;
 
-    @Embedded
-    private PhoneNumber phoneNumber;
-
     @OneToMany(mappedBy = "lineUser")
     private List<ChannelLineUser> channelLineUserList = new ArrayList<>();
 
@@ -41,16 +36,5 @@ public class LineUser extends BaseEntity {
         lineUser.lineId = lineId;
 
         return lineUser;
-    }
-
-    public void clearPhoneNumber() {
-        this.phoneNumber = null;
-    }
-
-    public void settingPhoneNumber(PhoneNumber phone) {
-        // null이 아닌 경우에만 바꿔준다.
-        if (phone != null) {
-            this.phoneNumber = phone;
-        }
     }
 }

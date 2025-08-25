@@ -40,9 +40,6 @@ public class User extends BaseEntity {
     @Column(name = "phone_number", unique = true)
     private PhoneNumber phoneNumber;
 
-    @Column(name = "line_id", unique = true)
-    private String lineId;
-
     @Column
     private String description;
 
@@ -76,7 +73,6 @@ public class User extends BaseEntity {
         User user = new User();
         user.phoneNumber = phoneNumber;
         user.lineUser = lineUser;
-        user.lineId = lineUser.getLineId();
         user.addMethod = AddUserMethod.LINE;
 
         return user;
@@ -86,19 +82,34 @@ public class User extends BaseEntity {
      * 존재하는 유저에게 라인 정보를 넣어준다.
      */
     public void matchUserWithLine(LineUser lineUser) {
-        this.phoneNumber = lineUser.getPhoneNumber();
         this.lineUser = lineUser;
-        this.lineId = lineUser.getLineId();
     }
 
     public void clearLineUserAndPhoneNumber() {
-        this.lineId = null;
         this.lineUser = null;
         this.phoneNumber = null;
     }
 
     public void deleteUser() {
         this.isDeleted = true;
+    }
+
+    /**
+     * User의 휴대전화 정보를 변경해준다.
+     */
+    public void updatePhoneNumber(PhoneNumber phone) {
+        // null이 아닌 경우에만 바꿔준다.
+        if (phone != null) {
+            this.phoneNumber = phone;
+        }
+    }
+
+    /**
+     * User에 휴대전화와 LineUser를 동시에 등록해준다.
+     */
+    public void updateLineAndPhoneNumber(LineUser lineUser, PhoneNumber phone) {
+        this.lineUser = lineUser;
+        this.phoneNumber = phone;
     }
 
 }

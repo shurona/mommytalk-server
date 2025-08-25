@@ -11,10 +11,12 @@ import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.infrastructure.ChannelLineUserJpaRepository;
 import com.shrona.line_demo.line.infrastructure.LineUserJpaRepository;
+import com.shrona.line_demo.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.line_demo.user.application.GroupService;
 import com.shrona.line_demo.user.application.UserService;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -44,19 +46,24 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public Optional<LineUser> findLineUserByPhoneNumber(String phoneNumber) {
-        return lineUserRepository.findByPhoneNumber(PhoneNumber.changeWithoutError(phoneNumber));
+        //todo: 여기 수정
+//        return lineUserRepository.findByPhoneNumber(PhoneNumber.changeWithoutError(phoneNumber));
+        return null;
     }
 
     @Override
-    public Page<ChannelLineUser> findChannelLineUserListByChannel(
+    public Page<ChannelLineUserWithPhoneDao> findChannelLineUserListByChannel(
         Channel channel, Pageable pageable) {
         return channelLineUserRepository.findAllByChannel(channel, pageable);
     }
 
     @Override
-    public Page<ChannelLineUser> findChannelLineUserListByChannelAndQuery(Channel channel,
+    public Page<ChannelLineUserWithPhoneDao> findChannelLineUserListByChannelAndQuery(
+        Channel channel,
         String query, Pageable pageable) {
-        return channelLineUserRepository.findAllByChannelAndPhoneNumber(channel, query, pageable);
+        //TODO: 여기 수정
+        return channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(channel, query,
+            pageable);
     }
 
     @Transactional
@@ -81,27 +88,26 @@ public class LineServiceImpl implements LineService {
 
     @Transactional
     public LineUser updateLineUserPhoneNumber(Long id, String phoneNumber) {
-        // LineUser 조회
+
         LineUser lineUser = lineUserRepository.findById(id)
             .orElseThrow(() -> new LineException(LINEUSER_NOT_FOUND));
 
-        PhoneNumber beforePhoneNumber = lineUser.getPhoneNumber();
+        User checkExistPhoneNumberUser = userService.findUserByPhoneNumber(phoneNumber);
         PhoneNumber savingPhone = PhoneNumber.changeWithoutError(phoneNumber);
         // 휴대폰 번호 형식 조회
         if (savingPhone == null) {
             throw new LineException(INVALID_PHONE_NUMBER);
         }
 
-        // 이미 존재하는 지 조회
-        if (lineUserRepository.findByPhoneNumber(savingPhone).isPresent()) {
+        // 이미 휴대전화가 존재하는 경우 유저를 변경하지 않는다.
+        if (Objects.nonNull(checkExistPhoneNumberUser)) {
             throw new LineException(DUPLICATE_PHONE_NUMBER);
+        } else {
+            // 유저의 휴대전화를 변경해준다.
+            Optional<User> userByLineUser = userService.findUserByLineUser(lineUser);
+            userByLineUser.ifPresent(user -> user.updatePhoneNumber(savingPhone));
         }
 
-        // 라인 유저의 휴대전화를 변경한다.
-        lineUser.settingPhoneNumber(savingPhone);
-
-        // 유저의 휴대전화를 변경해준다.
-        updateUserAfterLineUserPhoneChanged(lineUser, beforePhoneNumber, savingPhone);
         return lineUser;
     }
 
@@ -140,41 +146,6 @@ public class LineServiceImpl implements LineService {
 //
 //        userService.deleteUserGroupAndUserInfo(phoneNumber.getPhoneNumber());
 //        lineUser.clearPhoneNumber();
-    }
-
-    /**
-     * 라인 유저의 휴대폰 변경 시 User에도 반영이 되도록 적용
-     */
-    private void updateUserAfterLineUserPhoneChanged(
-        LineUser lineUser, PhoneNumber beforePhoneNumber, PhoneNumber afterPhoneNumber) {
-
-        // 만약 beforePhoneNumber가 null이면 afterNumber의 유저에 병합해준다.
-        // afterNumber에서 중복 여부는 확인한다.
-        if (beforePhoneNumber == null) {
-            User userInfo = userService.findUserByPhoneNumber(
-                afterPhoneNumber.getPhoneNumber());
-
-            if (userInfo != null) {
-                userInfo.matchUserWithLine(lineUser);
-            }
-            return;
-        }
-
-        // 기존 휴대전화 유저
-        User beforeNumber = userService.findUserByPhoneNumber(beforePhoneNumber.getPhoneNumber());
-        if (beforeNumber == null) {
-            beforeNumber = userService.createUser(beforePhoneNumber.getPhoneNumber());
-        }
-
-        // 변경될 휴대 전화 유저
-        User afterNumber = userService.findUserByPhoneNumber(
-            afterPhoneNumber.getPhoneNumber());
-
-        // 변경 될 User 정보(afterNumber)를 기존 유저 정보로 병합시켜준다.
-        groupService.mergeUserGroupBeforeToAfter(afterNumber, beforeNumber);
-
-        // 현재 입력받은 번호는 라인유저의 정보를 변경해준다.
-        beforeNumber.matchUserWithLine(lineUser);
     }
 
 

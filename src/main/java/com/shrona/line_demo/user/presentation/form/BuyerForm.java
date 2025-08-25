@@ -21,10 +21,13 @@ public record BuyerForm(
         String phoneNumber = userGroup.getUser().getPhoneNumber() == null ? null
             : userGroup.getUser().getPhoneNumber().getPhoneNumber();
 
+        String lineId = userGroup.getUser().getLineUser() != null ?
+            userGroup.getUser().getLineUser().getLineId() : null;
+
         return new BuyerForm(
             userGroup.getId(),
             phoneNumber,
-            userGroup.getUser().getLineId(),
+            lineId,
             addMethod,
             userGroup.getCreatedAt().plusHours(9), // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경,
             userGroup.getUpdatedAt().plusHours(9) // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경

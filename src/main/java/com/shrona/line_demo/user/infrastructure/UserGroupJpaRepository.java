@@ -16,7 +16,7 @@ public interface UserGroupJpaRepository extends JpaRepository<UserGroup, Long> {
     /**
      * 전송을 위한 user의 count 조회
      */
-    @Query("SELECT new com.shrona.line_demo.user.infrastructure.dao.GroupUserCount(gu.group.id, COUNT(gu)) FROM UserGroup gu WHERE gu.group.id IN :groupIds AND gu.user.lineId is not null GROUP BY gu.group.id")
+    @Query("SELECT new com.shrona.line_demo.user.infrastructure.dao.GroupUserCount(gu.group.id, COUNT(gu)) FROM UserGroup gu WHERE gu.group.id IN :groupIds AND gu.user.lineUser is not null GROUP BY gu.group.id")
     List<GroupUserCount> countByGroupIds(List<Long> groupIds);
 
     /**
@@ -33,7 +33,12 @@ public interface UserGroupJpaRepository extends JpaRepository<UserGroup, Long> {
     /**
      * 그룹에 해당하는 UserGroup 목록 조회
      */
-    @Query("SELECT ug FROM UserGroup ug LEFT JOIN FETCH ug.user WHERE ug.group = :group")
+    @Query("""
+        SELECT ug FROM UserGroup ug
+        LEFT JOIN FETCH ug.user u
+        LEFT JOIN FETCH u.lineUser lu
+        WHERE ug.group = :group
+        """)
     Page<UserGroup> findAllByGroupId(Group group, Pageable pageable);
 
     @Modifying

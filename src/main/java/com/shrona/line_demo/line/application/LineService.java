@@ -3,6 +3,7 @@ package com.shrona.line_demo.line.application;
 import com.shrona.line_demo.line.domain.Channel;
 import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
+import com.shrona.line_demo.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,13 +23,13 @@ public interface LineService {
     /**
      * 라인 유저 목록 조회
      */
-    public Page<ChannelLineUser> findChannelLineUserListByChannel(
+    public Page<ChannelLineUserWithPhoneDao> findChannelLineUserListByChannel(
         Channel channel, Pageable pageable);
 
     /**
      * 라인 유저 목록 조건 조회
      */
-    public Page<ChannelLineUser> findChannelLineUserListByChannelAndQuery(
+    public Page<ChannelLineUserWithPhoneDao> findChannelLineUserListByChannelAndQuery(
         Channel channel, String Query, Pageable pageable);
 
     /**

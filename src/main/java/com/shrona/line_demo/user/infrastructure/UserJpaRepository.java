@@ -1,5 +1,6 @@
 package com.shrona.line_demo.user.infrastructure;
 
+import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.user.domain.User;
 import com.shrona.line_demo.user.domain.vo.PhoneNumber;
 import java.util.List;
@@ -18,4 +19,5 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
      */
     Optional<User> findByPhoneNumberAndLineUserIsNull(PhoneNumber phoneNumber);
 
+    Optional<User> findByLineUser(LineUser lineUserInfo);
 }

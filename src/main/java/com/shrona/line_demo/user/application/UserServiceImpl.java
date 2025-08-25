@@ -11,11 +11,8 @@ import com.shrona.line_demo.user.infrastructure.UserJpaRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,12 +60,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findUserByLineUser(LineUser lineUser) {
+        return userRepository.findByLineUser(lineUser);
+    }
+
+    @Override
     public List<User> findUserList() {
         return userRepository.findAll();
     }
 
     @Transactional
-    public List<User> findOrCreateUsersByPhoneNumbers(List<String> phoneNumberList) {
+    public List<User> findOrCreateUsersWithLinesByPhoneNumbers(List<String> phoneNumberList) {
 
         // 중복제거
         List<String> removeDupNumber = new ArrayList<>(new HashSet<>(phoneNumberList));
@@ -86,13 +88,9 @@ public class UserServiceImpl implements UserService {
         // 입력받은 휴대전화 목록 중에서 등록되지 않은 전화 번호 목록을 추출
         List<PhoneNumber> notFoundNumbers = findNotFoundPhoneNumbers(userPhoneList, existingPhones);
 
-        // 등록되지 않은 휴대전화 번호 목록으로 lineUser 목록을 조회한다.
-        Map<PhoneNumber, LineUser> phoneToLineUser = createPhoneToLineUserMap(notFoundNumbers);
-
-        // 새로운 유저 목록을 라인이 있는 유저와 없는 유저를 구분해서 생성해준다.
+        // 없는 전화번호인 경우 새로운 유저로 생성해준다.
         List<User> newUsers = userRepository.saveAll(
-            createNewUsers(notFoundNumbers, phoneToLineUser)
-        );
+            notFoundNumbers.stream().map(User::createUser).toList());
 
         // 두 List를 합쳐서 반환
         return combineUsers(newUsers, existingUsers);
@@ -137,32 +135,6 @@ public class UserServiceImpl implements UserService {
     ) {
         return userPhoneList.stream()
             .filter(phone -> !foundPhoneNumbers.contains(phone))
-            .toList();
-    }
-
-    /**
-     * [휴대전화 : 라인 유저] 형식으로 매핑해준다.
-     */
-    private Map<PhoneNumber, LineUser> createPhoneToLineUserMap(List<PhoneNumber> notFoundNumbers) {
-        List<LineUser> lineUsers = lineUserRepository.findByPhoneNumberIn(notFoundNumbers);
-        return lineUsers.stream()
-            .collect(Collectors.toMap(
-                LineUser::getPhoneNumber,
-                Function.identity()
-            ));
-    }
-
-    /**
-     * 라인이 있는 유저와 없는 유저와 구분해서 User 객체 생성
-     */
-    private List<User> createNewUsers(
-        List<PhoneNumber> notFoundNumbers,
-        Map<PhoneNumber, LineUser> phoneToLineUser
-    ) {
-        return notFoundNumbers.stream()
-            .map(phone -> phoneToLineUser.containsKey(phone)
-                ? User.createUserWithLine(phone, phoneToLineUser.get(phone))
-                : User.createUser(phone))
             .toList();
     }
 }

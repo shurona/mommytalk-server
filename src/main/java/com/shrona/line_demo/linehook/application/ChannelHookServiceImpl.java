@@ -1,5 +1,7 @@
 package com.shrona.line_demo.linehook.application;
 
+import static com.shrona.line_demo.user.domain.vo.PhoneNumber.changeWithoutError;
+
 import com.shrona.line_demo.common.utils.PhoneProcess;
 import com.shrona.line_demo.line.application.ChannelService;
 import com.shrona.line_demo.line.application.LineService;
@@ -84,9 +86,11 @@ public class ChannelHookServiceImpl implements ChannelHookService {
         // 메시지 저장
         lineMessageRepository.save(LineMessage.createLineMessage(channelLineUser, content));
 
-        // 라인 유저의 휴대전화가 존재하면 휴대전화 확인로직을 실행하지 않는다.
-        if (lineUserInfo.getPhoneNumber() != null) {
-            String phone = lineUserInfo.getPhoneNumber().getPhoneNumber();
+        Optional<User> userInfo = userRepository.findByLineUser(lineUserInfo);
+
+        // 이미 User에 라인 유저가 존재하거나 휴대전화가 존재하면 진행하지 않는다.
+        if (userInfo.isPresent() && userInfo.get().getPhoneNumber() != null) {
+            String phone = userInfo.get().getPhoneNumber().getPhoneNumber();
             if (phone != null && !phone.isBlank()) {
                 return false;
             }
@@ -97,27 +101,42 @@ public class ChannelHookServiceImpl implements ChannelHookService {
     }
 
     /**
-     * 라인에 휴대전화 번호 등록 시 유저와 매칭시켜주는 메소드
+     * 라인에 휴대전화 번호 등록 시 휴대전화 번호가 맞고 LineUser가 없으면 매칭해준다.
      */
+    @Transactional
     public boolean validatePhoneAndMatchUser(String content, ChannelLineUser channelLineUser) {
-        if (phoneProcess.isValidFormat(content)) {
-            // 번호 중복 확인
-            if (lineService.findLineUserByPhoneNumber(content).isPresent()) {
+        // content가 휴대전화가 format이 아니면 false 리턴
+        if (!phoneProcess.isValidFormat(content)) {
+            return false;
+        }
+
+        PhoneNumber phoneNumber = changeWithoutError(content);
+        LineUser lineUser = channelLineUser.getLineUser();
+
+        // LineUser가 이미 다른 User와 연결되어 있는지 확인
+        if (userRepository.findByLineUser(lineUser).isPresent()) {
+            return false;
+        }
+
+        Optional<User> existingUser = userRepository.findByPhoneNumber(phoneNumber);
+
+        // 이미 유저가 존재한다면
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+
+            // 이미 다른 LineUser와 연결되어 있다면 매칭하지 않음
+            if (user.getLineUser() != null) {
                 return false;
             }
 
-            // 번호 저장
-            channelLineUser.getLineUser().settingPhoneNumber(new PhoneNumber(content));
-
-            // 유저가 존재하는 지 확인하고 있으면 라인 아이디와 정보를 넣어준다.
-            Optional<User> userInfo = userRepository.findByPhoneNumberAndLineUserIsNull(
-                new PhoneNumber(content));
-
-            // 라인 유저가 비어 있으면 매칭시켜준다.
-            userInfo.ifPresent(user -> user.matchUserWithLine(channelLineUser.getLineUser()));
-            return true;
+            // 기존 User에 LineUser 연결
+            user.updateLineAndPhoneNumber(lineUser, phoneNumber);
+        } else {
+            // 신규 User 생성
+            userRepository.save(User.createUserWithLine(phoneNumber, lineUser));
         }
-        return false;
+
+        return true;
     }
 
     public void sendLineMessageAfterSuccess(Long channelId, String lineId, String phoneNumber) {
@@ -136,7 +155,8 @@ public class ChannelHookServiceImpl implements ChannelHookService {
             return;
         }
 
-        messageUtils.registerSingleTask(channel.get(),
+        messageUtils.registerSingleTask(
+            channel.get(),
             lineUser.get(),
             channel.get().getInviteMessage(),
             LocalDateTime.now());

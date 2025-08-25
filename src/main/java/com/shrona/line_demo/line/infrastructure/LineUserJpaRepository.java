@@ -1,10 +1,11 @@
 package com.shrona.line_demo.line.infrastructure;
 
 import com.shrona.line_demo.line.domain.LineUser;
-import com.shrona.line_demo.user.domain.vo.PhoneNumber;
+import com.shrona.line_demo.line.infrastructure.dao.LineUserWithPhoneDao;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface LineUserJpaRepository extends JpaRepository<LineUser, Long> {
 
@@ -13,11 +14,9 @@ public interface LineUserJpaRepository extends JpaRepository<LineUser, Long> {
      */
     Optional<LineUser> findByLineId(String lineId);
 
-    /**
-     * 휴대전화가 있는 유저들 조회
-     */
-    List<LineUser> findByPhoneNumberIn(List<PhoneNumber> phoneNumbers);
-
-
-    Optional<LineUser> findByPhoneNumber(PhoneNumber savingPhone);
+    //
+    @Query("select new com.shrona.line_demo.line.infrastructure.dao.LineUserWithPhoneDao("
+        + "lu.id, lu.lineId, u.phoneNumber) "
+        + "from LineUser lu left join User u on u.lineUser = lu")
+    List<LineUserWithPhoneDao> findLineUserWithPhoneNumber();
 }

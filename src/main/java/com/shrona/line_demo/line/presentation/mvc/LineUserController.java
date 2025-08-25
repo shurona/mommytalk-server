@@ -9,8 +9,8 @@ import com.shrona.line_demo.line.application.LineService;
 import com.shrona.line_demo.line.common.exception.LineErrorCode;
 import com.shrona.line_demo.line.common.exception.LineException;
 import com.shrona.line_demo.line.domain.Channel;
-import com.shrona.line_demo.line.domain.ChannelLineUser;
 import com.shrona.line_demo.line.domain.LineUser;
+import com.shrona.line_demo.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.line_demo.line.presentation.dtos.LineUserUpdatePhoneRequestDto;
 import com.shrona.line_demo.line.presentation.form.LineUserForm;
 import java.util.Optional;
@@ -47,7 +47,7 @@ public class LineUserController {
         }
 
         // 라인 유저 아이디 목록을 갖고 온다.
-        Page<ChannelLineUser> lineUserList;
+        Page<ChannelLineUserWithPhoneDao> lineUserList;
         if (query != null) {
             lineUserList = lineService.findChannelLineUserListByChannelAndQuery(
                 channelInfo.get(), query, PageRequest.of(pageNumber, 20));
@@ -63,7 +63,7 @@ public class LineUserController {
 
         // 모델 등록하는 부분
         model.addAttribute("friends", lineUserList.toList()
-            .stream().map(line -> LineUserForm.of(line.getLineUser())));
+            .stream().map(LineUserForm::of));
 
         // 채널 정보를 등록해준다.
         registerChannelToModel(channelInfo.get(), model);
@@ -86,6 +86,14 @@ public class LineUserController {
         if (lineUser == null) {
             throw new LineException(LineErrorCode.BAD_REQUEST);
         }
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 라인 유저의 휴대전화를 초기화 하는 EndPoint
+     */
+//    @PatchMapping("/admin/friends/{lineId}")
+    public ResponseEntity<?> clearLineUserPhoneNumber() {
 
         return ResponseEntity.ok().build();
     }

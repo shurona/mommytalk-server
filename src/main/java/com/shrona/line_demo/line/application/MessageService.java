@@ -17,7 +17,7 @@ public interface MessageService {
     public MessageType createMessageType(String title, String text);
 
     /**
-     * 메시지 생성(발송 시 사용)
+     * 선택된 그룹에 메시지 전송(제외 그룹 확인)
      */
     public List<MessageLog> createMessageSelectGroup
     (Channel channel, Long messageTypeId,

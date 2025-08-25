@@ -16,11 +16,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
@@ -231,7 +233,7 @@ public class GroupServiceImpl implements GroupService {
     private void generateGroupUserInfo(Group groupInfo, List<String> phoneNumberList) {
         // 입력된 전화번호를 유저 생성 및 라인 유저와 매칭 후 List 반환
         List<User> userListFromPhoneNumber = userService
-            .findOrCreateUsersByPhoneNumbers(phoneNumberList);
+            .findOrCreateUsersWithLinesByPhoneNumbers(phoneNumberList);
 
         // group에 이미 존재하는 번호들을 추출한다.
         List<User> pList = groupInfo.getUserGroupList().stream()
