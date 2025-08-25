@@ -12,16 +12,18 @@ import com.shrona.line_demo.common.dto.ChannelForm;
 import com.shrona.line_demo.common.session.UserSession;
 import com.shrona.line_demo.common.utils.StaticVariable;
 import com.shrona.line_demo.line.application.ChannelService;
-import com.shrona.line_demo.line.application.LineService;
 import com.shrona.line_demo.line.domain.Channel;
-import com.shrona.line_demo.line.domain.LineUser;
 import com.shrona.line_demo.line.presentation.form.ChannelListForm;
+import com.shrona.line_demo.user.application.UserService;
+import com.shrona.line_demo.user.domain.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -35,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/admin")
 @Controller
@@ -42,7 +45,7 @@ public class AdminController {
 
     // Service
     private final AdminService adminService;
-    private final LineService lineService;
+    private final UserService userService;
     private final ChannelService channelService;
 
     @GetMapping({"", "/"})
@@ -132,14 +135,14 @@ public class AdminController {
         }
 
         // 휴대전화를 기준으로 라인 아이디를 갖고 온다.
-        Optional<LineUser> lineUserByPhoneNumber = lineService.findLineUserByPhoneNumber(
+        User userByPhoneNumber = userService.findUserByPhoneNumber(
             requestBody.phoneNumber());
 
-        if (lineUserByPhoneNumber.isEmpty()) {
+        if (Objects.isNull(userByPhoneNumber)) {
             return ResponseEntity.badRequest().body(Map.of("message", "없는 번호 입니다."));
         }
 
-        adminService.registerTestNumber(channelInfo.get(), lineUserByPhoneNumber.get());
+        adminService.registerTestNumber(channelInfo.get(), userByPhoneNumber);
 
         return ResponseEntity.ok().build();
     }

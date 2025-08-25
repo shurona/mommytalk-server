@@ -3,7 +3,7 @@ package com.shrona.line_demo.admin.application;
 import com.shrona.line_demo.admin.domain.AdminUser;
 import com.shrona.line_demo.admin.presentation.form.TestUserForm;
 import com.shrona.line_demo.line.domain.Channel;
-import com.shrona.line_demo.line.domain.LineUser;
+import com.shrona.line_demo.user.domain.User;
 import java.util.List;
 
 public interface AdminService {
@@ -36,7 +36,7 @@ public interface AdminService {
     /**
      * 테스트 유저를 등록한다.
      */
-    public void registerTestNumber(Channel channel, LineUser lineUser);
+    public void registerTestNumber(Channel channel, User userInfo);
 
     /**
      * 테스트 유저 삭제

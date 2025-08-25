@@ -2,7 +2,7 @@ package com.shrona.line_demo.admin.domain;
 
 import com.shrona.line_demo.common.entity.BaseEntity;
 import com.shrona.line_demo.line.domain.Channel;
-import com.shrona.line_demo.line.domain.LineUser;
+import com.shrona.line_demo.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,6 +17,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 테스트 발송 대상 설정
+ */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -34,14 +37,16 @@ public class TestUser extends BaseEntity {
     @JoinColumn(name = "channel_id")
     private Channel channel;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "line_user_id")
-    private LineUser lineUser;
 
-    public static TestUser createTestUser(Channel channel, LineUser lineUser, String description) {
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+
+    public static TestUser createTestUser(Channel channel, User user, String description) {
         TestUser testUser = new TestUser();
         testUser.channel = channel;
-        testUser.lineUser = lineUser;
+        testUser.user = user;
         testUser.description = description;
 
         return testUser;

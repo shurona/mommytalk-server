@@ -6,7 +6,7 @@ import com.shrona.line_demo.admin.infrastructure.AdminJpaRepository;
 import com.shrona.line_demo.admin.infrastructure.TestUserJpaRepository;
 import com.shrona.line_demo.admin.presentation.form.TestUserForm;
 import com.shrona.line_demo.line.domain.Channel;
-import com.shrona.line_demo.line.domain.LineUser;
+import com.shrona.line_demo.user.domain.User;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,6 @@ public class AdminServiceImpl implements AdminService {
         if (userInfo.isPresent()) {
             return null;
         }
-
         return adminRepository.save(
             AdminUser.createAdminUser(loginId, passwordEncoder.encode(password), lineId));
     }
@@ -62,11 +61,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Transactional
-    public void registerTestNumber(Channel channel, LineUser lineUser) {
+    public void registerTestNumber(Channel channel, User userInfo) {
         Optional<TestUser> testUser = testUserRepository
-            .findByChannelAndLineUser(channel, lineUser);
+            .findByChannelAndUser(channel, userInfo);
         if (testUser.isEmpty()) {
-            testUserRepository.save(TestUser.createTestUser(channel, lineUser, "설명"));
+            testUserRepository.save(TestUser.createTestUser(channel, userInfo, "설명"));
         }
     }
 
