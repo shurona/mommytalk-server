@@ -97,7 +97,7 @@ public class ChannelHookServiceImpl implements ChannelHookService {
         }
 
         // 휴대전화 번호 형식인지 확인 후 로직 처리
-        return validatePhoneAndMatchUser(content, channelLineUser);
+        return validatePhoneAndMatchUser(content.trim(), channelLineUser);
     }
 
     /**
@@ -113,29 +113,20 @@ public class ChannelHookServiceImpl implements ChannelHookService {
         PhoneNumber phoneNumber = changeWithoutError(content);
         LineUser lineUser = channelLineUser.getLineUser();
 
-        // LineUser가 이미 다른 User와 연결되어 있는지 확인
-        if (userRepository.findByLineUser(lineUser).isPresent()) {
-            return false;
+        // LineUser 연결 상태 확인 및 처리
+        Optional<User> existingUserByLineUser = userRepository.findByLineUser(lineUser);
+        if (existingUserByLineUser.isPresent()) {
+            return handleExistingLineUserConnection(existingUserByLineUser.get(), phoneNumber);
         }
 
-        Optional<User> existingUser = userRepository.findByPhoneNumber(phoneNumber);
-
-        // 이미 유저가 존재한다면
-        if (existingUser.isPresent()) {
-            User user = existingUser.get();
-
-            // 이미 다른 LineUser와 연결되어 있다면 매칭하지 않음
-            if (user.getLineUser() != null) {
-                return false;
-            }
-
-            // 기존 User에 LineUser 연결
-            user.updateLineAndPhoneNumber(lineUser, phoneNumber);
-        } else {
-            // 신규 User 생성
-            userRepository.save(User.createUserWithLine(phoneNumber, lineUser));
+        // 휴대전화로 기존 User 조회 및 연결
+        Optional<User> existingUserByPhone = userRepository.findByPhoneNumber(phoneNumber);
+        if (existingUserByPhone.isPresent()) {
+            return connectLineUserToExistingUser(existingUserByPhone.get(), lineUser, phoneNumber);
         }
 
+        // 신규 User 생성
+        createNewUserWithLineConnection(phoneNumber, lineUser);
         return true;
     }
 
@@ -160,5 +151,44 @@ public class ChannelHookServiceImpl implements ChannelHookService {
             lineUser.get(),
             channel.get().getInviteMessage(),
             LocalDateTime.now());
+    }
+
+    /**
+     * LineUser가 이미 연결된 경우 처리
+     * - 휴대전화가 존재하면 업데이트하지 않음 (false)
+     * - 휴대전화가 비어있으면 업데이트 (true)
+     */
+    private boolean handleExistingLineUserConnection(User existingUser, PhoneNumber phoneNumber) {
+        if (existingUser.hasPhoneNumber()) {
+            // 이미 휴대전화가 있으면 업데이트하지 않음
+            return false;
+        }
+
+        // 휴대전화가 없으면 업데이트
+        existingUser.updatePhoneNumber(phoneNumber);
+        return true;
+    }
+
+    /**
+     * 기존 User에 LineUser 연결 시도
+     */
+    private boolean connectLineUserToExistingUser(User existingUser, LineUser lineUser,
+        PhoneNumber phoneNumber) {
+        // 이미 다른 LineUser와 연결되어 있다면 매칭하지 않음
+        if (existingUser.hasLineUser()) {
+            return false;
+        }
+
+        // 기존 User에 LineUser 연결
+        existingUser.updateLineAndPhoneNumber(lineUser, phoneNumber);
+        return true;
+    }
+
+    /**
+     * 신규 User 생성 및 LineUser 연결
+     */
+    private void createNewUserWithLineConnection(PhoneNumber phoneNumber, LineUser lineUser) {
+        User newUser = User.createUserWithLine(phoneNumber, lineUser);
+        userRepository.save(newUser);
     }
 }
