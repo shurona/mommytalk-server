@@ -2,6 +2,7 @@ package com.shrona.line_demo.admin.presentation.controller;
 
 import com.shrona.line_demo.admin.application.AdminService;
 import com.shrona.line_demo.admin.presentation.dtos.AdminUserCreateRequestDto;
+import com.shrona.line_demo.line.application.LineService;
 import com.shrona.line_demo.linehook.application.ChannelHookService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminRestController {
 
     private final AdminService adminService;
+    private final LineService lineService;
     private final ChannelHookService channelHookService;
 
     @Value("${admin.header-key}")
@@ -73,6 +75,25 @@ public class AdminRestController {
                 lineId,
                 content);
         }
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 라인 휴대전화를 초기화 하는 함수 EndPoint
+     */
+//    @PostMapping("/line/clear")
+    public ResponseEntity<?> clearLineUserPhoneNumber(
+        HttpServletRequest request,
+        @RequestHeader("line") String lineId
+    ) {
+        String inputAdminKey = request.getHeader(headerKey);
+
+        if (!inputAdminKey.equals(headerValue)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        lineService.clearLineUserPhoneNumber(lineId);
 
         return ResponseEntity.ok().build();
     }
