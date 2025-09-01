@@ -2,6 +2,7 @@ package com.shrona.mommytalk.user.domain;
 
 
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.kakao.domain.KakaoUser;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.type.AddUserMethod;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
@@ -54,7 +55,10 @@ public class User extends BaseEntity {
     @JoinColumn(name = "line_user_id")
     private LineUser lineUser;
 
-
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "kakao_user_id")
+    private KakaoUser kakaoUser;
+    
     /**
      * 라인 없이 신규 유저 추가
      */

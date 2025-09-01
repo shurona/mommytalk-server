@@ -28,16 +28,17 @@ public class LineMessage extends BaseEntity {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "channel_line_user_id")
-    private ChannelLineUser channelLineUser;
+    @JoinColumn(name = "channel_user_connection_id")
+    private ChannelUserConnection channelUserConnection;
 
     /**
      * 생성 메소드
      */
-    public static LineMessage createLineMessage(ChannelLineUser channelLineUser, String content) {
+    public static LineMessage createLineMessage(ChannelUserConnection channelUserConnection,
+        String content) {
         LineMessage lineMessage = new LineMessage();
 
-        lineMessage.channelLineUser = channelLineUser;
+        lineMessage.channelUserConnection = channelUserConnection;
         lineMessage.content = content;
 
         return lineMessage;

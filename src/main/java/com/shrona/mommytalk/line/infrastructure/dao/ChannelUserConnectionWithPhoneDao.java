@@ -3,9 +3,9 @@ package com.shrona.mommytalk.line.infrastructure.dao;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import java.time.LocalDateTime;
 
-public record ChannelLineUserWithPhoneDao(
+public record ChannelUserConnectionWithPhoneDao(
     Long channelUserSeq,
-    Long lineSeq,
+    Long userSeq,
     String lineId,
     PhoneNumber phoneNumber,
     LocalDateTime createdAt

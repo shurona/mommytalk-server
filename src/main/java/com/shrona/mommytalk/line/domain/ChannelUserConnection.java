@@ -2,6 +2,7 @@ package com.shrona.mommytalk.line.domain;
 
 
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,8 +24,8 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction(BaseEntity.DEFAULT_CONDITION)
-@Table(name = "channel_line_user")
-public class ChannelLineUser extends BaseEntity {
+@Table(name = "channel_user_connection")
+public class ChannelUserConnection extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,25 +36,25 @@ public class ChannelLineUser extends BaseEntity {
     private Channel channel;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "line_user_id")
-    private LineUser lineUser;
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column
     private boolean follow;
 
-    @OneToMany(mappedBy = "channelLineUser")
+    @OneToMany(mappedBy = "channelUserConnection")
     private List<LineMessage> lineMessageList = new ArrayList<>();
 
     /**
      * 생성 메소드
      */
-    public static ChannelLineUser create(Channel channel, LineUser lineUser) {
-        ChannelLineUser channelLineUser = new ChannelLineUser();
-        channelLineUser.lineUser = lineUser;
-        channelLineUser.channel = channel;
-        channelLineUser.follow = true;
+    public static ChannelUserConnection create(Channel channel, User user) {
+        ChannelUserConnection channelUserConnection = new ChannelUserConnection();
+        channelUserConnection.user = user;
+        channelUserConnection.channel = channel;
+        channelUserConnection.follow = true;
 
-        return channelLineUser;
+        return channelUserConnection;
     }
 
     public void changeFollowStatus(boolean status) {

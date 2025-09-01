@@ -1,6 +1,5 @@
-package com.shrona.mommytalk.line.domain;
+package com.shrona.mommytalk.kakao.domain;
 
-import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,24 +16,24 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "line_user")
-public class LineUser extends BaseEntity {
+@Table(name = "kakao_user")
+public class KakaoUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "line_id", unique = true)
-    private String lineId;
+    @Column(name = "kakao_id", unique = true)
+    private String kakaoId;
 
-    @OneToOne(mappedBy = "lineUser", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "kakaoUser", fetch = FetchType.LAZY)
     private User user;
 
-    public static LineUser createLineUser(String lineId) {
-        LineUser lineUser = new LineUser();
-
-        lineUser.lineId = lineId;
-
-        return lineUser;
+    public static KakaoUser createKakaoUser(String kakaoId, User userInfo) {
+        KakaoUser kakaoUser = new KakaoUser();
+        kakaoUser.kakaoId = kakaoId;
+        kakaoUser.user = userInfo;
+        return kakaoUser;
     }
+
 }

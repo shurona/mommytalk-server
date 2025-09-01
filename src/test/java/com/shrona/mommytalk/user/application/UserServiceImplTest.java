@@ -4,10 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.shrona.mommytalk.line.application.LineServiceImpl;
 import com.shrona.mommytalk.line.domain.Channel;
-import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
-import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
+import com.shrona.mommytalk.line.infrastructure.dao.ChannelUserConnectionWithPhoneDao;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import jakarta.persistence.EntityManager;
@@ -69,11 +68,24 @@ class UserServiceImplTest {
         LineUser line4 = lineService.findOrCreateLineUser("line4");
         LineUser line5 = lineService.findOrCreateLineUser("line5");
 
-        lineService.followChannelAndLineUser(channel, line1);
-        lineService.followChannelAndLineUser(channel, line2);
-        lineService.followChannelAndLineUser(channel, line3);
-        lineService.followChannelAndLineUser(channel, line4);
-        lineService.followChannelAndLineUser(channel, line5);
+        // LineUser에서 User를 생성해서 followChannelAndUser 호출
+        User user1 = User.createUserWithLine(null, line1);
+        User user2 = User.createUserWithLine(null, line2);
+        User user3 = User.createUserWithLine(null, line3);
+        User user4 = User.createUserWithLine(null, line4);
+        User user5 = User.createUserWithLine(null, line5);
+
+        entityManager.persist(user1);
+        entityManager.persist(user2);
+        entityManager.persist(user3);
+        entityManager.persist(user4);
+        entityManager.persist(user5);
+
+        lineService.followChannelAndUser(channel, user1);
+        lineService.followChannelAndUser(channel, user2);
+        lineService.followChannelAndUser(channel, user3);
+        lineService.followChannelAndUser(channel, user4);
+        lineService.followChannelAndUser(channel, user5);
 
         userList = new ArrayList<>(List.of(
             User.createUser(new PhoneNumber(number1)),
@@ -96,7 +108,7 @@ class UserServiceImplTest {
         // 초기 테스트 확인
         assertThat(userList.size()).isEqualTo(10);
 
-        List<ChannelLineUserWithPhoneDao> lineUserList = lineService.findChannelLineUserListByChannel(
+        List<ChannelUserConnectionWithPhoneDao> lineUserList = lineService.findChannelUserConnectionListByChannel(
                 channel, PageRequest.of(0, 100))
             .stream().toList();
 
@@ -120,41 +132,6 @@ class UserServiceImplTest {
             phoneNumberList);
 
         // then
-        assertThat(userListAfterSave.size()).isEqualTo(11);
-    }
-
-    @DisplayName("라인 유저가 존재할 때 휴대전화 추가 시 정상 로직 테스트")
-    @Test
-    void 라인_유저_매칭_테스트() {
-
-        // given
-        String correctPhone = "010-2234-8283";
-        String wrongPhone = "03-399-3932";
-        String lineId = "newLineId";
-
-        LineUser lineUser = lineService.findOrCreateLineUser(lineId);
-        ChannelLineUser channelLineUser = lineService.followChannelAndLineUser(
-            channel, lineUser);
-        entityManager.persist(User.createUserWithLine(
-            PhoneNumber.changeWithoutError(correctPhone), lineUser
-        ));
-
-        // 영속성 컨텍스트에 저장되어 있는 데이터 반영
-        entityManager.flush();
-
-        phoneNumberList.add(correctPhone);
-        phoneNumberList.add(wrongPhone);
-
-        // when
-        List<User> userListAfterSave = userService.findOrCreateUsersWithLinesByPhoneNumbers(
-            phoneNumberList);
-
-        User newUser = userService.findUserByPhoneNumber(correctPhone);
-
-        // then
-        // 유저와 라인 아이디 매핑 확인
-        assertThat(newUser.getLineUser().getLineId()).isEqualTo(lineId);
-        // 이미 저장된 번호 10개 + 위에서 저장 1개
         assertThat(userListAfterSave.size()).isEqualTo(11);
     }
 

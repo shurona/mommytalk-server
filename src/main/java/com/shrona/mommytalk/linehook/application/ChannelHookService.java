@@ -1,13 +1,13 @@
 package com.shrona.mommytalk.linehook.application;
 
-import com.shrona.mommytalk.line.domain.ChannelLineUser;
+import com.shrona.mommytalk.line.domain.ChannelUserConnection;
 
 public interface ChannelHookService {
 
     /**
      * LineId의 상태를 Follow를 true로 변경해준다.
      */
-    public ChannelLineUser followLineUserByLineId(Long channelId, String lineId);
+    public ChannelUserConnection followLineUserByLineId(Long channelId, String lineId);
 
 
     /**
