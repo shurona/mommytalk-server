@@ -19,6 +19,7 @@ import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -80,126 +81,187 @@ class ChannelHookServiceImplTest {
 
     }
 
-    @Test
-    public void 라인_훅_통합_테스트() {
-        // given
-        Long channelId = channel.getId();
-        String newLineId = "newLineUser123";
-        String validPhoneNumber = "010-9876-5432";
-        String invalidMessage = "일반 메시지";
+    @Nested
+    class 통합_테스트 {
+        
+        @Test
+        public void 라인_훅_전체_플로우_테스트() {
+            // given
+            Long channelId = channel.getId();
+            String newLineId = "newLineUser123";
+            String validPhoneNumber = "010-9876-5432";
+            String invalidMessage = "일반 메시지";
 
-        // when & then - 1단계: 일반 메시지 저장 (휴대전화 형식 아님)
-        boolean result1 = channelHookService.saveLineMessage(channelId, newLineId, invalidMessage);
-        assertThat(result1).isFalse(); // 휴대전화 형식이 아니므로 false
+            // when & then - 1단계: 일반 메시지 저장 (휴대전화 형식 아님)
+            boolean result1 = channelHookService.saveLineMessage(channelId, newLineId, invalidMessage);
+            assertThat(result1).isFalse(); // 휴대전화 형식이 아니므로 false
 
-        // when & then - 2단계: 휴대전화 형식 메시지 저장
-        boolean result2 = channelHookService.saveLineMessage(channelId, newLineId,
-            validPhoneNumber);
-        assertThat(result2).isTrue(); // 휴대전화 형식이므로 매칭 성공
+            // when & then - 2단계: 휴대전화 형식 메시지 저장
+            boolean result2 = channelHookService.saveLineMessage(channelId, newLineId,
+                validPhoneNumber);
+            assertThat(result2).isTrue(); // 휴대전화 형식이므로 매칭 성공
 
-        // when & then - 3단계: 같은 번호로 다시 시도 (이미 휴대전화가 등록된 상태)
-        boolean result3 = channelHookService.saveLineMessage(channelId, newLineId,
-            validPhoneNumber);
-        assertThat(result3).isFalse(); // 이미 휴대전화가 등록되어 있으므로 false
+            // when & then - 3단계: 같은 번호로 다시 시도 (이미 휴대전화가 등록된 상태)
+            boolean result3 = channelHookService.saveLineMessage(channelId, newLineId,
+                validPhoneNumber);
+            assertThat(result3).isFalse(); // 이미 휴대전화가 등록되어 있으므로 false
 
-        Optional<LineUser> byLineId = lineUserRepository.findByLineId(newLineId);
+            Optional<LineUser> byLineId = lineUserRepository.findByLineId(newLineId);
+            Optional<User> byLineUser = userRepository.findByLineUser(byLineId.get());
+            assertThat(byLineUser.get().getPhoneNumber().getPhoneNumber()).isEqualTo(validPhoneNumber);
+        }
 
-        Optional<User> byLineUser = userRepository.findByLineUser(byLineId.get());
+        @Test
+        public void 팔로우_언팔로우_테스트() {
+            // given
+            Long channelId = channel.getId();
+            String testLineId = "testFollowLineId";
 
-        assertThat(byLineUser.get().getPhoneNumber().getPhoneNumber()).isEqualTo(validPhoneNumber);
+            // when & then - 팔로우 테스트
+            ChannelLineUser followResult = channelHookService.followLineUserByLineId(channelId,
+                testLineId);
+            assertThat(followResult).isNotNull();
+            assertThat(followResult.getChannel().getId()).isEqualTo(channelId);
+            assertThat(followResult.getLineUser().getLineId()).isEqualTo(testLineId);
 
+            // 팔로우 후 LineUser가 생성되었는지 확인
+            Optional<LineUser> createdLineUser = lineUserRepository.findByLineId(testLineId);
+            assertThat(createdLineUser).isPresent();
+            assertThat(createdLineUser.get().getLineId()).isEqualTo(testLineId);
+
+            // when
+            channelHookService.unfollowLineUserByLineId(channelId, testLineId);
+
+            // then - 언팔로우 후 ChannelLineUser가 False로 변경되었는지 확인한다.
+            Optional<ChannelLineUser> connectionAfterUnfollow =
+                channelLineUserRepository.findByChannelAndLineUser(channel, followResult.getLineUser());
+
+            assertThat(connectionAfterUnfollow.get().isFollow()).isFalse();
+        }
     }
 
-    @Test
-    public void 라인_훅_팔로우_언팔로우_통합_테스트() {
-        // given
-        Long channelId = channel.getId();
-        String testLineId = "testFollowLineId";
+    @Nested
+    class 휴대전화_매칭_테스트 {
+        
+        @Test
+        public void 기존_휴대전화_User에_LineUser_연결() {
+            // given
+            String existingPhoneNumber = "010-5555-5555";
+            User existingUser = userRepository.save(
+                User.createUser(new PhoneNumber(existingPhoneNumber)));
+            LineUser newLineUser = lineUserRepository.save(
+                LineUser.createLineUser("newLineForExisting"));
 
-        // when & then - 팔로우 테스트
-        ChannelLineUser followResult = channelHookService.followLineUserByLineId(channelId,
-            testLineId);
-        assertThat(followResult).isNotNull();
-        assertThat(followResult.getChannel().getId()).isEqualTo(channelId);
-        assertThat(followResult.getLineUser().getLineId()).isEqualTo(testLineId);
+            // when
+            boolean result = channelHookService.validatePhoneAndMatchUser(existingPhoneNumber,
+                newLineUser);
 
-        // 팔로우 후 LineUser가 생성되었는지 확인
-        Optional<LineUser> createdLineUser = lineUserRepository.findByLineId(testLineId);
-        assertThat(createdLineUser).isPresent();
-        assertThat(createdLineUser.get().getLineId()).isEqualTo(testLineId);
+            // then
+            assertThat(result).isTrue();
+            User updatedUser = userRepository.findByPhoneNumber(
+                PhoneNumber.changeWithoutError(existingPhoneNumber)).get();
+            assertThat(updatedUser.getLineUser().getLineId()).isEqualTo("newLineForExisting");
+        }
 
-        // when & then - 언팔로우 테스트
-        channelHookService.unfollowLineUserByLineId(channelId, testLineId);
+        @Test
+        public void 신규_휴대전화_번호로_새_User_생성() {
+            // given
+            String newPhoneNumber = "010-9999-8888";
+            LineUser newLineUser = lineUserRepository.save(LineUser.createLineUser("newTestLineUser"));
 
-        // 언팔로우 후 ChannelLineUser가 삭제되었는지 확인
-        Optional<ChannelLineUser> connectionAfterUnfollow =
-            channelLineUserRepository.findByChannelAndLineUser(channel, followResult.getLineUser());
+            // 새로운 휴대전화 번호가 기존에 없는지 확인
+            Optional<User> beforeTest = userRepository.findByPhoneNumber(
+                PhoneNumber.changeWithoutError(newPhoneNumber));
+            assertThat(beforeTest).isEmpty();
 
-        assertThat(connectionAfterUnfollow.get().isFollow()).isFalse();
+            // when
+            boolean result = channelHookService.validatePhoneAndMatchUser(newPhoneNumber, newLineUser);
+
+            // then
+            assertThat(result).isTrue();
+
+            // 새로운 User가 생성되었는지 확인
+            Optional<User> createdUser = userRepository.findByPhoneNumber(
+                PhoneNumber.changeWithoutError(newPhoneNumber));
+            assertThat(createdUser).isPresent();
+            assertThat(createdUser.get().getLineUser().getLineId()).isEqualTo("newTestLineUser");
+            assertThat(createdUser.get().getPhoneNumber().getPhoneNumber()).isEqualTo(newPhoneNumber);
+        }
+
+        @Test
+        public void LineUser_연결된_User에_휴대전화_추가() {
+            // given
+            LineUser existingLineUser = lineUserRepository.save(LineUser.createLineUser("existingLineUser"));
+            User userWithoutPhone = userRepository.save(User.createUserWithLine(null, existingLineUser));
+            String newPhoneNumber = "010-7777-7777";
+            
+            // 초기 상태 확인: User는 존재하지만 휴대전화가 없음
+            assertThat(userWithoutPhone.getLineUser().getLineId()).isEqualTo("existingLineUser");
+            assertThat(userWithoutPhone.getPhoneNumber()).isNull();
+
+            // when
+            boolean result = channelHookService.validatePhoneAndMatchUser(newPhoneNumber, existingLineUser);
+
+            // then
+            assertThat(result).isTrue();
+            
+            // 기존 User에 휴대전화가 추가되었는지 확인
+            User updatedUser = userRepository.findByLineUser(existingLineUser).get();
+            assertThat(updatedUser.getPhoneNumber()).isNotNull();
+            assertThat(updatedUser.getPhoneNumber().getPhoneNumber()).isEqualTo(newPhoneNumber);
+            assertThat(updatedUser.getLineUser().getLineId()).isEqualTo("existingLineUser");
+        }
+
+        @Test
+        public void 이미_다른_LineUser가_연결된_휴대전화_입력시_연결_거부() {
+            // given
+            // 테스트할 유저가 lineUser가 등록되어 있는 지 확인
+            assertThat(userWithLineUser.getLineUser().getLineId())
+                .isEqualTo(lineUserThree.getLineId());
+
+            // when
+            boolean result = channelHookService.validatePhoneAndMatchUser("010-1234-1235",
+                lineUserTwo);
+            
+            // then
+            assertThat(result).isFalse();
+        }
     }
 
-    @Test
-    public void 휴대전화_입력시_비어있는_경우_조회_및_변경() {
-        // given
-        assertThat(userBlankLineUser.getLineUser()).isNull();
-        String givenPhoneNumber = "010-1234-9999";
+    @Nested
+    class 환영_메시지_발송_테스트 {
+        
+        @Test
+        public void 성공_휴대전화_입력_시_메시지_발송() {
+            // given
+            doNothing().when(messageUtils).registerSingleTask(
+                any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
 
-        // when
-        boolean b = channelHookService.validatePhoneAndMatchUser(givenPhoneNumber,
-            lineUserTwo);
+            String phoneNumber = "010-1234-1234";
 
-        userBlankLineUser = userRepository.findByPhoneNumber(
-            PhoneNumber.changeWithoutError(givenPhoneNumber)).get();
+            // when
+            channelHookService.sendLineMessageAfterSuccess(channel.getId(), lineUserOne.getLineId(),
+                phoneNumber);
 
-        // then
-        assertThat(userBlankLineUser.getLineUser().getLineId()).isEqualTo(lineUserTwo.getLineId());
-        assertThat(b).isTrue();
-    }
+            // then
+            verify(messageUtils).registerSingleTask(
+                any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
+        }
 
-    @Test
-    public void 휴대전화_입력시_이미있는_경우_미_변경() {
-        // given
-        // 테스트할 유저가 lineUser가 등록되어 있는 지 확인
-        assertThat(userWithLineUser.getLineUser().getLineId())
-            .isEqualTo(lineUserThree.getLineId());
+        @Test
+        public void 잘못된_휴대전화_입력_시_메시지_발송_안함() {
+            // given
+            String wrongPhoneNumber = "010-12-1234";
 
-        // when
-        boolean b = channelHookService.validatePhoneAndMatchUser("010-1234-1235",
-            lineUserTwo);
-        // then
-        assertThat(b).isFalse();
-    }
+            // when
+            channelHookService.sendLineMessageAfterSuccess(channel.getId(), lineUserOne.getLineId(),
+                wrongPhoneNumber);
 
-    @Test
-    public void 성공_휴대전화_입력_시_단일전송_로직_테스트() {
-        // given
-        doNothing().when(messageUtils).registerSingleTask(
-            any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
-
-        String phoneNumber = "010-1234-1234";
-
-        // when
-        channelHookService.sendLineMessageAfterSuccess(channel.getId(), lineUserOne.getLineId(),
-            phoneNumber);
-
-        // then
-        verify(messageUtils).registerSingleTask(
-            any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
-    }
-
-    @Test
-    public void 잘못된_휴대전화_입력_시_단일전송_로직_테스트() {
-        // given
-        String wrongPhoneNumber = "010-12-1234";
-
-        // when
-        channelHookService.sendLineMessageAfterSuccess(channel.getId(), lineUserOne.getLineId(),
-            wrongPhoneNumber);
-
-        // then
-        // 잘못된 휴대전화 형식이므로 registerSingleTask가 호출되지 않아야 함
-        verify(messageUtils, never()).registerSingleTask(
-            any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
+            // then
+            // 잘못된 휴대전화 형식이므로 registerSingleTask가 호출되지 않아야 함
+            verify(messageUtils, never()).registerSingleTask(
+                any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
+        }
     }
 
 }
