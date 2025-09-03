@@ -1,9 +1,9 @@
 package com.shrona.mommytalk.line.infrastructure;
 
 import com.shrona.mommytalk.line.domain.Channel;
-import com.shrona.mommytalk.line.domain.ChannelUserConnection;
+import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import com.shrona.mommytalk.line.domain.LineUser;
-import com.shrona.mommytalk.line.infrastructure.dao.ChannelUserConnectionWithPhoneDao;
+import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
@@ -18,11 +18,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @DataJpaTest
-class ChannelUserConnectionJpaRepositoryTest {
+class ChannelLineUserJpaRepositoryTest {
 
     Channel channel;
     @Autowired
-    private ChannelUserConnectionJpaRepository channelLineUserRepository;
+    private ChannelLineUserJpaRepository channelLineUserRepository;
     @Autowired
     private ChannelJpaRepository channelRepository;
     @Autowired
@@ -53,8 +53,8 @@ class ChannelUserConnectionJpaRepositoryTest {
         lineUserList = lineUserJpaRepository.saveAll(
             List.of(line1, line2, line3, line4, line5));
 
-        List<ChannelUserConnection> list = userForTesting.stream()
-            .map(user -> ChannelUserConnection.create(channel, user)).toList();
+        List<ChannelLineUser> list = lineUserList.stream()
+            .map(lineUser -> ChannelLineUser.create(channel, lineUser)).toList();
 
         channelLineUserRepository.saveAll(
             list);
@@ -65,15 +65,15 @@ class ChannelUserConnectionJpaRepositoryTest {
         // given
 
         // when
-        Page<ChannelUserConnectionWithPhoneDao> expect1 = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
+        Page<ChannelLineUserWithPhoneDao> expect1 = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
             channel, "1238", PageRequest.of(0, 100));
-        Page<ChannelUserConnectionWithPhoneDao> expect2 = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
+        Page<ChannelLineUserWithPhoneDao> expect2 = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
             channel, "1232", PageRequest.of(0, 100));
-        Page<ChannelUserConnectionWithPhoneDao> expect4 = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
+        Page<ChannelLineUserWithPhoneDao> expect4 = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
             channel, "1234", PageRequest.of(0, 100));
-        Page<ChannelUserConnectionWithPhoneDao> expectDashOne = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
+        Page<ChannelLineUserWithPhoneDao> expectDashOne = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
             channel, "32-12", PageRequest.of(0, 100));
-        Page<ChannelUserConnectionWithPhoneDao> expectDashFour = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
+        Page<ChannelLineUserWithPhoneDao> expectDashFour = channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(
             channel, "34-12", PageRequest.of(0, 100));
 
         // then

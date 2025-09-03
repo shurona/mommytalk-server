@@ -8,10 +8,10 @@ import static org.mockito.Mockito.verify;
 
 import com.shrona.mommytalk.line.application.utils.MessageUtils;
 import com.shrona.mommytalk.line.domain.Channel;
-import com.shrona.mommytalk.line.domain.ChannelUserConnection;
+import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
-import com.shrona.mommytalk.line.infrastructure.ChannelUserConnectionJpaRepository;
+import com.shrona.mommytalk.line.infrastructure.ChannelLineUserJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
@@ -38,7 +38,7 @@ class ChannelHookServiceImplTest {
     @Autowired
     private ChannelJpaRepository channelJpaRepository;
     @Autowired
-    private ChannelUserConnectionJpaRepository channelLineUserRepository;
+    private ChannelLineUserJpaRepository channelLineUserRepository;
 
     @MockitoBean
     private MessageUtils messageUtils;
@@ -47,8 +47,8 @@ class ChannelHookServiceImplTest {
     private LineUser lineUserOne;
     private LineUser lineUserTwo;
     private LineUser lineUserThree;
-    private ChannelUserConnection channelUserConnectionOne;
-    private ChannelUserConnection channelUserConnectionTwo;
+    private ChannelLineUser channelLineUserOne;
+    private ChannelLineUser channelLineUserTwo;
     private User userBlankLineUser;
     private User userWithLineUser;
     private Channel channel;
@@ -68,10 +68,10 @@ class ChannelHookServiceImplTest {
         User userTwo = userRepository.save(User.createUserWithLine(null, lineUserTwo));
 
         // 채널 정보 생성
-        channelUserConnectionOne = channelLineUserRepository.save(
-            ChannelUserConnection.create(channel, userOne));
-        channelUserConnectionTwo = channelLineUserRepository.save(
-            ChannelUserConnection.create(channel, userTwo));
+        channelLineUserOne = channelLineUserRepository.save(
+            ChannelLineUser.create(channel, lineUserOne));
+        channelLineUserTwo = channelLineUserRepository.save(
+            ChannelLineUser.create(channel, lineUserTwo));
 
         userBlankLineUser = userRepository.save(User.createUser(new PhoneNumber("010-1234-1234")));
         userWithLineUser = userRepository.save(
@@ -117,11 +117,11 @@ class ChannelHookServiceImplTest {
         String testLineId = "testFollowLineId";
 
         // when & then - 팔로우 테스트
-        ChannelUserConnection followResult = channelHookService.followLineUserByLineId(channelId,
+        ChannelLineUser followResult = channelHookService.followLineUserByLineId(channelId,
             testLineId);
         assertThat(followResult).isNotNull();
         assertThat(followResult.getChannel().getId()).isEqualTo(channelId);
-        assertThat(followResult.getUser().getLineUser().getLineId()).isEqualTo(testLineId);
+        assertThat(followResult.getLineUser().getLineId()).isEqualTo(testLineId);
 
         // 팔로우 후 LineUser가 생성되었는지 확인
         Optional<LineUser> createdLineUser = lineUserRepository.findByLineId(testLineId);
@@ -131,9 +131,9 @@ class ChannelHookServiceImplTest {
         // when & then - 언팔로우 테스트
         channelHookService.unfollowLineUserByLineId(channelId, testLineId);
 
-        // 언팔로우 후 ChannelUserConnection이 삭제되었는지 확인
-        Optional<ChannelUserConnection> connectionAfterUnfollow =
-            channelLineUserRepository.findByChannelAndUser(channel, followResult.getUser());
+        // 언팔로우 후 ChannelLineUser가 삭제되었는지 확인
+        Optional<ChannelLineUser> connectionAfterUnfollow =
+            channelLineUserRepository.findByChannelAndLineUser(channel, followResult.getLineUser());
 
         assertThat(connectionAfterUnfollow.get().isFollow()).isFalse();
     }
@@ -146,7 +146,7 @@ class ChannelHookServiceImplTest {
 
         // when
         boolean b = channelHookService.validatePhoneAndMatchUser(givenPhoneNumber,
-            channelUserConnectionTwo);
+            lineUserTwo);
 
         userBlankLineUser = userRepository.findByPhoneNumber(
             PhoneNumber.changeWithoutError(givenPhoneNumber)).get();
@@ -165,7 +165,7 @@ class ChannelHookServiceImplTest {
 
         // when
         boolean b = channelHookService.validatePhoneAndMatchUser("010-1234-1235",
-            channelUserConnectionTwo);
+            lineUserTwo);
         // then
         assertThat(b).isFalse();
     }

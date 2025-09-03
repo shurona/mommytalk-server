@@ -6,7 +6,7 @@ import com.shrona.mommytalk.line.application.LineServiceImpl;
 import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
-import com.shrona.mommytalk.line.infrastructure.dao.ChannelUserConnectionWithPhoneDao;
+import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import jakarta.persistence.EntityManager;
@@ -81,11 +81,11 @@ class UserServiceImplTest {
         entityManager.persist(user4);
         entityManager.persist(user5);
 
-        lineService.followChannelAndUser(channel, user1);
-        lineService.followChannelAndUser(channel, user2);
-        lineService.followChannelAndUser(channel, user3);
-        lineService.followChannelAndUser(channel, user4);
-        lineService.followChannelAndUser(channel, user5);
+        lineService.followChannelAndLineUser(channel, line1);
+        lineService.followChannelAndLineUser(channel, line2);
+        lineService.followChannelAndLineUser(channel, line3);
+        lineService.followChannelAndLineUser(channel, line4);
+        lineService.followChannelAndLineUser(channel, line5);
 
         userList = new ArrayList<>(List.of(
             User.createUser(new PhoneNumber(number1)),
@@ -108,7 +108,7 @@ class UserServiceImplTest {
         // 초기 테스트 확인
         assertThat(userList.size()).isEqualTo(10);
 
-        List<ChannelUserConnectionWithPhoneDao> lineUserList = lineService.findChannelUserConnectionListByChannel(
+        List<ChannelLineUserWithPhoneDao> lineUserList = lineService.findChannelUserConnectionListByChannel(
                 channel, PageRequest.of(0, 100))
             .stream().toList();
 
