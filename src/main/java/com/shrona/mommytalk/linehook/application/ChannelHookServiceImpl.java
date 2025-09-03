@@ -86,15 +86,14 @@ public class ChannelHookServiceImpl implements ChannelHookService {
 
         Optional<User> userInfo = userRepository.findByLineUser(lineUserInfo);
 
-        // 이미 User에 라인 유저가 존재하거나 휴대전화가 존재하면 진행하지 않는다.
+        // 이미 User에 라인 유저가 존재하고 휴대전화가 있으면 진행하지 않는다.
         if (userInfo.isPresent() && userInfo.get().getPhoneNumber() != null) {
             String phone = userInfo.get().getPhoneNumber().getPhoneNumber();
             if (phone != null && !phone.isBlank()) {
                 return false;
             }
         }
-
-        // 휴대전화 번호 형식인지 확인 후 로직 처리
+        
         return validatePhoneAndMatchUser(content.trim(), lineUserInfo);
     }
 
@@ -114,8 +113,7 @@ public class ChannelHookServiceImpl implements ChannelHookService {
         Optional<User> existingUserByPhone = userRepository.findByPhoneNumber(phoneNumber);
 
         if (existingUserByPhone.isPresent()) {
-            //
-            return false;
+            return connectLineUserToExistingUser(existingUserByPhone.get(), lineUser, phoneNumber);
         }
 
         // LineUser 연결 상태 확인 및 처리
@@ -192,17 +190,4 @@ public class ChannelHookServiceImpl implements ChannelHookService {
         userRepository.save(newUser);
     }
 
-    /**
-     * LineUser로부터 User를 찾거나 생성하는 헬퍼 메소드
-     */
-    private User findOrCreateUserFromLineUser(LineUser lineUser) {
-        Optional<User> existingUser = userRepository.findByLineUser(lineUser);
-        if (existingUser.isPresent()) {
-            return existingUser.get();
-        }
-
-        // LineUser가 연결된 User가 없으면 새로 생성 (phoneNumber는 null)
-        User newUser = User.createUserWithLine(null, lineUser);
-        return userRepository.save(newUser);
-    }
 }

@@ -26,7 +26,7 @@ public interface ChannelLineUserJpaRepository extends JpaRepository<ChannelLineU
                 clu.lineUser.user.id,
                 clu.lineUser.lineId,
                 clu.lineUser.user.phoneNumber,
-                clu.lineUser.user.createdAt
+                clu.lineUser.createdAt
             )
             FROM ChannelLineUser clu
             WHERE clu.channel = :channel

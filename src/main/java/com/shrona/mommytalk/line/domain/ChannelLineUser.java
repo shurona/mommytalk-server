@@ -2,7 +2,6 @@ package com.shrona.mommytalk.line.domain;
 
 
 import com.shrona.mommytalk.common.entity.BaseEntity;
-import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -33,7 +32,7 @@ public class ChannelLineUser extends BaseEntity {
     private Channel channel;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "line_user_id")
     private LineUser lineUser;
 
     @Column
