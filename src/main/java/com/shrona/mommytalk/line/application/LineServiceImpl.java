@@ -7,11 +7,11 @@ import static com.shrona.mommytalk.line.common.exception.LineErrorCode.LINEUSER_
 
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.Channel;
-import com.shrona.mommytalk.line.domain.ChannelUserConnection;
+import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import com.shrona.mommytalk.line.domain.LineUser;
-import com.shrona.mommytalk.line.infrastructure.ChannelUserConnectionJpaRepository;
+import com.shrona.mommytalk.line.infrastructure.ChannelLineUserJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
-import com.shrona.mommytalk.line.infrastructure.dao.ChannelUserConnectionWithPhoneDao;
+import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.user.application.GroupService;
 import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.domain.User;
@@ -32,7 +32,7 @@ public class LineServiceImpl implements LineService {
 
     // repository
     private final LineUserJpaRepository lineUserRepository;
-    private final ChannelUserConnectionJpaRepository channelUserConnectionRepository;
+    private final ChannelLineUserJpaRepository channelLineUserRepository;
 
     // service
     private final UserService userService;
@@ -52,28 +52,28 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public Page<ChannelUserConnectionWithPhoneDao> findChannelUserConnectionListByChannel(
+    public Page<ChannelLineUserWithPhoneDao> findChannelUserConnectionListByChannel(
         Channel channel, Pageable pageable) {
-        return channelUserConnectionRepository.findAllByChannel(channel, pageable);
+        return channelLineUserRepository.findAllByChannel(channel, pageable);
     }
 
     @Override
-    public Page<ChannelUserConnectionWithPhoneDao> findChannelUserConnectionListByChannelAndQuery(
+    public Page<ChannelLineUserWithPhoneDao> findChannelUserConnectionListByChannelAndQuery(
         Channel channel,
         String query, Pageable pageable) {
-        return channelUserConnectionRepository.findAllByChannelAndPhoneNumberWithUser(channel,
+        return channelLineUserRepository.findAllByChannelAndPhoneNumberWithUser(channel,
             query,
             pageable);
     }
 
     @Transactional
-    public ChannelUserConnection findOrCreateChannelUserConnection(Channel channel, User user) {
-        Optional<ChannelUserConnection> channelUserConnection = channelUserConnectionRepository.findByChannelAndUser(
-            channel, user);
+    public ChannelLineUser findOrChannelLineUser(Channel channel, LineUser lineUser) {
+        Optional<ChannelLineUser> channelLineUser = channelLineUserRepository.findByChannelAndLineUser(
+            channel, lineUser);
 
-        return channelUserConnection.orElseGet(
-            () -> channelUserConnectionRepository.save(
-                ChannelUserConnection.create(channel, user)));
+        return channelLineUser.orElseGet(
+            () -> channelLineUserRepository.save(
+                ChannelLineUser.create(channel, lineUser)));
     }
 
     @Transactional
@@ -113,23 +113,23 @@ public class LineServiceImpl implements LineService {
     }
 
     @Transactional
-    public ChannelUserConnection followChannelAndUser(Channel channel, User user) {
-        return channelUserConnectionRepository.findByChannelAndUser(channel, user)
+    public ChannelLineUser followChannelAndLineUser(Channel channel, LineUser lineUser) {
+        return channelLineUserRepository.findByChannelAndLineUser(channel, lineUser)
             .map(existing -> {
                 existing.changeFollowStatus(true);
                 return existing;
             })
             .orElseGet(
-                () -> channelUserConnectionRepository.save(
-                    ChannelUserConnection.create(channel, user)));
+                () -> channelLineUserRepository.save(
+                    ChannelLineUser.create(channel, lineUser)));
     }
 
 
     @Transactional
-    public void unfollowChannelAndUser(Channel channel, User user) {
+    public void unfollowChannelAndLineUser(Channel channel, LineUser lineUser) {
 
-        channelUserConnectionRepository.findByChannelAndUser(channel, user)
-            .ifPresent(channelUserConnection -> channelUserConnection.changeFollowStatus(false));
+        channelLineUserRepository.findByChannelAndLineUser(channel, lineUser)
+            .ifPresent(channelLineUser -> channelLineUser.changeFollowStatus(false));
 
     }
 

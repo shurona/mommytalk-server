@@ -11,10 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,8 +21,8 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction(BaseEntity.DEFAULT_CONDITION)
-@Table(name = "channel_user_connection")
-public class ChannelUserConnection extends BaseEntity {
+@Table(name = "channel_line_user")
+public class ChannelLineUser extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,24 +34,21 @@ public class ChannelUserConnection extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private LineUser lineUser;
 
     @Column
     private boolean follow;
 
-    @OneToMany(mappedBy = "channelUserConnection")
-    private List<LineMessage> lineMessageList = new ArrayList<>();
-
     /**
      * 생성 메소드
      */
-    public static ChannelUserConnection create(Channel channel, User user) {
-        ChannelUserConnection channelUserConnection = new ChannelUserConnection();
-        channelUserConnection.user = user;
-        channelUserConnection.channel = channel;
-        channelUserConnection.follow = true;
+    public static ChannelLineUser create(Channel channel, LineUser lineUser) {
+        ChannelLineUser channelLineUser = new ChannelLineUser();
+        channelLineUser.lineUser = lineUser;
+        channelLineUser.channel = channel;
+        channelLineUser.follow = true;
 
-        return channelUserConnection;
+        return channelLineUser;
     }
 
     public void changeFollowStatus(boolean status) {

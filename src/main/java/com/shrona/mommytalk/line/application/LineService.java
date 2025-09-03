@@ -1,9 +1,9 @@
 package com.shrona.mommytalk.line.application;
 
 import com.shrona.mommytalk.line.domain.Channel;
-import com.shrona.mommytalk.line.domain.ChannelUserConnection;
+import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import com.shrona.mommytalk.line.domain.LineUser;
-import com.shrona.mommytalk.line.infrastructure.dao.ChannelUserConnectionWithPhoneDao;
+import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.user.domain.User;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -24,19 +24,19 @@ public interface LineService {
     /**
      * 채널 유저 연결 목록 조회
      */
-    public Page<ChannelUserConnectionWithPhoneDao> findChannelUserConnectionListByChannel(
+    public Page<ChannelLineUserWithPhoneDao> findChannelUserConnectionListByChannel(
         Channel channel, Pageable pageable);
 
     /**
      * 채널 유저 연결 목록 조건 조회
      */
-    public Page<ChannelUserConnectionWithPhoneDao> findChannelUserConnectionListByChannelAndQuery(
+    public Page<ChannelLineUserWithPhoneDao> findChannelUserConnectionListByChannelAndQuery(
         Channel channel, String Query, Pageable pageable);
 
     /**
-     * ChannelUserConnection을 조회하고 없으면 생성
+     * ChannelLineUser를 조회하고 없으면 생성
      */
-    public ChannelUserConnection findOrCreateChannelUserConnection(Channel channel, User user);
+    public ChannelLineUser findOrChannelLineUser(Channel channel, LineUser lineUser);
 
     /**
      * 라인 유저를 조회하고 없으면 생성해준다.
@@ -51,12 +51,12 @@ public interface LineService {
     /**
      * 유저와 채널 아이디를 기준으로 팔로우 해준다.
      */
-    public ChannelUserConnection followChannelAndUser(Channel channel, User user);
+    public ChannelLineUser followChannelAndLineUser(Channel channel, LineUser lineUser);
 
     /**
      * 유저와 채널 아이디를 기준으로 언팔로우 해준다.
      */
-    public void unfollowChannelAndUser(Channel channel, User user);
+    public void unfollowChannelAndLineUser(Channel channel, LineUser lineUser);
 
     /**
      * 라인 유저의 휴대전화를 초기화

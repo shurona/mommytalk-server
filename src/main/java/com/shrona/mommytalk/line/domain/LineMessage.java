@@ -3,12 +3,9 @@ package com.shrona.mommytalk.line.domain;
 import com.shrona.mommytalk.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,18 +24,21 @@ public class LineMessage extends BaseEntity {
     @Column
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "channel_user_connection_id")
-    private ChannelUserConnection channelUserConnection;
+    @Column
+    private Long lineUserId;
+
+    @Column(name = "channel_id")
+    private Long channelId;
 
     /**
      * 생성 메소드
      */
-    public static LineMessage createLineMessage(ChannelUserConnection channelUserConnection,
-        String content) {
+    public static LineMessage createLineMessage(
+        Long channelId, Long lineUserId, String content) {
         LineMessage lineMessage = new LineMessage();
 
-        lineMessage.channelUserConnection = channelUserConnection;
+        lineMessage.channelId = channelId;
+        lineMessage.lineUserId = lineUserId;
         lineMessage.content = content;
 
         return lineMessage;

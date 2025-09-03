@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.line.presentation.form;
 
-import com.shrona.mommytalk.line.infrastructure.dao.ChannelUserConnectionWithPhoneDao;
+import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import java.time.LocalDateTime;
 
 public record LineUserForm(
@@ -10,7 +10,7 @@ public record LineUserForm(
     LocalDateTime joinDate
 ) {
 
-    public static LineUserForm of(ChannelUserConnectionWithPhoneDao lineUserWithPhoneDao) {
+    public static LineUserForm of(ChannelLineUserWithPhoneDao lineUserWithPhoneDao) {
         //TODO: 휴대전화 선택 로직 수정
         String phone =
             lineUserWithPhoneDao.phoneNumber() != null

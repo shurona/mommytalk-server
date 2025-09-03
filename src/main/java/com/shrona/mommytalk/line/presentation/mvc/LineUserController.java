@@ -10,7 +10,7 @@ import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
-import com.shrona.mommytalk.line.infrastructure.dao.ChannelUserConnectionWithPhoneDao;
+import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.line.presentation.dtos.LineUserUpdatePhoneRequestDto;
 import com.shrona.mommytalk.line.presentation.form.LineUserForm;
 import java.util.Optional;
@@ -47,7 +47,7 @@ public class LineUserController {
         }
 
         // 라인 유저 아이디 목록을 갖고 온다.
-        Page<ChannelUserConnectionWithPhoneDao> lineUserList;
+        Page<ChannelLineUserWithPhoneDao> lineUserList;
         if (query != null) {
             lineUserList = lineService.findChannelUserConnectionListByChannelAndQuery(
                 channelInfo.get(), query, PageRequest.of(pageNumber, 20));
