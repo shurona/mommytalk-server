@@ -12,11 +12,11 @@ import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.ChannelLineUserJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
+import com.shrona.mommytalk.line.infrastructure.repository.LineUserQueryRepository;
 import com.shrona.mommytalk.user.application.GroupService;
 import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,6 +33,7 @@ public class LineServiceImpl implements LineService {
     // repository
     private final LineUserJpaRepository lineUserRepository;
     private final ChannelLineUserJpaRepository channelLineUserRepository;
+    private final LineUserQueryRepository lineUserQueryRepository;
 
     // service
     private final UserService userService;
@@ -90,8 +91,12 @@ public class LineServiceImpl implements LineService {
     @Transactional
     public LineUser updateLineUserPhoneNumber(Long id, String phoneNumber) {
 
-        LineUser lineUser = lineUserRepository.findById(id)
-            .orElseThrow(() -> new LineException(LINEUSER_NOT_FOUND));
+        System.out.println("아이디 : " + id);
+
+        LineUser lineUser = lineUserQueryRepository.findLineUserByUserId(id);
+        if (lineUser == null) {
+            throw new LineException(LINEUSER_NOT_FOUND);
+        }
 
         User checkExistPhoneNumberUser = userService.findUserByPhoneNumber(phoneNumber);
         PhoneNumber savingPhone = PhoneNumber.changeWithoutError(phoneNumber);
@@ -101,7 +106,7 @@ public class LineServiceImpl implements LineService {
         }
 
         // 이미 휴대전화가 존재하는 경우 유저를 변경하지 않는다.
-        if (Objects.nonNull(checkExistPhoneNumberUser)) {
+        if (checkExistPhoneNumberUser != null) {
             throw new LineException(DUPLICATE_PHONE_NUMBER);
         } else {
             // 유저의 휴대전화를 변경해준다.

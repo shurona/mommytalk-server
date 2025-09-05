@@ -52,6 +52,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    @Override
     public User findUserByPhoneNumber(String phoneNumber) {
         PhoneNumber number = new PhoneNumber(phoneNumber);
         Optional<User> userInfo = userRepository.findByPhoneNumber(number);

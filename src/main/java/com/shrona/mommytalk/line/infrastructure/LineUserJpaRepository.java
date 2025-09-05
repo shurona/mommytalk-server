@@ -14,7 +14,9 @@ public interface LineUserJpaRepository extends JpaRepository<LineUser, Long> {
      */
     Optional<LineUser> findByLineId(String lineId);
 
-    //
+    /**
+     * 라인 유저에 필요한 정보 조회
+     */
     @Query("select new com.shrona.mommytalk.line.infrastructure.dao.LineUserWithPhoneDao("
         + "lu.id, lu.lineId, u.phoneNumber) "
         + "from LineUser lu left join User u on u.lineUser = lu")

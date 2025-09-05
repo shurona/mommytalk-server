@@ -11,6 +11,11 @@ public interface UserService {
      * 유저 생성
      */
     public User createUser(String phoneNumber);
+    
+    /**
+     * 유저를 id로 조회
+     */
+    public Optional<User> findById(Long id);
 
     /**
      * 유저 단일 조회
