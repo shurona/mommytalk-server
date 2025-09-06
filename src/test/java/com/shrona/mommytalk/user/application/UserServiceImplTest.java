@@ -135,4 +135,40 @@ class UserServiceImplTest {
         assertThat(userListAfterSave.size()).isEqualTo(11);
     }
 
+    @DisplayName("이미 휴대전화가 있는 라인 유저의 새로운 휴대전화 번호 변경 성공")
+    @Test
+    void 라인유저의_휴대전화_번호_변경_기존유저() {
+        // given - beforeEach에서 line1은 이미 010-6789-0123 번호를 가진 유저와 연결됨
+        String newPhoneNumber = "010-9999-9999"; // 새로운 번호
+
+        // when
+        userService.updateUserPhoneNumberByLineUser("line1", newPhoneNumber);
+
+        // then - 사용자의 휴대전화 번호가 성공적으로 변경되었는지 확인
+        User updatedUser = userService.findUserByPhoneNumber(newPhoneNumber);
+        assertThat(updatedUser).isNotNull();
+        assertThat(updatedUser.getPhoneNumber().getPhoneNumber()).isEqualTo(newPhoneNumber);
+    }
+
+    @DisplayName("유저가 생성 되지 않은 라인 유저의 휴대전화 번호 변경")
+    @Test
+    void 라인유저의_휴대전화_번호_변경_신규유저() {
+        // given
+        String newLineId = "newLineUser";
+        String newPhoneNumber = "010-7777-7777"; // 새로운 번호
+
+        // 라인 유저만 생성 (User는 생성하지 않음)
+        LineUser newLineUser = lineService.findOrCreateLineUser(newLineId);
+        lineService.followChannelAndLineUser(channel, newLineUser);
+
+        // when
+        userService.updateUserPhoneNumberByLineUser(newLineId, newPhoneNumber);
+
+        // then - 새로운 사용자가 생성되고 LineUser와 연결되었는지 확인
+        User createdUser = userService.findUserByPhoneNumber(newPhoneNumber);
+        assertThat(createdUser).isNotNull();
+        assertThat(createdUser.getPhoneNumber().getPhoneNumber()).isEqualTo(newPhoneNumber);
+        assertThat(createdUser.getLineUser().getLineId()).isEqualTo(newLineId);
+    }
+
 }
