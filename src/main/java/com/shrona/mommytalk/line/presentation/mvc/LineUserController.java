@@ -6,13 +6,11 @@ import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.common.dto.PagingForm;
 import com.shrona.mommytalk.line.application.ChannelService;
 import com.shrona.mommytalk.line.application.LineService;
-import com.shrona.mommytalk.line.common.exception.LineErrorCode;
-import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.Channel;
-import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.line.presentation.dtos.LineUserUpdatePhoneRequestDto;
 import com.shrona.mommytalk.line.presentation.form.LineUserForm;
+import com.shrona.mommytalk.user.application.UserService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class LineUserController {
 
     private final LineService lineService;
+    private final UserService userService;
     private final ChannelService channelService;
 
     @GetMapping("/admin/channels/{channelId}/friends/list")
@@ -76,16 +75,12 @@ public class LineUserController {
      */
     @PostMapping("/admin/friends/{id}")
     public ResponseEntity<?> updateLinePhoneNumber(
-        @PathVariable("id") Long lineUserId,
+        @PathVariable("id") Long userId,
         @RequestBody LineUserUpdatePhoneRequestDto requestDto
     ) {
-
-        LineUser lineUser = lineService.updateLineUserPhoneNumber(lineUserId,
+        userService.updateUserPhoneNumberByLineUser(requestDto.lineId(),
             requestDto.phone());
 
-        if (lineUser == null) {
-            throw new LineException(LineErrorCode.BAD_REQUEST);
-        }
         return ResponseEntity.ok().build();
     }
 

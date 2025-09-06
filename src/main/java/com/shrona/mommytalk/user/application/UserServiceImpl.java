@@ -1,13 +1,19 @@
 package com.shrona.mommytalk.user.application;
 
+import static com.shrona.mommytalk.user.common.exception.UserErrorCode.DUPLICATE_PHONE_NUMBER;
+
 import com.shrona.mommytalk.common.utils.PhoneProcess;
+import com.shrona.mommytalk.line.common.exception.LineErrorCode;
+import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
+import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserGroupJpaRepository;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
+import com.shrona.mommytalk.user.infrastructure.repository.UserQueryRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,8 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     // jpa
+    private final LineUserJpaRepository lineUserJpaRepository;
+
     private final UserJpaRepository userRepository;
-    private final LineUserJpaRepository lineUserRepository;
+    private final UserQueryRepository userQueryRepository;
+
     private final UserGroupJpaRepository userGroupRepository;
 
     // 휴대폰 관련 process 처리
@@ -102,6 +111,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
+    public void updateUserPhoneNumberByLineUser(String lineId, String phoneNumber) {
+
+        // 휴대전화가 중복인 지 검사한다.
+        PhoneNumber phone = checkExistPhoneNumber(phoneNumber);
+
+        // Line 아이디를 갖고 있는 유저를 조회 한다.
+        User userInfo = userQueryRepository.findUserByLineId(lineId);
+
+        LineUser lineUserInfo = lineUserJpaRepository.findByLineId(lineId)
+            .orElseThrow(() -> new LineException(
+                LineErrorCode.LINEUSER_NOT_FOUND));
+
+        // 유저가 없으면 유저에 휴대전화를 추가해서 생성해준다.
+        if (userInfo == null) {
+            userRepository.save(User.createUserWithLine(phone, lineUserInfo));
+        } else {
+            // 유저가 있으면 유저의 휴대전화를 변경해준다.
+            userInfo.updatePhoneNumber(phone);
+        }
+    }
+
+    @Transactional
     public void deleteUser(User user) {
         user.deleteUser();
         userRepository.flush();
@@ -141,5 +172,18 @@ public class UserServiceImpl implements UserService {
         return userPhoneList.stream()
             .filter(phone -> !foundPhoneNumbers.contains(phone))
             .toList();
+    }
+
+    /**
+     * 휴대전화 번호를 갖고 있는 유저가 존재하는 지 확인한다.
+     */
+    private PhoneNumber checkExistPhoneNumber(String phoneNumber) {
+        PhoneNumber phone = PhoneNumber.changeWithoutError(phoneNumber);
+        userRepository.findByPhoneNumber(phone)
+            .ifPresent(user -> {
+                throw new UserException(DUPLICATE_PHONE_NUMBER);
+            });
+
+        return phone;
     }
 }

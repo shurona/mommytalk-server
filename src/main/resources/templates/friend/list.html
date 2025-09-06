@@ -24,7 +24,7 @@
       </thead>
       <tbody>
       <tr th:each="user : ${friends}">
-        <td width="40%" th:text="${user.lineId}">xxxxx</td>
+        <td width="40%" th:data-line-id="${user.lineId}" th:text="${user.lineId}">xxxxx</td>
         <td width="20%" ondblclick="enableEdit(this)" th:data-phone-number="${user.phoneNumber}"
             th:data-user-id="${user.id}" th:text="${user.phoneNumber}">010-1234-1234
         </td>

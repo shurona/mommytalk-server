@@ -21,6 +21,7 @@ function savePhone(input, userId) {
   const newPhone = input.value.trim();
   const td = input.parentElement;
   const beforePhone = td.getAttribute('data-phone-number');
+    const lineId = td.parentElement.querySelector('td[data-line-id]').getAttribute('data-line-id');
 
   if (!/^\d{3}-\d{4}-\d{4}$/.test(newPhone)) {
       td.innerText = beforePhone; // 기존 번호로 되돌림
@@ -44,7 +45,7 @@ function savePhone(input, userId) {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ phone: newPhone })
+    body: JSON.stringify({ phone: newPhone, lineId: lineId })
   })
   .then(async (response) => {
   if (!response.ok) {

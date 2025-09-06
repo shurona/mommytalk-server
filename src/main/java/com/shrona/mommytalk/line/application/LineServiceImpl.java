@@ -1,9 +1,6 @@
 package com.shrona.mommytalk.line.application;
 
 import static com.shrona.mommytalk.line.common.exception.LineErrorCode.BAD_REQUEST;
-import static com.shrona.mommytalk.line.common.exception.LineErrorCode.DUPLICATE_PHONE_NUMBER;
-import static com.shrona.mommytalk.line.common.exception.LineErrorCode.INVALID_PHONE_NUMBER;
-import static com.shrona.mommytalk.line.common.exception.LineErrorCode.LINEUSER_NOT_FOUND;
 
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.Channel;
@@ -15,8 +12,6 @@ import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.line.infrastructure.repository.LineUserQueryRepository;
 import com.shrona.mommytalk.user.application.GroupService;
 import com.shrona.mommytalk.user.application.UserService;
-import com.shrona.mommytalk.user.domain.User;
-import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -86,35 +81,6 @@ public class LineServiceImpl implements LineService {
             return lineUserRepository.save(lineUser);
         }
         return lineUserByLineId.get();
-    }
-
-    @Transactional
-    public LineUser updateLineUserPhoneNumber(Long id, String phoneNumber) {
-
-        System.out.println("아이디 : " + id);
-
-        LineUser lineUser = lineUserQueryRepository.findLineUserByUserId(id);
-        if (lineUser == null) {
-            throw new LineException(LINEUSER_NOT_FOUND);
-        }
-
-        User checkExistPhoneNumberUser = userService.findUserByPhoneNumber(phoneNumber);
-        PhoneNumber savingPhone = PhoneNumber.changeWithoutError(phoneNumber);
-        // 휴대폰 번호 형식 조회
-        if (savingPhone == null) {
-            throw new LineException(INVALID_PHONE_NUMBER);
-        }
-
-        // 이미 휴대전화가 존재하는 경우 유저를 변경하지 않는다.
-        if (checkExistPhoneNumberUser != null) {
-            throw new LineException(DUPLICATE_PHONE_NUMBER);
-        } else {
-            // 유저의 휴대전화를 변경해준다.
-            Optional<User> userByLineUser = userService.findUserByLineUser(lineUser);
-            userByLineUser.ifPresent(user -> user.updatePhoneNumber(savingPhone));
-        }
-
-        return lineUser;
     }
 
     @Transactional

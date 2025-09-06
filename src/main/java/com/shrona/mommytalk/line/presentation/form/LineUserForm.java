@@ -11,7 +11,6 @@ public record LineUserForm(
 ) {
 
     public static LineUserForm of(ChannelLineUserWithPhoneDao lineUserWithPhoneDao) {
-        //TODO: 휴대전화 선택 로직 수정
         String phone =
             lineUserWithPhoneDao.phoneNumber() != null
                 ? lineUserWithPhoneDao.phoneNumber().getPhoneNumber() : "";
