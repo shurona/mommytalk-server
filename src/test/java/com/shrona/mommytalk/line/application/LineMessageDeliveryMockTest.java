@@ -8,8 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.application.sender.MessageSenderImpl;
-import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.domain.MessageLog;
 import com.shrona.mommytalk.line.domain.MessageLogLineInfo;
 import com.shrona.mommytalk.line.infrastructure.MessageLogJpaRepository;

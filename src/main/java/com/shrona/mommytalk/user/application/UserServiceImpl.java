@@ -83,6 +83,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll();
     }
 
+    @Override
+    public void findUserListByChannelInfo(Long channelId) {
+        userQueryRepository.findUserList(channelId);
+    }
+
     @Transactional
     public List<User> findOrCreateUsersWithLinesByPhoneNumbers(List<String> phoneNumberList) {
 

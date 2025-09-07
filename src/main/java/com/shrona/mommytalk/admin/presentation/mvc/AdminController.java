@@ -8,11 +8,11 @@ import com.shrona.mommytalk.admin.presentation.dtos.AdminAddPhoneNumberRequestBo
 import com.shrona.mommytalk.admin.presentation.dtos.AdminDeleteTestUser;
 import com.shrona.mommytalk.admin.presentation.form.LoginForm;
 import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.common.session.UserSession;
 import com.shrona.mommytalk.common.utils.StaticVariable;
 import com.shrona.mommytalk.line.application.ChannelService;
-import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.presentation.form.ChannelListForm;
 import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.domain.User;

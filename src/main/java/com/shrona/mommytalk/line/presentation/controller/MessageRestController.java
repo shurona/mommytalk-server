@@ -1,8 +1,8 @@
 package com.shrona.mommytalk.line.presentation.controller;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.application.ChannelService;
 import com.shrona.mommytalk.line.application.sender.MessageSender;
-import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.presentation.dtos.TestMessageRequestBody;
 import com.shrona.mommytalk.line.presentation.dtos.TestMessageResponseBody;
 import java.util.Optional;

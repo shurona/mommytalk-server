@@ -5,6 +5,7 @@ import static com.shrona.mommytalk.user.domain.QUser.user;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shrona.mommytalk.user.domain.User;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -23,5 +24,10 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
         return query.selectFrom(user)
             .where(builder).fetchOne();
 
+    }
+
+    @Override
+    public List<?> findUserList(Long channelId) {
+        return List.of();
     }
 }

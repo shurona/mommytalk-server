@@ -3,9 +3,9 @@ package com.shrona.mommytalk.line.presentation.mvc;
 
 import static com.shrona.mommytalk.common.utils.StaticVariable.HOME_VIEW;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.line.application.ChannelService;
-import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.presentation.dtos.ChannelUpdateInviteMessageRequestDto;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequiredArgsConstructor
 //@RequestMapping("/admin/channels")
 //@Controller
-public class ChannelController {
+public class ChannelMvcController {
 
     private final ChannelService channelService;
 

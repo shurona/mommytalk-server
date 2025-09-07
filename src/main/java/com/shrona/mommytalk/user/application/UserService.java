@@ -33,6 +33,11 @@ public interface UserService {
     List<User> findUserList();
 
     /**
+     * 채널에 속한 유저 목록 갖고 온다.
+     */
+    void findUserListByChannelInfo(Long channelId);
+
+    /**
      * 휴대전화 번호 입력을 기준으로 없는 유저는 생성 후 조회
      */
     List<User> findOrCreateUsersWithLinesByPhoneNumbers(List<String> phoneNumberList);

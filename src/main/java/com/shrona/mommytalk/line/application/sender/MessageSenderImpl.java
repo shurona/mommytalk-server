@@ -2,7 +2,7 @@ package com.shrona.mommytalk.line.application.sender;
 
 import com.shrona.mommytalk.admin.application.AdminService;
 import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.domain.MessageLog;
 import com.shrona.mommytalk.line.domain.MessageLogLineInfo;

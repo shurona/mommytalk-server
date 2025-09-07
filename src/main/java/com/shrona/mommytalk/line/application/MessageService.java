@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.line.application;
 
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.domain.MessageLog;
 import com.shrona.mommytalk.line.domain.MessageType;
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.line.presentation.form;
 
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 
 public record ChannelListForm(
     Long id,

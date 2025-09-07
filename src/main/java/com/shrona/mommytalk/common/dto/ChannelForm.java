@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.common.dto;
 
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 
 public record ChannelForm(
     Long id,

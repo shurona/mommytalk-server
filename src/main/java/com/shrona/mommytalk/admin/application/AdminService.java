@@ -2,7 +2,7 @@ package com.shrona.mommytalk.admin.application;
 
 import com.shrona.mommytalk.admin.domain.AdminUser;
 import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.user.domain.User;
 import java.util.List;
 

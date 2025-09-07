@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.user.infrastructure;
 
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.user.domain.Group;
 import java.util.List;
 import java.util.Optional;

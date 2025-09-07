@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.line.application.sender;
 
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import java.util.List;
 

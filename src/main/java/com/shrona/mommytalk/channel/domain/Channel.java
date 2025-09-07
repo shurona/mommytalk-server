@@ -1,6 +1,7 @@
-package com.shrona.mommytalk.line.domain;
+package com.shrona.mommytalk.channel.domain;
 
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
