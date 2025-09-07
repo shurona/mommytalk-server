@@ -16,7 +16,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    // interceptor
+    private final LoginInterceptor loginInterceptor;
+
     private final Environment environment;
+
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -38,18 +42,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 로그인 interceptor
-        registry.addInterceptor(new LoginInterceptor())
+        registry.addInterceptor(loginInterceptor)
             .order(1)
             .addPathPatterns("/**")
             .excludePathPatterns("/", "/admin", "/admin/", "/admin/v1/login", "/api/v1/admin",
-                "/logout", "/css/**", "/*.ico", "/error",
+                "/api/admin/v1/auth/login", // admin login
+                "/logout", "/css/**", "/*.ico", "/error", // static files
                 "/mommy-talk", "/shrona-test" // hook
             );
-
-        // 채널 관련 요청 interceptor
-//        registry.addInterceptor(new ChannelIdInterceptor())
-//            .order(2)
-//            .addPathPatterns("/admin/channels/**");
     }
 
     @Override
