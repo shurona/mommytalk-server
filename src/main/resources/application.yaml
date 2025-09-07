@@ -29,3 +29,8 @@ line:
 admin:
   header-key: ${ADMIN_HEADER_KEY}
   header-value: ${ADMIN_HEADER_VALUE}
+
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}

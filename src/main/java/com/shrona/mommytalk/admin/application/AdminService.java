@@ -14,6 +14,11 @@ public interface AdminService {
     public AdminUser createAdminUser(String loginId, String password, String lineId);
 
     /**
+     * Admin User id를 기준으로 조회
+     */
+    public AdminUser findById(Long id);
+
+    /**
      * 로그인 아이디를 기준으로 유저 조회
      */
     public AdminUser findByLoginId(String loginId);

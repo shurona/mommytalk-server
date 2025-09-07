@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -49,6 +50,14 @@ public class WebConfig implements WebMvcConfigurer {
 //        registry.addInterceptor(new ChannelIdInterceptor())
 //            .order(2)
 //            .addPathPatterns("/admin/channels/**");
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+            .allowedOrigins("http://localhost:5174") // 허용할 출처 : 특정 도메인만 받을 수 있음
+            .allowedMethods("GET", "POST", "PATCH", "DELETE", "PUT") // 허용할 HTTP method
+            .allowCredentials(true);
     }
 
 }
