@@ -79,26 +79,6 @@ public class AdminRestController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 라인 휴대전화를 초기화 하는 함수 EndPoint
-     */
-//    @PostMapping("/line/clear")
-    public ResponseEntity<?> clearLineUserPhoneNumber(
-        HttpServletRequest request,
-        @RequestHeader("line") String lineId
-    ) {
-        String inputAdminKey = request.getHeader(headerKey);
-
-        if (!inputAdminKey.equals(headerValue)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        lineService.clearLineUserPhoneNumber(lineId);
-
-        return ResponseEntity.ok().build();
-    }
-
-
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<String> handleMissingRequestHeader(MissingRequestHeaderException ex) {
         // 예외 메시지 로그 남기기

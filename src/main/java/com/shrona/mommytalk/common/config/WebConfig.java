@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -15,7 +16,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    // interceptor
+    private final LoginInterceptor loginInterceptor;
+
     private final Environment environment;
+
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -37,18 +42,22 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 로그인 interceptor
-        registry.addInterceptor(new LoginInterceptor())
+        registry.addInterceptor(loginInterceptor)
             .order(1)
             .addPathPatterns("/**")
             .excludePathPatterns("/", "/admin", "/admin/", "/admin/v1/login", "/api/v1/admin",
-                "/logout", "/css/**", "/*.ico", "/error",
+                "/api/admin/v1/auth/login", // admin login
+                "/logout", "/css/**", "/*.ico", "/error", // static files
                 "/mommy-talk", "/shrona-test" // hook
             );
+    }
 
-        // 채널 관련 요청 interceptor
-//        registry.addInterceptor(new ChannelIdInterceptor())
-//            .order(2)
-//            .addPathPatterns("/admin/channels/**");
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+            .allowedOrigins("http://localhost:5174") // 허용할 출처 : 특정 도메인만 받을 수 있음
+            .allowedMethods("GET", "POST", "PATCH", "DELETE", "PUT") // 허용할 HTTP method
+            .allowCredentials(true);
     }
 
 }

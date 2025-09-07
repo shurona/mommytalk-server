@@ -6,6 +6,8 @@ import com.shrona.mommytalk.admin.infrastructure.AdminJpaRepository;
 import com.shrona.mommytalk.admin.infrastructure.TestUserJpaRepository;
 import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
 import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.user.common.exception.UserErrorCode;
+import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.domain.User;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,13 @@ public class AdminServiceImpl implements AdminService {
     public List<AdminUser> findAdminUserList() {
 
         return adminRepository.findAll();
+    }
+
+    @Override
+    public AdminUser findById(Long id) {
+        return adminRepository.findById(id).orElseThrow(
+            () -> new UserException(UserErrorCode.USER_NOT_FOUND)
+        );
     }
 
     @Override
