@@ -55,9 +55,18 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOrigins("http://localhost:5174") // 허용할 출처 : 특정 도메인만 받을 수 있음
-            .allowedMethods("GET", "POST", "PATCH", "DELETE", "PUT") // 허용할 HTTP method
-            .allowCredentials(true);
+            .allowedOrigins(
+                "http://localhost:5173",   // Vite 기본 포트
+                "http://localhost:5174"   // Vite 대체 포트
+            )
+            .allowedMethods("GET", "POST", "PATCH", "DELETE", "PUT")
+            .allowedHeaders(
+                "Authorization",           // JWT 토큰용
+                "Content-Type",           // JSON 요청용
+                "X-Requested-With",       // AJAX 요청용
+                "Accept"                  // 응답 타입용
+            )
+            .allowCredentials(true);          // 인증 정보 포함 허용
     }
 
 }

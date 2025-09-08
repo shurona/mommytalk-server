@@ -2,9 +2,9 @@ package com.shrona.mommytalk.linehook.application;
 
 import static com.shrona.mommytalk.user.domain.vo.PhoneNumber.changeWithoutError;
 
+import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.utils.PhoneProcess;
-import com.shrona.mommytalk.line.application.ChannelService;
 import com.shrona.mommytalk.line.application.LineService;
 import com.shrona.mommytalk.line.application.utils.MessageUtils;
 import com.shrona.mommytalk.line.domain.ChannelLineUser;

@@ -2,10 +2,10 @@ package com.shrona.mommytalk.user.presentation.mvc;
 
 import static com.shrona.mommytalk.common.utils.StaticVariable.HOME_VIEW;
 
+import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.common.dto.PagingForm;
-import com.shrona.mommytalk.line.application.ChannelService;
 import com.shrona.mommytalk.user.application.GroupService;
 import com.shrona.mommytalk.user.domain.Group;
 import com.shrona.mommytalk.user.domain.UserGroup;

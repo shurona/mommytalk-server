@@ -24,3 +24,7 @@ line:
 admin:
   header-key: "ADMIN_HEADER_KEY"
   header-value: "ADMIN_HEADER_VALUE"
+
+jwt:
+  secret:
+    key: 7Leo7JeF7Leo7JeF7Leo7JeF7Leo7JeF7Leo7JeF7Leo7JeF7Leo7JeF

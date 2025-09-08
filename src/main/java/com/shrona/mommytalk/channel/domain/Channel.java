@@ -1,9 +1,12 @@
 package com.shrona.mommytalk.channel.domain;
 
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.kakao.domain.ChannelKakaoUser;
 import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -42,8 +45,15 @@ public class Channel extends BaseEntity {
     @Column(name = "invite_message", length = 1000)
     private String inviteMessage;
 
+    @Enumerated(EnumType.STRING)
+    @Column
+    private ChannelPlatform channelPlatform;
+
     @OneToMany(mappedBy = "channel")
     private List<ChannelLineUser> channelLineUserList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "channel")
+    private List<ChannelKakaoUser> channelKakaoUserList = new ArrayList<>();
 
     public static Channel createChannel(String name, String description) {
         Channel channel = new Channel();
