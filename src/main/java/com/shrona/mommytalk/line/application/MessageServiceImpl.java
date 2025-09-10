@@ -1,6 +1,8 @@
 package com.shrona.mommytalk.line.application;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.group.application.GroupService;
+import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.line.application.utils.MessageUtils;
 import com.shrona.mommytalk.line.domain.MessageLog;
 import com.shrona.mommytalk.line.domain.MessageLogLineInfo;
@@ -8,8 +10,6 @@ import com.shrona.mommytalk.line.domain.MessageType;
 import com.shrona.mommytalk.line.infrastructure.MessageLogJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.MessageTypeJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.dao.LogLineIdCount;
-import com.shrona.mommytalk.user.application.GroupService;
-import com.shrona.mommytalk.user.domain.Group;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;

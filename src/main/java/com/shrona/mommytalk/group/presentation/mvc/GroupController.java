@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.user.presentation.mvc;
+package com.shrona.mommytalk.group.presentation.mvc;
 
 import static com.shrona.mommytalk.common.utils.StaticVariable.HOME_VIEW;
 
@@ -6,15 +6,15 @@ import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.common.dto.PagingForm;
-import com.shrona.mommytalk.user.application.GroupService;
-import com.shrona.mommytalk.user.domain.Group;
-import com.shrona.mommytalk.user.domain.UserGroup;
-import com.shrona.mommytalk.user.presentation.form.BuyerForm;
-import com.shrona.mommytalk.user.presentation.form.GroupAddUserRequestBody;
-import com.shrona.mommytalk.user.presentation.form.GroupCreateRequestBody;
-import com.shrona.mommytalk.user.presentation.form.GroupDeleteRequestBody;
-import com.shrona.mommytalk.user.presentation.form.GroupDeleteUserRequestBody;
-import com.shrona.mommytalk.user.presentation.form.GroupForm;
+import com.shrona.mommytalk.group.application.GroupService;
+import com.shrona.mommytalk.group.domain.Group;
+import com.shrona.mommytalk.group.domain.UserGroup;
+import com.shrona.mommytalk.group.presentation.form.BuyerForm;
+import com.shrona.mommytalk.group.presentation.form.GroupAddUserRequestBody;
+import com.shrona.mommytalk.group.presentation.form.GroupCreateRequestBody;
+import com.shrona.mommytalk.group.presentation.form.GroupDeleteRequestBody;
+import com.shrona.mommytalk.group.presentation.form.GroupDeleteUserRequestBody;
+import com.shrona.mommytalk.group.presentation.form.GroupForm;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

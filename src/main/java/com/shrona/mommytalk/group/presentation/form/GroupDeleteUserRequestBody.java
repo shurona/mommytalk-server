@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.user.presentation.form;
+package com.shrona.mommytalk.group.presentation.form;
 
 import java.util.List;
 

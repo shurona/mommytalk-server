@@ -1,6 +1,6 @@
-package com.shrona.mommytalk.user.presentation.form;
+package com.shrona.mommytalk.group.presentation.form;
 
-import com.shrona.mommytalk.user.domain.Group;
+import com.shrona.mommytalk.group.domain.Group;
 import java.time.LocalDateTime;
 
 public record GroupForm(

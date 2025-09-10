@@ -1,6 +1,7 @@
-package com.shrona.mommytalk.user.domain;
+package com.shrona.mommytalk.group.domain;
 
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;

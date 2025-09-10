@@ -9,12 +9,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.line.application.sender.MessageSenderImpl;
 import com.shrona.mommytalk.line.domain.MessageLog;
 import com.shrona.mommytalk.line.domain.MessageLogLineInfo;
 import com.shrona.mommytalk.line.infrastructure.MessageLogJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
-import com.shrona.mommytalk.user.application.GroupService;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;

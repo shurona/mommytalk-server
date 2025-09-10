@@ -1,7 +1,7 @@
-package com.shrona.mommytalk.user.infrastructure;
+package com.shrona.mommytalk.group.infrastructure.repository;
 
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.user.domain.Group;
+import com.shrona.mommytalk.group.domain.Group;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;

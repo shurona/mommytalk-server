@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.user.domain;
+package com.shrona.mommytalk.group.domain;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;

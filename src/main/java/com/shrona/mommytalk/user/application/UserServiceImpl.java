@@ -4,6 +4,7 @@ import static com.shrona.mommytalk.user.common.exception.UserErrorCode.DUPLICATE
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.utils.PhoneProcess;
+import com.shrona.mommytalk.group.infrastructure.repository.UserGroupJpaRepository;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.LineUser;
@@ -14,7 +15,6 @@ import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
-import com.shrona.mommytalk.user.infrastructure.UserGroupJpaRepository;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
 import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
 import com.shrona.mommytalk.user.infrastructure.repository.UserQueryRepository;

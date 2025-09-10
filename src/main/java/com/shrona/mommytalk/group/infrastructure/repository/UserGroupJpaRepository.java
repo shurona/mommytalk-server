@@ -1,9 +1,9 @@
-package com.shrona.mommytalk.user.infrastructure;
+package com.shrona.mommytalk.group.infrastructure.repository;
 
-import com.shrona.mommytalk.user.domain.Group;
+import com.shrona.mommytalk.group.domain.Group;
+import com.shrona.mommytalk.group.domain.UserGroup;
+import com.shrona.mommytalk.group.infrastructure.dao.GroupUserCount;
 import com.shrona.mommytalk.user.domain.User;
-import com.shrona.mommytalk.user.domain.UserGroup;
-import com.shrona.mommytalk.user.infrastructure.dao.GroupUserCount;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +16,13 @@ public interface UserGroupJpaRepository extends JpaRepository<UserGroup, Long> {
     /**
      * 전송을 위한 user의 count 조회
      */
-    @Query("SELECT new com.shrona.mommytalk.user.infrastructure.dao.GroupUserCount(gu.group.id, COUNT(gu)) FROM UserGroup gu WHERE gu.group.id IN :groupIds AND gu.user.lineUser is not null GROUP BY gu.group.id")
+    @Query("SELECT new com.shrona.mommytalk.group.infrastructure.dao.GroupUserCount(gu.group.id, COUNT(gu)) FROM UserGroup gu WHERE gu.group.id IN :groupIds AND gu.user.lineUser is not null GROUP BY gu.group.id")
     List<GroupUserCount> countByGroupIds(List<Long> groupIds);
 
     /**
      * 전송을 위한 user의 count 조회
      */
-    @Query("SELECT new com.shrona.mommytalk.user.infrastructure.dao.GroupUserCount(gu.group.id, COUNT(gu)) FROM UserGroup gu WHERE gu.group.id IN :groupIds GROUP BY gu.group.id")
+    @Query("SELECT new com.shrona.mommytalk.group.infrastructure.dao.GroupUserCount(gu.group.id, COUNT(gu)) FROM UserGroup gu WHERE gu.group.id IN :groupIds GROUP BY gu.group.id")
     List<GroupUserCount> countAllUsersByGroupIds(List<Long> groupIds);
 
     /**

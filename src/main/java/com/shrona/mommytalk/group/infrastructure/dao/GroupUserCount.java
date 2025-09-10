@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.user.infrastructure.dao;
+package com.shrona.mommytalk.group.infrastructure.dao;
 
 public record GroupUserCount(
     Long groupId,

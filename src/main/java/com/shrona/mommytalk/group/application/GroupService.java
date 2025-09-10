@@ -1,9 +1,9 @@
-package com.shrona.mommytalk.user.application;
+package com.shrona.mommytalk.group.application;
 
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.user.domain.Group;
+import com.shrona.mommytalk.group.domain.Group;
+import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.user.domain.User;
-import com.shrona.mommytalk.user.domain.UserGroup;
 import java.util.List;
 import java.util.Map;
 import org.springframework.data.domain.Page;
