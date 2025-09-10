@@ -2,8 +2,8 @@ package com.shrona.mommytalk.line.application.utils;
 
 import static com.shrona.mommytalk.common.utils.StaticVariable.NO_DELAY;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.application.sender.MessageSender;
-import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.domain.MessageLog;
 import java.time.Duration;

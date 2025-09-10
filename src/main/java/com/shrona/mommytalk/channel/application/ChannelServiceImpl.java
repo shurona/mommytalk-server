@@ -1,6 +1,6 @@
-package com.shrona.mommytalk.line.application;
+package com.shrona.mommytalk.channel.application;
 
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
 import java.util.List;
 import java.util.Optional;

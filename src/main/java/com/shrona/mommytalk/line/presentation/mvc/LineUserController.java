@@ -2,11 +2,11 @@ package com.shrona.mommytalk.line.presentation.mvc;
 
 import static com.shrona.mommytalk.common.utils.StaticVariable.HOME_VIEW;
 
+import com.shrona.mommytalk.channel.application.ChannelService;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.common.dto.PagingForm;
-import com.shrona.mommytalk.line.application.ChannelService;
 import com.shrona.mommytalk.line.application.LineService;
-import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.line.presentation.dtos.LineUserUpdatePhoneRequestDto;
 import com.shrona.mommytalk.line.presentation.form.LineUserForm;

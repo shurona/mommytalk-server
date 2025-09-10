@@ -44,6 +44,21 @@ public class User extends BaseEntity {
     @Column
     private String description;
 
+    @Column
+    private String name;
+
+    @Column
+    private String email;
+
+    @Column
+    private Integer userLevel;
+
+    @Column
+    private String childName;
+
+    @Column
+    private Integer childLevel;
+
     @Enumerated(value = EnumType.STRING)
     @Column(name = "add_method")
     private AddUserMethod addMethod;
@@ -58,7 +73,7 @@ public class User extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kakao_user_id")
     private KakaoUser kakaoUser;
-    
+
     /**
      * 라인 없이 신규 유저 추가
      */

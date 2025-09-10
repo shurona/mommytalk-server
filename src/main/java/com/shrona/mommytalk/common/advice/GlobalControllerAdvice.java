@@ -1,11 +1,10 @@
 package com.shrona.mommytalk.common.advice;
 
-import com.shrona.mommytalk.common.dto.ErrorResponseDto;
+import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.user.common.exception.UserException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -23,17 +22,13 @@ public class GlobalControllerAdvice {
     }
 
     @ExceptionHandler(LineException.class)
-    public ResponseEntity<ErrorResponseDto> handleLineException(LineException ex) {
-        ErrorResponseDto response = new ErrorResponseDto(
-            ex.getMessage());
-        return ResponseEntity.status(ex.getCode().getStatus()).body(response);
+    public ApiResponse<?> handleUserException(LineException ex) {
+        return ApiResponse.error(ex.getMessage());
     }
 
     @ExceptionHandler(UserException.class)
-    public ResponseEntity<ErrorResponseDto> handleUserException(UserException ex) {
-        ErrorResponseDto response = new ErrorResponseDto(
-            ex.getMessage());
-        return ResponseEntity.status(ex.getCode().getStatus()).body(response);
+    public ApiResponse<?> handleUserException(UserException ex) {
+        return ApiResponse.error(ex.getMessage());
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -42,7 +37,6 @@ public class GlobalControllerAdvice {
         // 에러 메시지, 코드 등 원하는 형태의 DTO로 응답
         log.error("[전역 에러 발생] {}", ex.getMessage());
 
-        ErrorResponseDto response = new ErrorResponseDto(ex.getMessage());
         return "redirect:/error/500";
     }
 

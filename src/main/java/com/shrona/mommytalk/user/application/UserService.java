@@ -2,8 +2,12 @@ package com.shrona.mommytalk.user.application;
 
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.User;
+import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
+import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
 
@@ -13,9 +17,14 @@ public interface UserService {
     User createUser(String phoneNumber);
 
     /**
-     * 유저를 id로 조회
+     * 유저 엔티티만 단순 조회
      */
     Optional<User> findById(Long id);
+
+    /**
+     * 유저 정보를 id로 조회
+     */
+    UserResponseDto findUserInfoById(Long userId);
 
     /**
      * 유저 단일 조회
@@ -31,6 +40,11 @@ public interface UserService {
      * 유저 목록 조회
      */
     List<User> findUserList();
+
+    /**
+     * 채널에 속한 유저 목록 갖고 온다.
+     */
+    Page<UserListProjection> findUserListByChannelInfoWithPaging(Long channelId, Pageable pageable);
 
     /**
      * 휴대전화 번호 입력을 기준으로 없는 유저는 생성 후 조회

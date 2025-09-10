@@ -2,6 +2,7 @@ package com.shrona.mommytalk.line.domain;
 
 import static jakarta.persistence.CascadeType.PERSIST;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;

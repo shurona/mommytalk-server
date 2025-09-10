@@ -2,18 +2,23 @@ package com.shrona.mommytalk.user.application;
 
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.DUPLICATE_PHONE_NUMBER;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.utils.PhoneProcess;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.LineUser;
+import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
+import com.shrona.mommytalk.user.common.exception.UserErrorCode;
 import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserGroupJpaRepository;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
+import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
 import com.shrona.mommytalk.user.infrastructure.repository.UserQueryRepository;
+import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +27,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +39,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     // jpa
+    private final ChannelJpaRepository channelRepository;
+
     private final LineUserJpaRepository lineUserJpaRepository;
 
     private final UserJpaRepository userRepository;
@@ -65,6 +74,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id);
     }
 
+    public UserResponseDto findUserInfoById(Long userId) {
+
+        User userInfo = userQueryRepository.findUserByUserId(userId);
+
+        return UserResponseDto.from(userInfo, userInfo.getLineUser().getLineId());
+    }
+
     @Override
     public User findUserByPhoneNumber(String phoneNumber) {
         PhoneNumber number = new PhoneNumber(phoneNumber);
@@ -81,6 +97,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findUserList() {
         return userRepository.findAll();
+    }
+
+    @Override
+    public Page<UserListProjection> findUserListByChannelInfoWithPaging(Long channelId,
+        Pageable pageable) {
+
+        Channel channel = channelRepository.findById(channelId)
+            .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+
+        return switch (channel.getChannelPlatform()) {
+            case LINE -> userQueryRepository.findLineUsersByChannelIdWithPaging(
+                channelId, pageable
+            );
+            case KAKAO -> userQueryRepository.findKakaoUsersByChannelIdWithPaging(
+                channelId, pageable
+            );
+        };
     }
 
     @Transactional

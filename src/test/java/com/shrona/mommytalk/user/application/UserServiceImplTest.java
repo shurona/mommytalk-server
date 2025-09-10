@@ -2,8 +2,8 @@ package com.shrona.mommytalk.user.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.application.LineServiceImpl;
-import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;

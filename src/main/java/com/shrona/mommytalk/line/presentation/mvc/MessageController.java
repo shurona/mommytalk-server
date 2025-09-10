@@ -4,12 +4,12 @@ import static com.shrona.mommytalk.common.utils.StaticVariable.HOME_VIEW;
 import static com.shrona.mommytalk.line.presentation.form.TargetType.ALL;
 import static com.shrona.mommytalk.line.presentation.form.TargetType.GROUP;
 
+import com.shrona.mommytalk.channel.application.ChannelService;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.common.dto.PagingForm;
-import com.shrona.mommytalk.line.application.ChannelService;
 import com.shrona.mommytalk.line.application.MessageService;
 import com.shrona.mommytalk.line.application.sender.MessageSender;
-import com.shrona.mommytalk.line.domain.Channel;
 import com.shrona.mommytalk.line.domain.MessageLog;
 import com.shrona.mommytalk.line.presentation.dtos.MessageLogUpdateRequestDto;
 import com.shrona.mommytalk.line.presentation.form.MessageListForm;

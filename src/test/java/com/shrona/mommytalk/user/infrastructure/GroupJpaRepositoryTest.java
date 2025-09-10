@@ -2,7 +2,7 @@ package com.shrona.mommytalk.user.infrastructure;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
 import com.shrona.mommytalk.user.domain.Group;
 import jakarta.persistence.EntityManager;

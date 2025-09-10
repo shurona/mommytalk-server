@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.user.application;
 
-import com.shrona.mommytalk.line.domain.Channel;
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.Group;
 import com.shrona.mommytalk.user.domain.User;
