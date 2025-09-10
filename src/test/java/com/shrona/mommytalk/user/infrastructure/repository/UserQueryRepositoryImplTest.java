@@ -12,6 +12,7 @@ import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
+import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -89,13 +90,14 @@ class UserQueryRepositoryImplTest {
     @DisplayName("채널에 속하고 팔로우 상태인 유저 목록 조회")
     void findUserList_success() {
         // when
-        List<User> users = userQueryRepository.findUserList(testChannel.getId());
+        List<UserListProjection> users = userQueryRepository.findLineUsersByChannelId(
+            testChannel.getId());
 
         // then
         assertThat(users).hasSize(2);
-        assertThat(users).extracting(User::getId)
+        assertThat(users).extracting(UserListProjection::userId)
             .containsExactlyInAnyOrder(user1.getId(), user2.getId());
-        assertThat(users).extracting(user -> user.getPhoneNumber().getPhoneNumber())
+        assertThat(users).extracting(user -> user.phoneNumber().getPhoneNumber())
             .containsExactlyInAnyOrder("010-1111-1111", "010-2222-2222");
     }
 
@@ -103,7 +105,7 @@ class UserQueryRepositoryImplTest {
     @DisplayName("존재하지 않는 채널 ID로 조회 시 빈 목록 반환")
     void findUserList_nonExistentChannel() {
         // when
-        List<User> users = userQueryRepository.findUserList(999L);
+        List<UserListProjection> users = userQueryRepository.findLineUsersByChannelId(999L);
 
         // then
         assertThat(users).isEmpty();
@@ -116,7 +118,8 @@ class UserQueryRepositoryImplTest {
         Pageable pageable = PageRequest.of(0, 1);
 
         // when
-        Page<User> userPage = userQueryRepository.findUserListWithPaging(testChannel.getId(),
+        Page<UserListProjection> userPage = userQueryRepository.findLineUsersByChannelIdWithPaging(
+            testChannel.getId(),
             pageable);
 
         // then
@@ -126,8 +129,8 @@ class UserQueryRepositoryImplTest {
         assertThat(userPage.isFirst()).isTrue();
 
         // 첫 번째 페이지의 사용자가 예상한 사용자 중 하나인지 확인
-        User firstUser = userPage.getContent().get(0);
-        assertThat(firstUser.getId()).isIn(user1.getId(), user2.getId());
+        UserListProjection firstUser = userPage.getContent().get(0);
+        assertThat(firstUser.userId()).isIn(user1.getId(), user2.getId());
     }
 
     @Test
@@ -137,7 +140,8 @@ class UserQueryRepositoryImplTest {
         Pageable pageable = PageRequest.of(1, 1);
 
         // when
-        Page<User> userPage = userQueryRepository.findUserListWithPaging(testChannel.getId(),
+        Page<UserListProjection> userPage = userQueryRepository.findLineUsersByChannelIdWithPaging(
+            testChannel.getId(),
             pageable);
 
         // then
@@ -170,27 +174,78 @@ class UserQueryRepositoryImplTest {
     }
 
     @Test
-    @DisplayName("멀티플랫폼 유저 조회 (현재는 LINE만)")
-    void findAllChannelUsers_success() {
+    @DisplayName("LINE 채널에 속한 유저 조회")
+    void findLineUsersByChannelId_success() {
         // when
-        List<User> users = userQueryRepository.findAllChannelUsers(testChannel.getId());
+        List<UserListProjection> users = userQueryRepository.findLineUsersByChannelId(
+            testChannel.getId());
 
         // then
         assertThat(users).hasSize(2);
-        assertThat(users).extracting(User::getId)
+        assertThat(users).extracting(UserListProjection::userId)
             .containsExactlyInAnyOrder(user1.getId(), user2.getId());
+        assertThat(users).extracting(user -> user.phoneNumber().getPhoneNumber())
+            .containsExactlyInAnyOrder("010-1111-1111", "010-2222-2222");
+    }
+
+    @Test
+    @DisplayName("LINE 채널에 속한 유저 조회 - 페이징 지원")
+    void findLineUsersByChannelIdWithPaging_success() {
+        // given
+        Pageable pageable = PageRequest.of(0, 1);
+
+        // when
+        Page<UserListProjection> userPage = userQueryRepository.findLineUsersByChannelIdWithPaging(
+            testChannel.getId(), pageable);
+
+        // then
+        assertThat(userPage.getContent()).hasSize(1);
+        assertThat(userPage.getTotalElements()).isEqualTo(2);
+        assertThat(userPage.getTotalPages()).isEqualTo(2);
+        assertThat(userPage.isFirst()).isTrue();
+
+        // 첫 번째 페이지의 사용자가 예상한 사용자 중 하나인지 확인
+        UserListProjection firstUser = userPage.getContent().get(0);
+        assertThat(firstUser.userId()).isIn(user1.getId(), user2.getId());
+    }
+
+    @Test
+    @DisplayName("KAKAO 채널에 속한 유저 조회 - 빈 목록 (테스트 데이터는 LINE만)")
+    void findKakaoUsersByChannelId_empty() {
+        // when
+        List<UserListProjection> users = userQueryRepository.findKakaoUsersByChannelId(
+            testChannel.getId());
+
+        // then
+        assertThat(users).isEmpty(); // KAKAO 데이터가 없으므로 빈 목록
+    }
+
+    @Test
+    @DisplayName("KAKAO 채널에 속한 유저 조회 - 페이징 지원, 빈 페이지")
+    void findKakaoUsersByChannelIdWithPaging_empty() {
+        // given
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        Page<UserListProjection> userPage = userQueryRepository.findKakaoUsersByChannelIdWithPaging(
+            testChannel.getId(), pageable);
+
+        // then
+        assertThat(userPage.getContent()).isEmpty();
+        assertThat(userPage.getTotalElements()).isEqualTo(0);
+        assertThat(userPage.getTotalPages()).isEqualTo(0);
     }
 
     @Test
     @DisplayName("N+1 문제 방지 확인 - 지연 로딩된 연관관계가 정상 동작")
     void checkNPlusOnePrevention() {
         // when
-        List<User> users = userQueryRepository.findUserList(testChannel.getId());
+        List<UserListProjection> users = userQueryRepository.findLineUsersByChannelId(
+            testChannel.getId());
 
         // then - 지연 로딩된 연관관계에 접근해도 추가 쿼리 발생하지 않음
-        for (User user : users) {
-            assertThat(user.getLineUser()).isNotNull();
-            assertThat(user.getLineUser().getLineId()).isNotBlank();
+        for (UserListProjection user : users) {
+            assertThat(user.socialId()).isNotNull();
         }
     }
 }

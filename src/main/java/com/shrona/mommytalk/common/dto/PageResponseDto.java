@@ -1,7 +1,6 @@
 package com.shrona.mommytalk.common.dto;
 
 import java.util.List;
-import org.springframework.data.domain.Page;
 
 public record PageResponseDto<T>(
     List<T> content,
@@ -11,13 +10,14 @@ public record PageResponseDto<T>(
     int totalPages // 총 페이지
 ) {
 
-    public static <T> PageResponseDto<T> from(Page<T> dataList) {
+    public static <T> PageResponseDto<T> from(
+        List<T> dataList, int page, int size, long totalElements, int totalPages) {
         return new PageResponseDto<>(
-            dataList.toList(),
-            dataList.getNumber(),
-            dataList.getSize(),
-            dataList.getTotalElements(),
-            dataList.getTotalPages());
+            dataList,
+            page,
+            size,
+            totalElements,
+            totalPages);
     }
 
 }
