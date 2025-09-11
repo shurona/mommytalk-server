@@ -4,10 +4,10 @@ import static jakarta.persistence.CascadeType.PERSIST;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.type.ReservationStatus;
-import com.shrona.mommytalk.user.domain.Group;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

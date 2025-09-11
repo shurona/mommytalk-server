@@ -2,6 +2,7 @@ package com.shrona.mommytalk.user.domain;
 
 
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.kakao.domain.KakaoUser;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.type.AddUserMethod;

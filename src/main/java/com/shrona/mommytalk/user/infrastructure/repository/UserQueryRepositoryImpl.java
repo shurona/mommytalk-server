@@ -125,7 +125,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                     user.userLevel,
                     user.childLevel,
                     user.childName,
-                    channelLineUser.follow,
+                    channelKakaoUser.follow,
                     Expressions.constant(1)
                 )
             )
@@ -156,7 +156,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                     user.userLevel,
                     user.childLevel,
                     user.childName,
-                    channelLineUser.follow,
+                    channelKakaoUser.follow,
                     Expressions.constant(1)
                 )
             )

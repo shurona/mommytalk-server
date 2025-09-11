@@ -1,14 +1,16 @@
-package com.shrona.mommytalk.user.application;
+package com.shrona.mommytalk.group.application;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.channel.domain.ChannelPlatform;
+import com.shrona.mommytalk.group.domain.Group;
+import com.shrona.mommytalk.group.domain.UserGroup;
+import com.shrona.mommytalk.group.infrastructure.dao.GroupUserCount;
+import com.shrona.mommytalk.group.infrastructure.repository.GroupJpaRepository;
+import com.shrona.mommytalk.group.infrastructure.repository.UserGroupJpaRepository;
+import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
-import com.shrona.mommytalk.user.domain.Group;
 import com.shrona.mommytalk.user.domain.User;
-import com.shrona.mommytalk.user.domain.UserGroup;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
-import com.shrona.mommytalk.user.infrastructure.GroupJpaRepository;
-import com.shrona.mommytalk.user.infrastructure.UserGroupJpaRepository;
-import com.shrona.mommytalk.user.infrastructure.dao.GroupUserCount;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +94,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Map<Long, Integer> findGroupLineUserCount(List<Long> groupIds) {
+    public Map<Long, Integer> findGroupPlatformUserCount(
+        List<Long> groupIds, ChannelPlatform type) {
 
         List<GroupUserCount> groupUserCounts = userGroupRepository.countByGroupIds(groupIds);
 
@@ -104,7 +107,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Map<Long, Integer> findGroupAllUserCount(List<Long> groupIds) {
+    public Map<Long, Integer> findGroupAllUserCount(List<Long> groupIds, ChannelPlatform type) {
         List<GroupUserCount> groupUserCounts = userGroupRepository.countAllUsersByGroupIds(
             groupIds);
 

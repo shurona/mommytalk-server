@@ -3,6 +3,7 @@ package com.shrona.mommytalk.line.application;
 import static com.shrona.mommytalk.line.common.exception.LineErrorCode.BAD_REQUEST;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import com.shrona.mommytalk.line.domain.LineUser;
@@ -10,7 +11,6 @@ import com.shrona.mommytalk.line.infrastructure.ChannelLineUserJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.line.infrastructure.repository.LineUserQueryRepository;
-import com.shrona.mommytalk.user.application.GroupService;
 import com.shrona.mommytalk.user.application.UserService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
