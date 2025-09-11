@@ -3,6 +3,7 @@ package com.shrona.mommytalk.line.domain;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.kakao.domain.KakaoUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -35,6 +36,11 @@ public class ChannelLineUser extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "line_user_id")
     private LineUser lineUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "kakao_user_id")
+    private KakaoUser kakaoUser;
+
 
     @Column
     private boolean follow;

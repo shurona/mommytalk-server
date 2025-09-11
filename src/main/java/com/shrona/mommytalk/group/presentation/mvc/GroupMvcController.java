@@ -4,6 +4,7 @@ import static com.shrona.mommytalk.common.utils.StaticVariable.HOME_VIEW;
 
 import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.common.dto.PagingForm;
 import com.shrona.mommytalk.group.application.GroupService;
@@ -36,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 //@RequestMapping("/admin/channels/{channelId}/groups")
 //@Controller
-public class GroupController {
+public class GroupMvcController {
 
     private final GroupService groupService;
     private final ChannelService channelService;
@@ -61,12 +62,12 @@ public class GroupController {
             channelInfo.get(), PageRequest.of(pageNumber, 20));
 
         // Line 유저가 등록된 모든 유저의 숫자를 구한다.
-        Map<Long, Integer> groupLineUserCount = groupService.findGroupLineUserCount(
-            groupWithPage.stream().map(Group::getId).toList());
+        Map<Long, Integer> groupLineUserCount = groupService.findGroupPlatformUserCount(
+            groupWithPage.stream().map(Group::getId).toList(), ChannelPlatform.LINE);
 
         // Line이 등록되지 않은 모든 유저의 숫자를 구한다.
         Map<Long, Integer> groupAllUserCount = groupService.findGroupAllUserCount(
-            groupWithPage.stream().map(Group::getId).toList());
+            groupWithPage.stream().map(Group::getId).toList(), ChannelPlatform.LINE);
 
         List<GroupForm> groupList = groupWithPage.stream()
             .map((Group group) ->
@@ -135,10 +136,10 @@ public class GroupController {
         }
 
         // 그룹에 속한 (라인)유저 숫자들을 조회한다.
-        Map<Long, Integer> groupLineUserCount = groupService.findGroupLineUserCount(
-            List.of(groupInfo.getId()));
+        Map<Long, Integer> groupLineUserCount = groupService.findGroupPlatformUserCount(
+            List.of(groupInfo.getId()), ChannelPlatform.LINE);
         Map<Long, Integer> groupAllUserCount = groupService.findGroupAllUserCount(
-            List.of(groupInfo.getId()));
+            List.of(groupInfo.getId()), ChannelPlatform.LINE);
 
         Page<UserGroup> userGroupPage = groupService.findUserGroupByGroupId(groupInfo,
             PageRequest.of(pageNumber, 10, Sort.by(Order.asc("id"))));

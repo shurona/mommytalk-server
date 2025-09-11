@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.group.application;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.group.infrastructure.dao.GroupUserCount;
@@ -93,7 +94,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Map<Long, Integer> findGroupLineUserCount(List<Long> groupIds) {
+    public Map<Long, Integer> findGroupPlatformUserCount(
+        List<Long> groupIds, ChannelPlatform type) {
 
         List<GroupUserCount> groupUserCounts = userGroupRepository.countByGroupIds(groupIds);
 
@@ -105,7 +107,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Map<Long, Integer> findGroupAllUserCount(List<Long> groupIds) {
+    public Map<Long, Integer> findGroupAllUserCount(List<Long> groupIds, ChannelPlatform type) {
         List<GroupUserCount> groupUserCounts = userGroupRepository.countAllUsersByGroupIds(
             groupIds);
 
