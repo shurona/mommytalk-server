@@ -46,6 +46,12 @@ public class MessageLog extends BaseEntity {
     @Column(length = 1000)
     private String content;
 
+    @Column(name = "header-link", length = 100)
+    private String headerLink;
+
+    @Column(name = "bottom-link", length = 100)
+    private String bottomLink;
+
     @Column(name = "reserve_time")
     private LocalDateTime reserveTime;
 
@@ -70,7 +76,8 @@ public class MessageLog extends BaseEntity {
 
 
     public static MessageLog messageLog(
-        Channel channel, MessageType type, Group group, LocalDateTime reserveTime, String content) {
+        Channel channel, MessageType type, Group group, LocalDateTime reserveTime,
+        String content, String headerLink, String bottomLink) {
         MessageLog log = new MessageLog();
         log.channel = channel;
         log.group = group;
@@ -78,6 +85,8 @@ public class MessageLog extends BaseEntity {
         log.messageType = type;
         log.status = ReservationStatus.PREPARE;
         log.content = content;
+        log.headerLink = headerLink;
+        log.bottomLink = bottomLink;
 
         return log;
     }

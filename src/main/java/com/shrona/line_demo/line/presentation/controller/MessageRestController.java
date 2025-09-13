@@ -33,7 +33,8 @@ public class MessageRestController {
             return ResponseEntity.badRequest().build();
         }
 
-        boolean b = messageSender.sendTestLineMessage(channel.get(), requestBody.text());
+        boolean b = messageSender.sendTestLineMessage(
+            channel.get(), requestBody.text(), requestBody.headerLink(), requestBody.footerLink());
 
         return ResponseEntity.ok().body(new TestMessageResponseBody(b));
     }

@@ -22,14 +22,14 @@ public interface MessageService {
     public List<MessageLog> createMessageSelectGroup
     (Channel channel, Long messageTypeId,
         List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
-        LocalDateTime reserveTime, String content);
+        LocalDateTime reserveTime, String content, String headerLink, String bottomLink);
 
     /**
      * 모든 그룹에 메시지 전송(제외 그룹 확인)
      */
     public List<MessageLog> createMessageAllGroup
     (Channel channel, Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime,
-        String content);
+        String content, String headerLink, String bottomLink);
 
     /**
      * 메시지 단일 조회

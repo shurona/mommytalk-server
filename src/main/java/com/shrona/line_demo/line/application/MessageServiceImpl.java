@@ -54,7 +54,7 @@ public class MessageServiceImpl implements MessageService {
     public List<MessageLog> createMessageSelectGroup
         (Channel channel, Long messageTypeId,
             List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
-            LocalDateTime reserveTime, String content) {
+            LocalDateTime reserveTime, String content, String headerLink, String bottomLink) {
 
         // 제외할 LineIds를 갖고 온다.
         Set<String> exceptLineIds = getExceptLineIds(selectedExGroupIds);
@@ -68,7 +68,7 @@ public class MessageServiceImpl implements MessageService {
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
             .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(),
-                reserveTime, content, exceptLineIds))
+                reserveTime, content, headerLink, bottomLink, exceptLineIds))
             .toList());
 
         // commit이 된 이후에 실행을 한다.
@@ -87,7 +87,7 @@ public class MessageServiceImpl implements MessageService {
     @Transactional
     public List<MessageLog> createMessageAllGroup
         (Channel channel, Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime,
-            String content) {
+            String content, String headerLink, String bottomLink) {
 
         Optional<MessageType> typeInfo = messageTypeRepository.findById(messageTypeId);
 
@@ -102,7 +102,7 @@ public class MessageServiceImpl implements MessageService {
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
             .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(),
-                reserveTime, content, exceptLineIds))
+                reserveTime, content, headerLink, bottomLink, exceptLineIds))
             .toList());
 
         // commit이 된 이후에 실행을 한다.
@@ -183,7 +183,8 @@ public class MessageServiceImpl implements MessageService {
      * MessageLog를 생성해 주는 메소드
      */
     private MessageLog createMessageLogForGroup(Group g, Channel channel, MessageType type,
-        LocalDateTime reserveTime, String content, Set<String> exceptLineIds) {
+        LocalDateTime reserveTime, String content, String headerLink, String bottomLink,
+        Set<String> exceptLineIds) {
         List<String> lineIds = groupService.findGroupById(g.getId(), true)
             .getUserGroupList()
             .stream()
@@ -192,7 +193,8 @@ public class MessageServiceImpl implements MessageService {
             .map(gu -> gu.getUser().getLineId()) // 라인 아이디를 추출한다.
             .toList();
 
-        MessageLog messageLog = MessageLog.messageLog(channel, type, g, reserveTime, content);
+        MessageLog messageLog = MessageLog.messageLog(
+            channel, type, g, reserveTime, content, headerLink, bottomLink);
 
         lineIds.forEach(l -> {
             messageLog.addMessageLogLineInfo(

@@ -19,10 +19,11 @@ public interface MessageSender {
     /**
      * test user의 라인 계정으로 테스트 메시지를 전달한다.
      */
-    public boolean sendTestLineMessage(Channel channel, String text);
+    public boolean sendTestLineMessage(
+        Channel channel, String text, String headerLink, String bottomLink);
 
     /**
-     * 유저에서 싱글 메시지 전달
+     * 유저에서 싱글 메시지 전달 (현재 휴대전화 등록 시 성공 메시지에 사용 중)
      */
     public void sendSingleMessageWithContents(Channel channel, LineUser lineUser, String text);
 }

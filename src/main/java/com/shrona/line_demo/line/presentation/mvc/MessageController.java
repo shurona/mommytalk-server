@@ -73,8 +73,8 @@ public class MessageController {
         registerGroupModel(channelInfo.get(), model);
 
         model.addAttribute("messageForm",
-            MessageSendForm.of("", LocalDateTime.now(),
-                new ArrayList<>(), new ArrayList<>(), GROUP));
+            MessageSendForm.of("", "", "",
+                LocalDateTime.now(), new ArrayList<>(), new ArrayList<>(), GROUP));
 
         return "message/send";
     }
@@ -151,12 +151,13 @@ public class MessageController {
                 channelInfo.get(),
                 1L, form.includeGroup(), form.excludeGroup(),
                 localDateTime,
-                form.content());
+                form.content(), form.headerLink(), form.bottomLink());
         }
         // 전송이 전체 인 경우
         else if (form.targetType().equals(ALL.getType())) {
             messageService.createMessageAllGroup(
-                channelInfo.get(), 1L, form.excludeGroup(), localDateTime, form.content());
+                channelInfo.get(), 1L, form.excludeGroup(), localDateTime,
+                form.content(), form.headerLink(), form.bottomLink());
         }
 
         return "redirect:/admin/channels/" + channelId + "/messages/list";
@@ -204,7 +205,8 @@ public class MessageController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (messageSender.sendTestLineMessage(channelInfo.get(), form.content())) {
+        if (messageSender.sendTestLineMessage(
+            channelInfo.get(), form.content(), form.headerLink(), form.bottomLink())) {
             return ResponseEntity.ok(Map.of("success", true));
         } else {
             return ResponseEntity.internalServerError().build();
@@ -248,8 +250,14 @@ public class MessageController {
      * 에러 발생 시 MessageSendForm을 다시 만들어줌.
      */
     private MessageSendForm initMessageSendFormByForm(MessageSendForm form) {
-        return MessageSendForm.of(form.content(), form.sendDateTime(), new ArrayList<>(),
-            new ArrayList<>(), TargetType.valueOf(form.targetType()));
+        return MessageSendForm.of(
+            form.content(),
+            form.headerLink(),
+            form.bottomLink(),
+            form.sendDateTime(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            TargetType.valueOf(form.targetType()));
     }
 
     private void registerChannelToModel(Channel channel, Model model) {
