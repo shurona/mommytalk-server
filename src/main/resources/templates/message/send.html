@@ -29,14 +29,40 @@
             <span>줄바꿈시 메시지에 반영</span>
             <span class="char-count" id="charCount">0/500</span>
           </div>
+          
+          <!-- 헤더링크 입력 -->
+          <div class="link-input-group">
+            <label class="form-label" for="headerLink">헤더링크</label>
+            <input class="form-input" id="headerLink" name="headerLink" placeholder="헤더 버튼에 연결할 URL을 입력하세요"
+                   th:field="*{headerLink}" type="text">
+          </div>
+          
+          <!-- 푸터링크 입력 -->
+          <div class="link-input-group">
+            <label class="form-label" for="bottomLink">푸터링크</label>
+            <input class="form-input" id="bottomLink" name="bottomLink" placeholder="푸터 버튼에 연결할 URL을 입력하세요"
+                   th:field="*{bottomLink}" type="text">
+          </div>
         </div>
 
         <!-- 메시지 미리보기 -->
         <div class="form-group preview-group">
           <label class="form-label">프리뷰</label>
-          <div class="preview-box">
-            <!-- 실제 미리보기 내용은 서버에서 렌더링하거나 JS로 동적 표시 -->
-            <div class="preview-message"></div>
+          <div class="preview-container">
+            <!-- 헤더 버튼 -->
+            <div class="preview-header-button" id="previewHeaderButton" style="display: none;">
+              <button class="preview-btn header-btn" type="button">헤더 버튼</button>
+            </div>
+            
+            <!-- 메시지 내용 -->
+            <div class="preview-box">
+              <div class="preview-message"></div>
+            </div>
+            
+            <!-- 푸터 버튼 -->
+            <div class="preview-footer-button" id="previewFooterButton" style="display: none;">
+              <button class="preview-btn footer-btn" type="button">푸터 버튼</button>
+            </div>
           </div>
         </div>
       </div>

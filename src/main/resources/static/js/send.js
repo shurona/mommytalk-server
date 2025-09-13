@@ -1,20 +1,44 @@
 // 글자 수 선택 및 preview 처리
 document.addEventListener('DOMContentLoaded', function () {
   const textarea = document.getElementById('content');
+  const headerLinkInput = document.getElementById('headerLink');
+  const bottomLinkInput = document.getElementById('bottomLink');
   const preview = document.querySelector('.preview-message');
   const charCount = document.getElementById('charCount');
+  const previewHeaderButton = document.getElementById('previewHeaderButton');
+  const previewFooterButton = document.getElementById('previewFooterButton');
   
   function updatePreview() {
       const value = textarea.value;
+      const headerLink = headerLinkInput.value.trim();
+      const bottomLink = bottomLinkInput.value.trim();
+      
+      // 메시지 내용 업데이트
       preview.innerHTML = value
       .replace(/&/g, "&amp;")    // XSS 방지
       .replace(/</g, "&lt;")     // HTML 이스케이프
       .replace(/>/g, "&gt;")
       .replace(/\n/g, "<br>");   // 줄바꿈을 <br>로
       charCount.textContent = `${value.length}/500`;
+      
+      // 헤더 버튼 표시/숨김
+      if (headerLink) {
+          previewHeaderButton.style.display = 'block';
+      } else {
+          previewHeaderButton.style.display = 'none';
+      }
+      
+      // 푸터 버튼 표시/숨김
+      if (bottomLink) {
+          previewFooterButton.style.display = 'block';
+      } else {
+          previewFooterButton.style.display = 'none';
+      }
   } 
 
   textarea.addEventListener('input', updatePreview);
+  headerLinkInput.addEventListener('input', updatePreview);
+  bottomLinkInput.addEventListener('input', updatePreview);
 
   // 초기값이 있을 경우 반영
   updatePreview();
@@ -74,6 +98,8 @@ function updateGroupCount(groupName, counterId) {
 // 테스트 발송 버튼 클릭시 Post 요청
 function sendTestMessage() {
   const content = document.getElementById('content').value;
+  const headerLink = document.getElementById('headerLink').value;
+  const bottomLink = document.getElementById('bottomLink').value;
   const channelId = document.getElementById('groupMeta').dataset.channelId;
 
   fetch(`/admin/channels/${channelId}/messages/v1/send/test`, {
@@ -83,6 +109,8 @@ function sendTestMessage() {
     },
     body: JSON.stringify({
       content,
+      headerLink,
+      bottomLink
     })
   })
   .then(response => response.json())
