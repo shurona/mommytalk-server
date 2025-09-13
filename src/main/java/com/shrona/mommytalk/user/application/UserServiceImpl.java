@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.user.application;
 
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.DUPLICATE_PHONE_NUMBER;
+import static com.shrona.mommytalk.user.common.exception.UserErrorCode.USER_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.utils.PhoneProcess;
@@ -10,7 +11,6 @@ import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
-import com.shrona.mommytalk.user.common.exception.UserErrorCode;
 import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.User;
@@ -18,6 +18,7 @@ import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
 import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
 import com.shrona.mommytalk.user.infrastructure.repository.UserQueryRepository;
+import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,6 +32,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Transactional(readOnly = true)
@@ -104,7 +106,7 @@ public class UserServiceImpl implements UserService {
         Pageable pageable) {
 
         Channel channel = channelRepository.findById(channelId)
-            .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         return switch (channel.getChannelPlatform()) {
             case LINE -> userQueryRepository.findLineUsersByChannelIdWithPaging(
@@ -141,6 +143,34 @@ public class UserServiceImpl implements UserService {
 
         // 두 List를 합쳐서 반환
         return combineUsers(newUsers, existingUsers);
+    }
+
+    @Transactional
+    public void updateUserInfoByRequest(Long userId, UpdateUserRequestDto requestDto) {
+        User userInfo = userRepository.findById(userId)
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        log.info("리드 온리 : {} ", TransactionSynchronizationManager.isCurrentTransactionReadOnly());
+        log.info("리드 온리 : {} ", TransactionSynchronizationManager.isActualTransactionActive());
+
+        if (!requestDto.phoneNumber().equals(userInfo.getPhoneNumber().getPhoneNumber())) {
+            PhoneNumber phoneNumber = new PhoneNumber(requestDto.phoneNumber());
+
+            // 자신을 제외한 중복 체크
+            userRepository.findByPhoneNumber(phoneNumber)
+                .filter(user -> !user.getId().equals(userId))  // 자신 제외
+                .ifPresent(user -> {
+                    throw new UserException(DUPLICATE_PHONE_NUMBER);
+                });
+
+            userInfo.updatePhoneNumber(phoneNumber);
+        }
+
+        userInfo.updateUserFromRequest(
+            requestDto.childName(), requestDto.childLevel(), requestDto.userLevel()
+        );
+
+//        userRepository.save(userInfo);
     }
 
     @Transactional

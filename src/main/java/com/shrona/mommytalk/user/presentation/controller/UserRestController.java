@@ -4,9 +4,11 @@ import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.common.dto.PageResponseDto;
 import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
+import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserListResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -16,14 +18,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/channels/{channelId}/users")
 @RestController
-public class UserController {
+public class UserRestController {
 
     private final UserService userService;
 
@@ -64,9 +68,15 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<?> updateUserInfo() {
+    public ApiResponse<String> updateUserInfo(
+        @PathVariable Long userId,
+        @RequestBody UpdateUserRequestDto requestDto
+    ) {
 
-        return ResponseEntity.ok("");
+        // 유저 업데이트
+        userService.updateUserInfoByRequest(userId, requestDto);
+
+        return ApiResponse.success("success");
     }
 
     @PatchMapping("/{userId}/entitlements")
