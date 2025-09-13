@@ -16,7 +16,7 @@ class MessageLogTest {
         // given
         LocalDateTime reserveTime = LocalDateTime.now().plusMinutes(10);
         MessageLog messageLog = MessageLog.messageLog(
-            null, null, null, reserveTime, "원본 메시지");
+            null, null, null, reserveTime, "원본 메시지", null, "푸터 링크");
         String newContent = "새로운 메시지";
 
         // when
@@ -32,7 +32,7 @@ class MessageLogTest {
         // given
         LocalDateTime reserveTime = LocalDateTime.now().plusMinutes(4);
         MessageLog messageLog = MessageLog.messageLog(
-            null, null, null, reserveTime, "원본 메시지");
+            null, null, null, reserveTime, "원본 메시지", null, null);
         String newContent = "새로운 메시지";
 
         // when, then

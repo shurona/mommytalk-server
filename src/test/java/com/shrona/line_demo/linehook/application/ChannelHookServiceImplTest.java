@@ -128,7 +128,7 @@ class ChannelHookServiceImplTest {
 
         // then
         verify(messageUtils).registerSingleTask(
-            any(Channel.class), any(LineUser.class), anyString(), any(LocalDateTime.class));
+            any(Channel.class), any(LineUser.class), any(), any(LocalDateTime.class));
     }
 
     @Test

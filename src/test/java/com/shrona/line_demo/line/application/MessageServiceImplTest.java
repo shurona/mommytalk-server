@@ -83,7 +83,7 @@ class MessageServiceImplTest {
         List<MessageLog> logList = messageService
             .createMessageSelectGroup(channel, mt.getId(),
                 List.of(groupInfo.getId(), 2L), new ArrayList<>(),
-                reserveTime.plusHours(5), content);
+                reserveTime.plusHours(5), content,  null, null);
         MessageLog afterSaveLog = messageService.findByMessageId(logList.getFirst().getId());
 
         // then
@@ -106,7 +106,7 @@ class MessageServiceImplTest {
             messageService
                 .createMessageSelectGroup(channel, mt.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
-                    reserveTime.plusHours(i), content);
+                    reserveTime.plusHours(i), content, null, null);
         }
 
         // then
@@ -178,7 +178,7 @@ class MessageServiceImplTest {
             .createMessageSelectGroup(channel, mt.getId(),
                 List.of(groupInfo.getId(), includeGroupInfo.getId()),
                 List.of(exceptGroupInfo.getId()),
-                reserveTime.plusHours(10), content);
+                reserveTime.plusHours(10), content, null, null);
 
         // then
         MessageLog first = messageService.findByMessageId(messageLogList.getFirst().getId());
@@ -202,21 +202,21 @@ class MessageServiceImplTest {
             messageService
                 .createMessageSelectGroup(channel, mt.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
-                    reserveTime.plusHours(3), content);
+                    reserveTime.plusHours(3), content, null, null);
         }
         // 이전 시간으로 추가(reserveList로 조회될 크기)
         for (int i = 0; i < 15; i++) {
             messageService
                 .createMessageSelectGroup(channel, mt.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
-                    reserveTime.minusHours(3), content);
+                    reserveTime.minusHours(3), content, null, null);
         }
         // 다른 채널에 추가
         for (int i = 0; i < 2; i++) {
             messageService
                 .createMessageSelectGroup(channel2, mt.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
-                    reserveTime.minusHours(3), content);
+                    reserveTime.minusHours(3), content, null, null);
         }
 
         // when
@@ -250,7 +250,7 @@ class MessageServiceImplTest {
         List<MessageLog> messageLogList = messageService
             .createMessageSelectGroup(channel, mt.getId(),
                 List.of(groupInfo.getId()), new ArrayList<>(),
-                reserveTime.plusHours(3), content);
+                reserveTime.plusHours(3), content, null, null);
 
         // when
         MessageLog messageLog = messageService.findByMessageId(messageLogList.getFirst().getId());
