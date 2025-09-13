@@ -189,9 +189,6 @@ public class MessageSenderImpl implements MessageSender {
                     requestBody = LineMessageMulticastRequestBody.of(subList, messageLog.getContent());
                 }
 
-                requestBody = LineMessageMulticastRequestBody.ofFlex(subList,
-                    createBubbleObj(messageLog.getContent(), headerLink, bottomLink));
-
                 lineMessageSenderClient.SendMulticastMessage(
                     prefixHeader + decodedString,
                     requestBody
@@ -270,12 +267,10 @@ public class MessageSenderImpl implements MessageSender {
             footer
         );
 
-        LineFlexMessageRequestDto messageRequest = new LineFlexMessageRequestDto(
+        return new LineFlexMessageRequestDto(
             ContentType.FLEX,
-            text, // altText로 메시지 내용 사용
+            text.substring(0, 100),
             bubbleMessage
         );
-
-        return messageRequest;
     }
 }
