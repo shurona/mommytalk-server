@@ -18,7 +18,7 @@
     <h2 class="main-title">메시지 보내기</h2>
     <form class="message-form" method="post"
           th:action="@{/admin/channels/{channelId}/messages/v1/send(channelId=${channelInfo.id})}"
-          th:object="${messageForm}">
+          th:object="${messageForm}" onsubmit="return validateForm()">
       <div class="form-row">
         <!-- 메시지 입력 -->
         <div class="form-group message-input-group">

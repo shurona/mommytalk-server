@@ -7,12 +7,37 @@ document.addEventListener('DOMContentLoaded', function () {
   const charCount = document.getElementById('charCount');
   const previewHeaderButton = document.getElementById('previewHeaderButton');
   const previewFooterButton = document.getElementById('previewFooterButton');
-  
+
+  // URL 검증 함수
+  function isValidUrl(url) {
+      if (!url) return true; // 빈 값은 허용
+      return url.startsWith('http://') || url.startsWith('https://');
+  }
+
+  // URL 입력 검증 및 스타일 적용
+  function validateUrlInput(input) {
+      const url = input.value.trim();
+
+      if (url && !isValidUrl(url)) {
+          input.style.borderColor = '#dc3545';
+          input.style.boxShadow = '0 0 0 2px rgba(220, 53, 69, 0.25)';
+          return false;
+      } else {
+          input.style.borderColor = '#bbb';
+          input.style.boxShadow = '';
+          return true;
+      }
+  }
+
   function updatePreview() {
       const value = textarea.value;
       const headerLink = headerLinkInput.value.trim();
       const bottomLink = bottomLinkInput.value.trim();
-      
+
+      // URL 검증
+      const isHeaderValid = validateUrlInput(headerLinkInput);
+      const isBottomValid = validateUrlInput(bottomLinkInput);
+
       // 메시지 내용 업데이트
       preview.innerHTML = value
       .replace(/&/g, "&amp;")    // XSS 방지
@@ -20,16 +45,16 @@ document.addEventListener('DOMContentLoaded', function () {
       .replace(/>/g, "&gt;")
       .replace(/\n/g, "<br>");   // 줄바꿈을 <br>로
       charCount.textContent = `${value.length}/500`;
-      
-      // 헤더 버튼 표시/숨김
-      if (headerLink) {
+
+      // 헤더 버튼 표시/숨김 (유효한 URL일 때만)
+      if (headerLink && isHeaderValid) {
           previewHeaderButton.style.display = 'block';
       } else {
           previewHeaderButton.style.display = 'none';
       }
-      
-      // 푸터 버튼 표시/숨김
-      if (bottomLink) {
+
+      // 푸터 버튼 표시/숨김 (유효한 URL일 때만)
+      if (bottomLink && isBottomValid) {
           previewFooterButton.style.display = 'block';
       } else {
           previewFooterButton.style.display = 'none';
@@ -98,9 +123,25 @@ function updateGroupCount(groupName, counterId) {
 // 테스트 발송 버튼 클릭시 Post 요청
 function sendTestMessage() {
   const content = document.getElementById('content').value;
-  const headerLink = document.getElementById('headerLink').value;
-  const bottomLink = document.getElementById('bottomLink').value;
+  const headerLink = document.getElementById('headerLink').value.trim();
+  const bottomLink = document.getElementById('bottomLink').value.trim();
   const channelId = document.getElementById('groupMeta').dataset.channelId;
+
+  // URL 검증
+  function isValidUrl(url) {
+      if (!url) return true; // 빈 값은 허용
+      return url.startsWith('http://') || url.startsWith('https://');
+  }
+
+  if (headerLink && !isValidUrl(headerLink)) {
+      alert('헤더링크는 http:// 또는 https://로 시작하는 URL을 입력해주세요');
+      return;
+  }
+
+  if (bottomLink && !isValidUrl(bottomLink)) {
+      alert('푸터링크는 http:// 또는 https://로 시작하는 URL을 입력해주세요');
+      return;
+  }
 
   fetch(`/admin/channels/${channelId}/messages/v1/send/test`, {
     method: 'POST',
@@ -125,6 +166,29 @@ function sendTestMessage() {
     console.error('Error:', error);
     alert('메시지 발송 중 오류가 발생했습니다.');
   });
+}
+
+// 폼 제출 시 URL 검증
+function validateForm() {
+  const headerLink = document.getElementById('headerLink').value.trim();
+  const bottomLink = document.getElementById('bottomLink').value.trim();
+
+  function isValidUrl(url) {
+      if (!url) return true; // 빈 값은 허용
+      return url.startsWith('http://') || url.startsWith('https://');
+  }
+
+  if (headerLink && !isValidUrl(headerLink)) {
+      alert('헤더링크는 http:// 또는 https://로 시작하는 URL을 입력해주세요');
+      return false;
+  }
+
+  if (bottomLink && !isValidUrl(bottomLink)) {
+      alert('푸터링크는 http:// 또는 https://로 시작하는 URL을 입력해주세요');
+      return false;
+  }
+
+  return true;
 }
 
 // 날짜 시간 설정 및 UTC 반환
