@@ -147,4 +147,10 @@ public class User extends BaseEntity {
         this.phoneNumber = phone;
     }
 
+    public void updateUserFromRequest(String childName, Integer childLevel, Integer userLevel) {
+        this.childName = childName;
+        this.childLevel = childLevel;
+        this.userLevel = userLevel;
+    }
+
 }
