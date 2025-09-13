@@ -15,7 +15,7 @@ public interface LineMessageSenderClient {
     @PostExchange
     public LineSendMulticastResponseBody SendMulticastMessage(
         @RequestHeader(HttpHeaders.AUTHORIZATION) String accessToken,
-        @RequestBody Object requestBody
+        @RequestBody LineMessageMulticastRequestBody requestBody
     );
 
 }
