@@ -190,6 +190,17 @@ public class GroupServiceImpl implements GroupService {
         userGroupRepository.deleteAllById(ids);
     }
 
+    @Transactional
+    public void deleteUserFromGroupByUserIds(Long id, List<Long> userIds) {
+        Optional<Group> groupInfo = groupRepository.findById(id);
+        if (groupInfo.isEmpty()) {
+            return;
+        }
+
+        groupInfo.get().getUserGroupList().clear();
+        userGroupRepository.deleteAllByUserId(userIds);
+    }
+
     /**
      * 유저가 변경 될 때 UserGroup의 User를  source -> target으로 변경해준다.
      */

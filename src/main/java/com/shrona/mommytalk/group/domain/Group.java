@@ -1,10 +1,14 @@
 package com.shrona.mommytalk.group.domain;
 
+import static com.shrona.mommytalk.group.domain.GroupType.CUSTOM;
+
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,6 +42,10 @@ public class Group extends BaseEntity {
     @Column
     private String description;
 
+    @Column
+    @Enumerated(EnumType.STRING)
+    private GroupType groupType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "channel_id")
     private Channel channel;
@@ -51,7 +59,7 @@ public class Group extends BaseEntity {
         group.name = name;
         group.description = description;
         group.channel = channel;
-
+        group.groupType = CUSTOM;
         return group;
     }
 

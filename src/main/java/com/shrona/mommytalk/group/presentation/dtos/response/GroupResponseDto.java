@@ -3,7 +3,7 @@ package com.shrona.mommytalk.group.presentation.dtos.response;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.shrona.mommytalk.group.domain.Group;
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import lombok.Builder;
 
@@ -13,8 +13,8 @@ public record GroupResponseDto(
     String title,
     String type,
     String product,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt,
+    String createdAt,
+    String updatedAt,
 
     List<UserGroupMemberResponseDto> members
 ) {
@@ -23,12 +23,14 @@ public record GroupResponseDto(
         return GroupResponseDto.builder()
             .id(group.getId())
             .title(group.getName())
-            .type("타입")
+            .type(group.getGroupType().getCode())
             .product("상품입니다.")
-            .createdAt(group.getCreatedAt())
-            .updatedAt(group.getUpdatedAt())
+            .createdAt(
+                group.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd. HH:mm")))
+            .updatedAt(
+                group.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd. HH:mm")))
             .members(members)
             .build();
     }
-    
+
 }

@@ -9,9 +9,12 @@ import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.common.dto.PageResponseDto;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.domain.Group;
+import com.shrona.mommytalk.group.presentation.dtos.request.AddUserGroupRequestDto;
+import com.shrona.mommytalk.group.presentation.dtos.request.CreateGroupRequestDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.GroupListResponseDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.GroupResponseDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.UserGroupMemberResponseDto;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +23,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -89,13 +94,71 @@ public class GroupRestController {
      * 커스텀 그룹 생성
      */
     @PostMapping
-    public void createCustomGroup() {
+    public ApiResponse<Long> createCustomGroup(
+        @PathVariable("channelId") Long channelId,
+        @RequestBody CreateGroupRequestDto requestDto
+    ) {
 
+        Channel channel = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
+
+        Group group = groupService.createGroup(channel, requestDto.title(), null,
+            new ArrayList<>());
+
+        return ApiResponse.success(group.getId());
     }
 
-    @DeleteMapping("/{groupId}")
-    public void delUserFromGroup() {
+    /**
+     * 그룹에 유저 휴대전화 추가
+     */
+    @PostMapping("/{groupId}/members")
+    public ApiResponse<?> addUserToGroup(
+        @PathVariable("channelId") Long channelId,
+        @PathVariable("groupId") Long groupId,
+        @RequestBody AddUserGroupRequestDto requestDto
+    ) {
 
+        groupService.addUserToGroup(groupId, requestDto.phoneNumbers());
+
+        return ApiResponse.success("");
+    }
+
+    /**
+     * 그룹 정보 수정
+     */
+    @PatchMapping
+    public ApiResponse<?> updateGroupInfo(
+        @PathVariable("channelId") Long channelId,
+        @RequestBody CreateGroupRequestDto requestDto
+    ) {
+
+        return ApiResponse.success(null);
+    }
+
+    /**
+     * 그룹에 유저 휴대전화 삭제
+     */
+    @DeleteMapping("/{groupId}/members/{userId}")
+    public ApiResponse<?> deleteUserFromGroup(
+        @PathVariable("channelId") Long channelId,
+        @PathVariable("groupId") Long groupId,
+        @PathVariable("userId") Long userId
+    ) {
+
+        groupService.deleteUserFromGroupByIds(groupId, List.of(userId));
+
+        return ApiResponse.success("");
+    }
+
+    /**
+     * 그룹 삭제
+     */
+    @DeleteMapping("/{groupId}")
+    public void delUserFromGroup(
+        @PathVariable("channelId") Long channelId,
+        @PathVariable("groupId") Long groupId
+    ) {
+        groupService.softDeleteGroup(List.of(groupId));
     }
 
 }

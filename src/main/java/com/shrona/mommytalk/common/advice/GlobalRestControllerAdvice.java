@@ -4,6 +4,8 @@ package com.shrona.mommytalk.common.advice;
 import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.user.common.exception.UserException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -20,11 +22,11 @@ public class GlobalRestControllerAdvice {
      * Runtime 500에러
      */
     @ExceptionHandler(RuntimeException.class)
-    public ApiResponse<Void> handleRuntimeException(RuntimeException ex) {
+    public ResponseEntity<?> handleRuntimeException(RuntimeException ex) {
 
         // 500 runtime은 로그를 남긴다.
         log.error("e: ", ex);
 
-        return ApiResponse.error(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 }

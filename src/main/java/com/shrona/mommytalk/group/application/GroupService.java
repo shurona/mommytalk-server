@@ -84,9 +84,14 @@ public interface GroupService {
     void deleteUserFromGroupByPhones(Long id, List<String> phoneNumberList);
 
     /**
-     * 그룹에서 데이터베이스 아이디를 기준으로 유저 목록 삭제
+     * 그룹에서 데이터베이스 아이디를 기준으로 유저그룹 목록 삭제
      */
     void deleteUserFromGroupByIds(Long id, List<Long> ids);
+
+    /**
+     * 그룹에서 유저 아이디를 기준으로 유저그룹 목록 삭제
+     */
+    public void deleteUserFromGroupByUserIds(Long id, List<Long> userIds);
 
 
     /**
