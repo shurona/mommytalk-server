@@ -1,8 +1,8 @@
 package com.shrona.mommytalk.line.infrastructure;
 
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.line.domain.MessageLog;
 import com.shrona.mommytalk.line.infrastructure.dao.LogLineIdCount;
+import com.shrona.mommytalk.message.domain.MessageLog;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.domain.Page;

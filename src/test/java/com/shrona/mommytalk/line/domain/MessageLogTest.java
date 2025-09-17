@@ -3,6 +3,7 @@ package com.shrona.mommytalk.line.domain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.shrona.mommytalk.line.common.exception.LineException;
+import com.shrona.mommytalk.message.domain.MessageLog;
 import java.time.LocalDateTime;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

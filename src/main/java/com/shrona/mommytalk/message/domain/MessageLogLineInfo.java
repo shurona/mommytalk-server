@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.domain;
+package com.shrona.mommytalk.message.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.domain;
+package com.shrona.mommytalk.message.domain;
 
 
 import com.shrona.mommytalk.common.entity.BaseEntity;

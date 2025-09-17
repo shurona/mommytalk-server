@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.line.presentation.form;
 
-import com.shrona.mommytalk.line.domain.MessageLog;
+import com.shrona.mommytalk.message.domain.MessageLog;
 import java.time.LocalDateTime;
 import java.util.Map;
 

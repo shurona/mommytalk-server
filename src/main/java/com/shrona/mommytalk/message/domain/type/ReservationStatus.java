@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.domain.type;
+package com.shrona.mommytalk.message.domain.type;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

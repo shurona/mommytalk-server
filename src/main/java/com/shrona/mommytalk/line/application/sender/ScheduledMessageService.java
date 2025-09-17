@@ -1,8 +1,8 @@
 package com.shrona.mommytalk.line.application.sender;
 
 import com.shrona.mommytalk.line.application.utils.MessageUtils;
-import com.shrona.mommytalk.line.domain.MessageLog;
 import com.shrona.mommytalk.line.infrastructure.MessageLogJpaRepository;
+import com.shrona.mommytalk.message.domain.MessageLog;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

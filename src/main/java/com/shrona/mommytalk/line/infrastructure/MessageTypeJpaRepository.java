@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.line.infrastructure;
 
-import com.shrona.mommytalk.line.domain.MessageType;
+import com.shrona.mommytalk.message.domain.MessageType;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
