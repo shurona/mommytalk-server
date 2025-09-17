@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.application.utils;
+package com.shrona.mommytalk.message.common.utils;
 
 import static com.shrona.mommytalk.common.utils.StaticVariable.NO_DELAY;
 

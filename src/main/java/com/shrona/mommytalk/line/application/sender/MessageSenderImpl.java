@@ -4,7 +4,6 @@ import com.shrona.mommytalk.admin.application.AdminService;
 import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
-import com.shrona.mommytalk.line.infrastructure.MessageLogJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSingleSenderClient;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
@@ -12,6 +11,7 @@ import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageSingleRequ
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogLineInfo;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
+import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Base64;

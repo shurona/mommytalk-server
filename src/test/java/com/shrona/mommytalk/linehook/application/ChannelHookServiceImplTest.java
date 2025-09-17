@@ -7,12 +7,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.line.application.utils.MessageUtils;
 import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.ChannelLineUserJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
+import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;

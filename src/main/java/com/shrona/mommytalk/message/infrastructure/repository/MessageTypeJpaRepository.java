@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.infrastructure;
+package com.shrona.mommytalk.message.infrastructure.repository;
 
 import com.shrona.mommytalk.message.domain.MessageType;
 import java.util.Optional;

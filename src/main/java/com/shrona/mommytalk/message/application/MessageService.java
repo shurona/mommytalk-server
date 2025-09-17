@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.application;
+package com.shrona.mommytalk.message.application;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.message.domain.MessageLog;
