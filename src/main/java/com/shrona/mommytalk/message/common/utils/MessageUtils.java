@@ -3,7 +3,7 @@ package com.shrona.mommytalk.message.common.utils;
 import static com.shrona.mommytalk.common.utils.StaticVariable.NO_DELAY;
 
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.line.application.sender.MessageSender;
+import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import java.time.Duration;
@@ -22,7 +22,7 @@ public class MessageUtils {
 
     private final TaskScheduler taskScheduler;
 
-    private final MessageSender messageSender;
+    private final LineMessageSender lineMessageSender;
 
     /**
      * 두 시간 사이의 초를 계산한다.
@@ -38,7 +38,7 @@ public class MessageUtils {
     public void registerTaskSchedule(List<MessageLog> messageLogList, LocalDateTime reserveTime) {
 
         // 메시지 Sender를 Runner로 처리
-        Runnable task = () -> messageSender.sendLineMessageByReservationByMessageIds(
+        Runnable task = () -> lineMessageSender.sendLineMessageByReservationByMessageIds(
             messageLogList.stream().map(MessageLog::getId).toList()
         );
 
@@ -58,7 +58,7 @@ public class MessageUtils {
         LocalDateTime reserveTime) {
 
         // 메시지 센더를 Runner로 처리
-        Runnable task = () -> messageSender.sendSingleMessageWithContents(
+        Runnable task = () -> lineMessageSender.sendSingleMessageWithContents(
             channel, lineUser, text
         );
 

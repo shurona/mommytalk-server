@@ -10,7 +10,7 @@ import com.shrona.mommytalk.common.dto.ChannelForm;
 import com.shrona.mommytalk.common.dto.PagingForm;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.domain.Group;
-import com.shrona.mommytalk.line.application.sender.MessageSender;
+import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.line.presentation.dtos.MessageLogUpdateRequestDto;
 import com.shrona.mommytalk.line.presentation.form.MessageListForm;
 import com.shrona.mommytalk.line.presentation.form.MessageSendForm;
@@ -51,7 +51,7 @@ public class MessageController {
     private final ChannelService channelService;
 
     // sender
-    private final MessageSender messageSender;
+    private final LineMessageSender lineMessageSender;
 
     @GetMapping
     public String sendMessageView(
@@ -202,7 +202,7 @@ public class MessageController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (messageSender.sendTestLineMessage(channelInfo.get(), form.content())) {
+        if (lineMessageSender.sendTestLineMessage(channelInfo.get(), form.content())) {
             return ResponseEntity.ok(Map.of("success", true));
         } else {
             return ResponseEntity.internalServerError().build();

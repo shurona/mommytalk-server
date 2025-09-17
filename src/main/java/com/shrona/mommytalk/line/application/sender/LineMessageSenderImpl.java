@@ -26,7 +26,7 @@ import org.springframework.web.client.RestClientResponseException;
 @Transactional(readOnly = true)
 @Slf4j
 @Service
-public class MessageSenderImpl implements MessageSender {
+public class LineMessageSenderImpl implements LineMessageSender {
 
     // 메시지 전송 status
     private static final int FAIL = 0;

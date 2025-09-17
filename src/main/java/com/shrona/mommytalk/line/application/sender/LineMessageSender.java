@@ -4,7 +4,7 @@ import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import java.util.List;
 
-public interface MessageSender {
+public interface LineMessageSender {
 
     /**
      * 예약된 메시지를 전달한다.

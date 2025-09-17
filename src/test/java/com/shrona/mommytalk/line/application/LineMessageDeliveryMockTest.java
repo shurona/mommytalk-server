@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.group.application.GroupService;
-import com.shrona.mommytalk.line.application.sender.MessageSenderImpl;
+import com.shrona.mommytalk.line.application.sender.LineMessageSenderImpl;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogLineInfo;
@@ -37,7 +37,7 @@ public class LineMessageDeliveryMockTest {
     private LineMessageSenderClient lineMessageSenderClient;
 
     @InjectMocks
-    private MessageSenderImpl messageSender; // 테스트 대상 클래스
+    private LineMessageSenderImpl messageSender; // 테스트 대상 클래스
 
 
     @Test

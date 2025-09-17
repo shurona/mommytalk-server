@@ -2,7 +2,7 @@ package com.shrona.mommytalk.line.presentation.controller;
 
 import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.line.application.sender.MessageSender;
+import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.line.presentation.dtos.TestMessageRequestBody;
 import com.shrona.mommytalk.line.presentation.dtos.TestMessageResponseBody;
 import java.util.Optional;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class MessageRestController {
 
-    private final MessageSender messageSender;
+    private final LineMessageSender lineMessageSender;
     private final ChannelService channelService;
 
     @PostMapping("/test")
@@ -33,7 +33,7 @@ public class MessageRestController {
             return ResponseEntity.badRequest().build();
         }
 
-        boolean b = messageSender.sendTestLineMessage(channel.get(), requestBody.text());
+        boolean b = lineMessageSender.sendTestLineMessage(channel.get(), requestBody.text());
 
         return ResponseEntity.ok().body(new TestMessageResponseBody(b));
     }
