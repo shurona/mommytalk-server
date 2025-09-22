@@ -17,9 +17,12 @@ import com.shrona.mommytalk.message.application.MessageTypeServiceImpl;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageType;
+import com.shrona.mommytalk.message.domain.ScheduledMessageText;
+import com.shrona.mommytalk.message.infrastructure.repository.ScheduledMessageTextJpaRepository;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -42,6 +45,9 @@ import org.springframework.transaction.annotation.Transactional;
 class MessageServiceImplTest {
 
     @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
     private MessageServiceImpl messageService;
     @Autowired
     private MessageTypeServiceImpl messageTypeService;
@@ -53,8 +59,11 @@ class MessageServiceImplTest {
     private LineUserJpaRepository lineUserJpaRepository;
     @Autowired
     private ChannelJpaRepository channelRepository;
+    @Autowired
+    private ScheduledMessageTextJpaRepository scheduledMessageTextJpaRepository;
     @MockitoBean
     private MessageUtils messageUtils;
+
     private Channel channel;
     private Channel channel2;
     private Group groupInfo;
@@ -69,7 +78,11 @@ class MessageServiceImplTest {
 
         Group beforeSave = Group.createGroup(channel, "name", "description");
         groupInfo = groupJpaRepository.save(beforeSave);
+        scheduledMessageTextJpaRepository.save(
+            ScheduledMessageText.of(mt, "컨텐츠", 2, 2));
 
+        entityManager.flush();
+        entityManager.clear();
 
     }
 
@@ -161,22 +174,22 @@ class MessageServiceImplTest {
         );
 
         includeGroupInfo.addUserToGroup(
-            userList.subList(10, 89).stream().map(
-                u -> UserGroup.createUserGroup(u, groupInfo)
+            userList.subList(0, 50).stream().map(
+                u -> UserGroup.createUserGroup(u, includeGroupInfo)
             ).toList()
         );
 
         exceptGroupInfo.addUserToGroup(
-            userList.subList(0, 30).stream().map(
+            userList.subList(40, 80).stream().map(
                 u -> UserGroup.createUserGroup(u, exceptGroupInfo)
             ).toList()
         );
 
-        exceptSecondGroupInfo.addUserToGroup(
-            userList.subList(20, 88).stream().map(
-                u -> UserGroup.createUserGroup(u, exceptGroupInfo)
-            ).toList()
-        );
+//        exceptSecondGroupInfo.addUserToGroup(
+//            userList.subList(20, 88).stream().map(
+//                u -> UserGroup.createUserGroup(u, exceptGroupInfo)
+//            ).toList()
+//        );
 
         groupJpaRepository.saveAll(
             List.of(groupInfo, includeGroupInfo, exceptGroupInfo, exceptSecondGroupInfo));
@@ -189,13 +202,13 @@ class MessageServiceImplTest {
             .createMessageSelectGroup(channel, mt.getId(),
                 List.of(groupInfo.getId(), includeGroupInfo.getId()),
                 List.of(exceptGroupInfo.getId()),
-                reserveTime.plusHours(10), content);
+                reserveTime.plusHours(1), content);
 
         // then
         MessageLog first = messageService.findByMessageId(messageLogList.getFirst().getId());
         MessageLog last = messageService.findByMessageId(messageLogList.getLast().getId());
-        assertThat(first.getMessageLogLineInfoList().size()).isEqualTo(12);
-        assertThat(last.getMessageLogLineInfoList().size()).isEqualTo(1);
+        assertThat(first.getMessageLogDetailInfoList().size()).isEqualTo(160);
+        assertThat(last.getMessageLogDetailInfoList().size()).isEqualTo(40);
     }
 
     @Test
@@ -269,7 +282,7 @@ class MessageServiceImplTest {
             List.of(messageLogList.getFirst().getId()));
 
         // then
-        assertThat(messageLog.getMessageLogLineInfoList().size()).isEqualTo(2);
+        assertThat(messageLog.getMessageLogDetailInfoList().size()).isEqualTo(2);
         assertThat(lineIdCountByLog.get(messageLog.getId())).isEqualTo(2);
     }
 
@@ -290,18 +303,19 @@ class MessageServiceImplTest {
         List<User> userForSaveList = new ArrayList<>();
         for (int i = 0; i < userCt; i++) {
             String phoneN = "010-" + middle + "-" + String.valueOf(1000 + i);
-            userForSaveList.add(
-                User.createUser(PhoneNumber.changeWithoutError(phoneN))
-            );
+            User tpUser = User.createUser(PhoneNumber.changeWithoutError(phoneN));
+            tpUser.updateUserFromRequest("미나", 2, 2);
+            userForSaveList.add(tpUser);
         }
         List<User> userList = userJpaRepository.saveAll(userForSaveList);
 
         List<User> userWithLineForSaveList = new ArrayList<>();
         for (int i = 0; i < lintCt; i++) {
             String phoneN = "010-" + middle + "-" + String.valueOf(2000 + i);
-            userWithLineForSaveList.add(
-                User.createUserWithLine(PhoneNumber.changeWithoutError(phoneN), lineUsers.get(i))
-            );
+            User tpUser = User.createUserWithLine(PhoneNumber.changeWithoutError(phoneN),
+                lineUsers.get(i));
+            tpUser.updateUserFromRequest("미나", 2, 2);
+            userWithLineForSaveList.add(tpUser);
         }
         List<User> userListWithLine = userJpaRepository.saveAll(userWithLineForSaveList);
 

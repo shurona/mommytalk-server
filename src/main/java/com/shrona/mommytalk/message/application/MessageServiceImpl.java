@@ -5,14 +5,17 @@ import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MES
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.domain.Group;
+import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.line.infrastructure.dao.LogLineIdCount;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
-import com.shrona.mommytalk.message.domain.MessageLogLineInfo;
+import com.shrona.mommytalk.message.domain.MessageLogDetailInfo;
 import com.shrona.mommytalk.message.domain.MessageType;
+import com.shrona.mommytalk.message.domain.ScheduledMessageText;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageTypeJpaRepository;
+import com.shrona.mommytalk.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -48,11 +51,8 @@ public class MessageServiceImpl implements MessageService {
     @Transactional
     public List<MessageLog> createMessageSelectGroup
         (Channel channel, Long messageTypeId,
-            List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
+            List<Long> selectedGroupIds, List<Long> exceptGroupIds,
             LocalDateTime reserveTime, String content) {
-
-        // 제외할 LineIds를 갖고 온다.
-        Set<String> exceptLineIds = getExceptLineIds(selectedExGroupIds);
 
         MessageType typeInfo = messageTypeRepository.findByDeliveryTime(reserveTime.toLocalDate())
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
@@ -63,9 +63,12 @@ public class MessageServiceImpl implements MessageService {
             return null;
         }
 
+        // 제외할 UserIds를 갖고 온다.
+        Set<Long> exceptUserIds = getExceptUserIds(exceptGroupIds);
+
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
             .map(g -> createMessageLogForGroup(g, channel, typeInfo,
-                reserveTime, content, exceptLineIds))
+                reserveTime, content, exceptUserIds))
             .toList());
 
         // commit이 된 이후에 실행을 한다.
@@ -89,8 +92,6 @@ public class MessageServiceImpl implements MessageService {
         MessageType typeInfo = messageTypeRepository.findByDeliveryTime(reserveTime.toLocalDate())
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
-        Set<String> exceptLineIds = getExceptLineIds(exceptGroupIds);
-
         // todo: 추후에 그룹이 많아지면 loop으로 처리
         List<Group> groupInfo = groupService.findGroupListNotIn(channel, exceptGroupIds);
 
@@ -98,9 +99,11 @@ public class MessageServiceImpl implements MessageService {
             return null;
         }
 
+        Set<Long> exceptUserIds = getExceptUserIds(exceptGroupIds);
+
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
             .map(g -> createMessageLogForGroup(g, channel, typeInfo,
-                reserveTime, content, exceptLineIds))
+                reserveTime, content, exceptUserIds))
             .toList());
 
         // commit이 된 이후에 실행을 한다.
@@ -181,37 +184,55 @@ public class MessageServiceImpl implements MessageService {
      * MessageLog를 생성해 주는 메소드
      */
     private MessageLog createMessageLogForGroup(Group g, Channel channel, MessageType type,
-        LocalDateTime reserveTime, String content, Set<String> exceptLineIds) {
-        List<String> lineIds = groupService.findGroupById(g.getId(), true)
+        LocalDateTime reserveTime, String content, Set<Long> exceptUserIds) {
+        List<UserGroup> userGroupList = groupService.findGroupById(g.getId(), true)
+            .getUserGroupList();
+
+        List<User> sendUserInfo = groupService.findGroupById(g.getId(), true)
             .getUserGroupList()
             .stream()
-            .filter(gu -> gu.getUser().getLineUser() != null) // 라인 아이디가 있는 경우
-            .filter(gu -> !exceptLineIds.contains(
-                gu.getUser().getLineUser().getLineId())) // 제외 라인아이디에 없는 경우
-            .map(gu -> gu.getUser().getLineUser().getLineId()) // 라인 아이디를 추출한다.
+            .map(UserGroup::getUser) // 유저 추출
+            .filter(user -> !exceptUserIds.contains(
+                user.getId())) // 제외 그룹 유저 한다.
             .toList();
 
         MessageLog messageLog = MessageLog.messageLog(channel, type, g, reserveTime, content);
 
-        lineIds.forEach(l -> {
-            messageLog.addMessageLogLineInfo(
-                MessageLogLineInfo.createLineInfo(messageLog, l));
+        // ScheduledMessageText를 레벨 조합으로 미리 Map에 저장 (한 번만 조회)
+        Map<String, ScheduledMessageText> levelMap = type.getScheduledMessageTextList()
+            .stream()
+            .collect(Collectors.toMap(
+                smt -> smt.getUserLevel() + "_" + smt.getChildLevel(), // key: "1_2"
+                smt -> smt
+            ));
+
+        System.out.println();
+
+        sendUserInfo.forEach(user -> {
+            String levelKey = user.getUserLevel() + "_" + user.getChildLevel();
+            ScheduledMessageText scheduledText = levelMap.get(levelKey);
+
+            if (scheduledText != null) {
+                messageLog.addMessageLogLineInfo(
+                    MessageLogDetailInfo.createLogDetail(messageLog, user, scheduledText)
+                );
+            }
         });
 
         return messageLog;
     }
 
     /**
-     * 제외할 라인 Id 목록을 갖고 온다.
+     * 제외할 User Id 목록을 갖고 온다.
      */
-    private Set<String> getExceptLineIds(List<Long> selectedExGroupIds) {
-        Set<String> exceptLineIds;
+    private Set<Long> getExceptUserIds(List<Long> selectedExGroupIds) {
+        Set<Long> exceptUserIds;
         if (selectedExGroupIds != null) {
-            exceptLineIds = new HashSet<>(groupService.findLineIdsByGroupIds(selectedExGroupIds));
+            exceptUserIds = new HashSet<>(groupService.findUserIdsByGroupIds(selectedExGroupIds));
         } else {
-            exceptLineIds = new HashSet<>();
+            exceptUserIds = new HashSet<>();
         }
-        return exceptLineIds;
+        return exceptUserIds;
     }
 
 }

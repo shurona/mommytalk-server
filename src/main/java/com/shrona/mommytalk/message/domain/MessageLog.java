@@ -67,7 +67,7 @@ public class MessageLog extends BaseEntity {
 
     @BatchSize(size = 500)
     @OneToMany(mappedBy = "messageLog", cascade = PERSIST)
-    private List<MessageLogLineInfo> messageLogLineInfoList = new ArrayList<>();
+    private List<MessageLogDetailInfo> messageLogDetailInfoList = new ArrayList<>();
 
 
     public static MessageLog messageLog(
@@ -84,8 +84,8 @@ public class MessageLog extends BaseEntity {
     }
 
     // 연관관계 메소드
-    public void addMessageLogLineInfo(MessageLogLineInfo info) {
-        messageLogLineInfoList.add(info);
+    public void addMessageLogLineInfo(MessageLogDetailInfo info) {
+        messageLogDetailInfoList.add(info);
         info.setMessageLogInfo(this);
     }
 

@@ -46,4 +46,17 @@ public class ScheduledMessageText {
     @JoinColumn(name = "message_type_id")
     private MessageType messageType;
 
+    /**
+     * 처음 생성 할 때 메시지 스케쥴 디테일
+     */
+    public static ScheduledMessageText of(
+        MessageType type, String content, int childLevel, int userLevel) {
+        return ScheduledMessageText.builder()
+            .content(content)
+            .childLevel(childLevel)
+            .userLevel(userLevel)
+            .messageType(type)
+            .build();
+    }
+
 }

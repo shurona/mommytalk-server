@@ -37,7 +37,7 @@ public interface MessageLogJpaRepository extends JpaRepository<MessageLog, Long>
 
     @Query(
         "SELECT new com.shrona.mommytalk.line.infrastructure.dao.LogLineIdCount(m.id, COUNT(ml)) " +
-            "FROM MessageLog m LEFT JOIN m.messageLogLineInfoList ml " +
+            "FROM MessageLog m LEFT JOIN m.messageLogDetailInfoList ml " +
             "where m.id in :ids " +
             "GROUP BY m.id")
     List<LogLineIdCount> findLineCountPerLog(List<Long> ids);

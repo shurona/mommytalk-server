@@ -34,9 +34,9 @@ public interface GroupService {
     Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable);
 
     /**
-     * 그룹 아이디에 해당하는 라인 아이디 목록 조회
+     * 그룹 아이디에 해당하는 라인 유저 아이디 목록 조회
      */
-    List<String> findLineIdsByGroupIds(List<Long> groupList);
+    List<Long> findUserIdsByGroupIds(List<Long> groupList);
 
     /**
      * 그룹아이디가 존재하지 않는 그룹 목록 조회

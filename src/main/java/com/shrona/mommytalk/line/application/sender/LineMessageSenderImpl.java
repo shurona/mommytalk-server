@@ -9,7 +9,6 @@ import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSingleSenderCl
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageSingleRequestBody;
 import com.shrona.mommytalk.message.domain.MessageLog;
-import com.shrona.mommytalk.message.domain.MessageLogLineInfo;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
 import java.nio.charset.StandardCharsets;
@@ -139,8 +138,8 @@ public class LineMessageSenderImpl implements LineMessageSender {
      */
     private int sendMessageToLine(MessageLog messageLog) {
         // 그룹 목록에서 User의 lineId를 추출
-        List<String> lineIdList = messageLog.getMessageLogLineInfoList().stream()
-            .map(MessageLogLineInfo::getLineId).toList();
+        List<String> lineIdList = messageLog.getMessageLogDetailInfoList().stream()
+            .map((info) -> info.getUser().getLineUser().getLineId()).toList();
 
         String accessToken = messageLog.getChannel().getAccessToken();
         // 목록 및 accessToken이 비어 있으면 보내지 않는다.

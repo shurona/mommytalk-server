@@ -74,8 +74,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<String> findLineIdsByGroupIds(List<Long> groupList) {
-        return groupRepository.findLineIdsByGroupIds(groupList);
+    public List<Long> findUserIdsByGroupIds(List<Long> groupList) {
+        return userGroupRepository.findUserIdsByGroupIds(groupList);
     }
 
     @Override

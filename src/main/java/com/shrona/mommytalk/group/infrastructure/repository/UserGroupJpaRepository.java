@@ -41,6 +41,17 @@ public interface UserGroupJpaRepository extends JpaRepository<UserGroup, Long> {
         """)
     Page<UserGroup> findAllByGroupId(Group group, Pageable pageable);
 
+    /**
+     * 그룹 아이디를 기준으로 속한 라인 아이디를 조사한다.
+     */
+    @Query("""
+        SELECT DISTINCT ug.user.id
+        FROM UserGroup ug
+        WHERE ug.group.id IN :groupIds
+        """)
+    List<Long> findUserIdsByGroupIds(List<Long> groupIds);
+
+
     @Modifying
     @Query(value = "DELETE FROM user_group WHERE user_id = :userId", nativeQuery = true)
     void deleteAllByUserIdWithoutRestriction(Long userId);
