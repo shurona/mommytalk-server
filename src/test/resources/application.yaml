@@ -17,8 +17,15 @@ spring:
 
 
 line:
+  auth:
+    channel-id: "LINE_AUTH_CHANNEL_ID"
+    secret-key: "LINE_AUTH_SECRET_KEY"
   secret-key: "LINE_CHANNEL_SECRET"
   base-url: "LINE_BASE_URL"
+  api:
+    token-url: https://api.line.me/oauth2/v2.1/token
+    profile-url: https://api.line.me/v2/profile
+
 
 
 admin:

@@ -73,7 +73,7 @@ public class JwtUtils {
             Jwts.parser().verifyWith(key).build().parseSignedClaims(jwtToken);
             return true;
         } catch (Exception e) {
-            log.error("에러 원인 : {} 에러 설명 : {}", e.getCause(), e.getMessage());
+//            log.error("에러 원인 : {} 에러 설명 : {}", e.getCause(), e.getMessage());
         }
         return false;
     }

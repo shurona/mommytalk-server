@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.presentation.mvc;
+package com.shrona.mommytalk.message.presentation.mvc;
 
 import static com.shrona.mommytalk.common.utils.StaticVariable.HOME_VIEW;
 import static com.shrona.mommytalk.line.presentation.form.TargetType.ALL;

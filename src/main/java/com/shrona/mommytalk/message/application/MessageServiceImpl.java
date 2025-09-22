@@ -1,9 +1,12 @@
 package com.shrona.mommytalk.message.application;
 
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_NOT_SCHEDULED_FOR_DATE;
+
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.line.infrastructure.dao.LogLineIdCount;
+import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogLineInfo;
@@ -14,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -44,13 +46,6 @@ public class MessageServiceImpl implements MessageService {
 
 
     @Transactional
-    public MessageType createMessageType(String title, String text) {
-        Optional<MessageType> mt = messageTypeRepository.findByTitle(title);
-        MessageType messageType = MessageType.of(title, text);
-        return mt.orElseGet(() -> messageTypeRepository.save(messageType));
-    }
-
-    @Transactional
     public List<MessageLog> createMessageSelectGroup
         (Channel channel, Long messageTypeId,
             List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
@@ -59,15 +54,17 @@ public class MessageServiceImpl implements MessageService {
         // 제외할 LineIds를 갖고 온다.
         Set<String> exceptLineIds = getExceptLineIds(selectedExGroupIds);
 
-        Optional<MessageType> typeInfo = messageTypeRepository.findById(messageTypeId);
+        MessageType typeInfo = messageTypeRepository.findByDeliveryTime(reserveTime.toLocalDate())
+            .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
+
         List<Group> groupInfo = groupService.findGroupByIdList(selectedGroupIds);
 
-        if (typeInfo.isEmpty() || groupInfo.isEmpty()) {
+        if (groupInfo.isEmpty()) {
             return null;
         }
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(),
+            .map(g -> createMessageLogForGroup(g, channel, typeInfo,
                 reserveTime, content, exceptLineIds))
             .toList());
 
@@ -89,19 +86,20 @@ public class MessageServiceImpl implements MessageService {
         (Channel channel, Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime,
             String content) {
 
-        Optional<MessageType> typeInfo = messageTypeRepository.findById(messageTypeId);
+        MessageType typeInfo = messageTypeRepository.findByDeliveryTime(reserveTime.toLocalDate())
+            .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
         Set<String> exceptLineIds = getExceptLineIds(exceptGroupIds);
 
         // todo: 추후에 그룹이 많아지면 loop으로 처리
         List<Group> groupInfo = groupService.findGroupListNotIn(channel, exceptGroupIds);
 
-        if (typeInfo.isEmpty() || groupInfo.isEmpty()) {
+        if (groupInfo.isEmpty()) {
             return null;
         }
 
         List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> createMessageLogForGroup(g, channel, typeInfo.get(),
+            .map(g -> createMessageLogForGroup(g, channel, typeInfo,
                 reserveTime, content, exceptLineIds))
             .toList());
 

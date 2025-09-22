@@ -64,9 +64,6 @@ public class User extends BaseEntity {
     @Column(name = "add_method")
     private AddUserMethod addMethod;
 
-    @OneToMany(mappedBy = "user")
-    private List<UserGroup> userGroupList = new ArrayList<>();
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "line_user_id")
     private LineUser lineUser;
@@ -74,6 +71,9 @@ public class User extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kakao_user_id")
     private KakaoUser kakaoUser;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserGroup> userGroupList = new ArrayList<>();
 
     /**
      * 라인 없이 신규 유저 추가

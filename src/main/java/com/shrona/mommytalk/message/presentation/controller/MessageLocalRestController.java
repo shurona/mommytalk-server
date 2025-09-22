@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.presentation.controller;
+package com.shrona.mommytalk.message.presentation.controller;
 
 import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.domain.Channel;
@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 //local 테스트 용 Controller
 @Profile({"local"})
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/messages")
+@RequestMapping("/api/v1/test-messages")
 @RestController
-public class MessageRestController {
+public class MessageLocalRestController {
 
     private final LineMessageSender lineMessageSender;
     private final ChannelService channelService;

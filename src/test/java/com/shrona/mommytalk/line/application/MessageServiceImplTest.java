@@ -13,12 +13,14 @@ import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
 import com.shrona.mommytalk.message.application.MessageServiceImpl;
+import com.shrona.mommytalk.message.application.MessageTypeServiceImpl;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,9 +41,10 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 class MessageServiceImplTest {
 
-
     @Autowired
     private MessageServiceImpl messageService;
+    @Autowired
+    private MessageTypeServiceImpl messageTypeService;
     @Autowired
     private GroupJpaRepository groupJpaRepository;
     @Autowired
@@ -52,23 +55,30 @@ class MessageServiceImplTest {
     private ChannelJpaRepository channelRepository;
     @MockitoBean
     private MessageUtils messageUtils;
-
     private Channel channel;
     private Channel channel2;
-
     private Group groupInfo;
     private MessageType mt;
+    private LocalDate currentDate = LocalDate.now();
 
     @BeforeEach
     public void beforeEach() {
         channel = channelRepository.save(Channel.createChannel("이름", "설명"));
         channel2 = channelRepository.save(Channel.createChannel("이름2", "설명"));
-        mt = messageService.createMessageType("타이틀", "예시 포맷");
+        mt = messageTypeService.createMessageType("타이틀", "예시 포맷", currentDate);
 
         Group beforeSave = Group.createGroup(channel, "name", "description");
         groupInfo = groupJpaRepository.save(beforeSave);
 
 
+    }
+
+    @Test
+    public void 날짜로_메시지_조회() {
+
+        MessageType messageTypeByDate = messageTypeService.findMessageTypeByDate(currentDate);
+
+        assertThat(messageTypeByDate.getId()).isEqualTo(mt.getId());
     }
 
     @Test
@@ -107,7 +117,7 @@ class MessageServiceImplTest {
             messageService
                 .createMessageSelectGroup(channel, mt.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
-                    reserveTime.plusHours(i), content);
+                    reserveTime, content);
         }
 
         // then
