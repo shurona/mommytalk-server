@@ -2,7 +2,8 @@ package com.shrona.mommytalk.line.application.sender;
 
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
-import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.MessageQueryRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class ScheduledMessageService {
 
     // repository
-    private final MessageLogJpaRepository messageRepository;
+    private final MessageQueryRepository messageRepository;
 
     // utils
     private final MessageUtils messageUtils;
@@ -29,10 +30,13 @@ public class ScheduledMessageService {
 
         // 서버 시작할 때 쓰레드 확인
         logThreadSize();
-        List<MessageLog> reservedMessageList = messageRepository.findAllByReservedMessage();
+
+        // 현재 시간 이전의 예약 메시지를 조회한다.
+        List<MessageLog> allReservedMessageBeforeNow =
+            messageRepository.findAllByReservedMessageBeforeDate(LocalDateTime.now());
 
         // 반복문으로 등록해준다.
-        reservedMessageList.stream()
+        allReservedMessageBeforeNow
             .forEach(rs -> {
                 messageUtils.registerTaskSchedule(List.of(rs), rs.getReserveTime());
             });

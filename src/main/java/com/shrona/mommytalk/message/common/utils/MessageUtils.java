@@ -3,6 +3,7 @@ package com.shrona.mommytalk.message.common.utils;
 import static com.shrona.mommytalk.common.utils.StaticVariable.NO_DELAY;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.message.domain.MessageLog;
@@ -36,19 +37,31 @@ public class MessageUtils {
      * 여러 전송을 스케쥴로 등록하는 메소드
      */
     public void registerTaskSchedule(List<MessageLog> messageLogList, LocalDateTime reserveTime) {
+        // 메시지 로그가 비어 있으면 동작하지 않음.
+        if (messageLogList.isEmpty()) {
+            return;
+        }
 
-        // 메시지 Sender를 Runner로 처리
-        Runnable task = () -> lineMessageSender.sendLineMessageByReservationByMessageIds(
-            messageLogList.stream().map(MessageLog::getId).toList()
-        );
+        ChannelPlatform platform = messageLogList.getFirst().getChannel().getChannelPlatform();
 
         // 예약 시간 계산
         long delaySeconds = calculateDelaySeconds(LocalDateTime.now(), reserveTime);
 
-        // task 등록
-        taskScheduler.schedule(task, Instant.now().plusSeconds(delaySeconds));
+        switch (platform) {
+            case ChannelPlatform.KAKAO -> {
 
-        log.info("{}초 이후로 그룹 전송 실행이 등록되었습니다. ", delaySeconds);
+            }
+            case ChannelPlatform.LINE -> {
+                // 메시지 Sender를 Runner로 처리
+                Runnable task = () -> lineMessageSender.sendLineMessageByReservationByMessageIds(
+                    messageLogList.stream().map(MessageLog::getId).toList()
+                );
+                registerSchedule(task, delaySeconds);
+            }
+
+        }
+
+        log.info("[{}]초 이후로 [{}] 플랫폼 그룹 전송 실행이 등록되었습니다. ", delaySeconds, platform);
     }
 
     /**
@@ -71,4 +84,7 @@ public class MessageUtils {
         log.info("{}초 이후로 단일 전송 실행이 등록되었습니다. ", delaySeconds);
     }
 
+    private void registerSchedule(Runnable task, long delaySeconds) {
+        taskScheduler.schedule(task, Instant.now().plusSeconds(delaySeconds));
+    }
 }

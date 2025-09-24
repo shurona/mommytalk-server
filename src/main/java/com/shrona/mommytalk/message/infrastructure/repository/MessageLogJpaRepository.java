@@ -1,7 +1,7 @@
 package com.shrona.mommytalk.message.infrastructure.repository;
 
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.line.infrastructure.dao.LogLineIdCount;
+import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,21 +13,15 @@ import org.springframework.data.jpa.repository.Query;
 public interface MessageLogJpaRepository extends JpaRepository<MessageLog, Long> {
 
     /**
-     * 준비 상태인 현재 시간보다 이전인 모든 메시지를 조회한다
+     * 현재 시간보다 이전인 모든 메시지를 조회한다
      */
-    @Query("select log from MessageLog log where log.reserveTime <= :now and log.status = 'PREPARE'")
-    List<MessageLog> findAllByReservedMessageBeforeNow(LocalDateTime now);
+    @Query("select log from MessageLog log where log.reserveTime <= :now")
+    List<MessageLog> findAllByBeforeNow(LocalDateTime now);
 
     /**
-     * 준비 상태인 현재 시간보다 이전인 모든 메시지를 조회한다
+     * 현재 시간보다 이전인 채널에 속한 메시지를 조회한다
      */
-    @Query("select log from MessageLog log where log.status = 'PREPARE'")
-    List<MessageLog> findAllByReservedMessage();
-
-    /**
-     * 준비 상태인 현재 시간보다 이전인 채널에 속한 메시지를 조회한다
-     */
-    @Query("select log from MessageLog log where log.reserveTime <= :now and log.status = 'PREPARE' and channel = :channel")
+    @Query("select log from MessageLog log where log.reserveTime <= :now and channel = :channel")
     List<MessageLog> findAllReservedMessageByChannel(Channel channel, LocalDateTime now);
 
     /**
@@ -36,10 +30,11 @@ public interface MessageLogJpaRepository extends JpaRepository<MessageLog, Long>
     Page<MessageLog> findAllByChannel(Channel channel, Pageable pageable);
 
     @Query(
-        "SELECT new com.shrona.mommytalk.line.infrastructure.dao.LogLineIdCount(m.id, COUNT(ml)) " +
-            "FROM MessageLog m LEFT JOIN m.messageLogDetailInfoList ml " +
+        "SELECT new com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount(m.id, COUNT(ml)) "
+            +
+            "FROM MessageLog m LEFT JOIN m.messageLogDetailList ml " +
             "where m.id in :ids " +
             "GROUP BY m.id")
-    List<LogLineIdCount> findLineCountPerLog(List<Long> ids);
+    List<LogMessageIdCount> findMessageCountPerLog(List<Long> ids);
 
 }

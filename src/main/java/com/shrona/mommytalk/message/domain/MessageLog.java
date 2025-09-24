@@ -7,11 +7,8 @@ import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
-import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -40,18 +37,11 @@ public class MessageLog extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Enumerated(value = EnumType.STRING)
-    @Column
-    private ReservationStatus status;
-
     @Column(length = 1000)
     private String content;
 
     @Column(name = "reserve_time")
     private LocalDateTime reserveTime;
-
-    @Column(name = "sent_time")
-    private LocalDateTime sentTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
@@ -67,7 +57,7 @@ public class MessageLog extends BaseEntity {
 
     @BatchSize(size = 500)
     @OneToMany(mappedBy = "messageLog", cascade = PERSIST)
-    private List<MessageLogDetailInfo> messageLogDetailInfoList = new ArrayList<>();
+    private List<MessageLogDetail> messageLogDetailList = new ArrayList<>();
 
 
     public static MessageLog messageLog(
@@ -77,32 +67,15 @@ public class MessageLog extends BaseEntity {
         log.group = group;
         log.reserveTime = reserveTime;
         log.messageType = type;
-        log.status = ReservationStatus.PREPARE;
         log.content = content;
 
         return log;
     }
 
     // 연관관계 메소드
-    public void addMessageLogLineInfo(MessageLogDetailInfo info) {
-        messageLogDetailInfoList.add(info);
+    public void addMessageLogLineInfo(MessageLogDetail info) {
+        messageLogDetailList.add(info);
         info.setMessageLogInfo(this);
-    }
-
-    /**
-     * 전송 후 메시지 성공 상태로 변경
-     */
-    public void changeStatusAfterSend() {
-        this.status = ReservationStatus.COMPLETE;
-        this.sentTime = LocalDateTime.now();
-    }
-
-    /**
-     * 메시지 전달 취소
-     */
-    public void cancelStatusBeforeSend() {
-        this.status = ReservationStatus.CANCEL;
-        this.sentTime = LocalDateTime.now();
     }
 
     public void updateMessage(String content) {
@@ -114,9 +87,5 @@ public class MessageLog extends BaseEntity {
         }
 
         this.content = content;
-    }
-
-    public void failedStatusBecauseError() {
-        this.status = ReservationStatus.FAIL;
     }
 }

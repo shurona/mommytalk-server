@@ -169,7 +169,7 @@ public class MessageController {
         @PathVariable("messageId") Long messageId // 메시지 아이디
     ) {
 
-        messageService.cancelSendMessage(messageId);
+//        messageService.cancelSendMessage(messageId);
 
         return ResponseEntity.ok().build();
     }

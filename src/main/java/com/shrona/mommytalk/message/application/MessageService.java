@@ -44,17 +44,12 @@ public interface MessageService {
     /**
      * 예약 된 메시지 목록 조회
      */
-    List<MessageLog> findReservedAllMessage();
+    List<MessageLog> findAllByBeforeNow();
 
     /**
      * 로그의 라인 아이디 갯수를 갖고 온다.
      */
     Map<Long, Integer> findLineIdCountByLog(List<Long> list);
-
-    /**
-     * 메시지 내용 변경
-     */
-    MessageLog cancelSendMessage(Long messageId);
 
     /**
      * 메시지 내용 변경

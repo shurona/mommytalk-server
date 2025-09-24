@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.line.infrastructure.dao;
 
-public record LogLineIdCount(
+public record LogMessageIdCount(
     Long id,
     Long count
 ) {

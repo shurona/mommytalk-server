@@ -6,11 +6,11 @@ import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
-import com.shrona.mommytalk.line.infrastructure.dao.LogLineIdCount;
+import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
-import com.shrona.mommytalk.message.domain.MessageLogDetailInfo;
+import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.domain.ScheduledMessageText;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
@@ -136,34 +136,19 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<MessageLog> findReservedAllMessage() {
-        return messageLogRepository.findAllByReservedMessageBeforeNow(LocalDateTime.now());
+    public List<MessageLog> findAllByBeforeNow() {
+        return messageLogRepository.findAllByBeforeNow(LocalDateTime.now());
     }
 
     @Override
     public Map<Long, Integer> findLineIdCountByLog(List<Long> logIds) {
         // 사용처
-        return messageLogRepository.findLineCountPerLog(logIds)
+        return messageLogRepository.findMessageCountPerLog(logIds)
             .stream()
             .collect(Collectors.toMap(
-                LogLineIdCount::id,
+                LogMessageIdCount::id,
                 middle -> middle.count().intValue()
             ));
-    }
-
-    @Transactional
-    public MessageLog cancelSendMessage(Long messageId) {
-
-        return messageLogRepository.findById(messageId)
-            .map(messageLog -> {
-                messageLog.cancelStatusBeforeSend();
-                return messageLog;
-            })
-            .orElseThrow(() -> {
-                log.error("메시지 발송 취소 실패: 존재하지 않는 messageId={}", messageId);
-                return new IllegalArgumentException("존재하지 않는 메시지 ID: " + messageId);
-            });
-
     }
 
     @Transactional
@@ -206,15 +191,13 @@ public class MessageServiceImpl implements MessageService {
                 smt -> smt
             ));
 
-        System.out.println();
-
         sendUserInfo.forEach(user -> {
             String levelKey = user.getUserLevel() + "_" + user.getChildLevel();
             ScheduledMessageText scheduledText = levelMap.get(levelKey);
 
             if (scheduledText != null) {
                 messageLog.addMessageLogLineInfo(
-                    MessageLogDetailInfo.createLogDetail(messageLog, user, scheduledText)
+                    MessageLogDetail.createLogDetail(messageLog, user, scheduledText)
                 );
             }
         });

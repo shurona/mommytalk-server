@@ -20,7 +20,7 @@ public record MessageListForm(
             messageLog.getCreatedAt().plusHours(9),
             messageLog.getContent(),
             logLineIdCount.getOrDefault(messageLog.getId(), 0),
-            messageLog.getStatus().getStatus()
+            "Status"
         );
     }
 

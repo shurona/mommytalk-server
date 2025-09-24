@@ -207,8 +207,8 @@ class MessageServiceImplTest {
         // then
         MessageLog first = messageService.findByMessageId(messageLogList.getFirst().getId());
         MessageLog last = messageService.findByMessageId(messageLogList.getLast().getId());
-        assertThat(first.getMessageLogDetailInfoList().size()).isEqualTo(160);
-        assertThat(last.getMessageLogDetailInfoList().size()).isEqualTo(40);
+        assertThat(first.getMessageLogDetailList().size()).isEqualTo(160);
+        assertThat(last.getMessageLogDetailList().size()).isEqualTo(40);
     }
 
     @Test
@@ -282,8 +282,8 @@ class MessageServiceImplTest {
             List.of(messageLogList.getFirst().getId()));
 
         // then
-        assertThat(messageLog.getMessageLogDetailInfoList().size()).isEqualTo(2);
-        assertThat(lineIdCountByLog.get(messageLog.getId())).isEqualTo(2);
+        assertThat(messageLog.getMessageLogDetailList().size()).isEqualTo(3);
+        assertThat(lineIdCountByLog.get(messageLog.getId())).isEqualTo(3);
     }
 
     /**

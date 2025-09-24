@@ -11,4 +11,9 @@ public interface MessageQueryRepository {
      */
     List<MessageLog> findAllByReservedMessageBeforeDate(LocalDateTime time);
 
+    /**
+     * 메시지 로그에 저장된 라인 전송 목록을 갖고 온다.
+     */
+    public List<MessageLog> findMessageByIds(List<Long> messageLogIds);
+
 }

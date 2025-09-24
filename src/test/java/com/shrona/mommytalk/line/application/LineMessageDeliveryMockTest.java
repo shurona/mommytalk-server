@@ -1,7 +1,7 @@
 package com.shrona.mommytalk.line.application;
 
 import com.shrona.mommytalk.group.application.GroupService;
-import com.shrona.mommytalk.line.application.sender.LineMessageSenderImpl;
+import com.shrona.mommytalk.line.application.sender.LineMessageSenderLegacyImpl;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ public class LineMessageDeliveryMockTest {
     private LineMessageSenderClient lineMessageSenderClient;
 
     @InjectMocks
-    private LineMessageSenderImpl messageSender; // 테스트 대상 클래스
+    private LineMessageSenderLegacyImpl messageSender; // 테스트 대상 클래스
 
 
     @Test

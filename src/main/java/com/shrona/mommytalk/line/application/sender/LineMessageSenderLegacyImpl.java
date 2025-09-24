@@ -9,23 +9,20 @@ import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSingleSenderCl
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageSingleRequestBody;
 import com.shrona.mommytalk.message.domain.MessageLog;
-import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientResponseException;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Slf4j
-@Service
-public class LineMessageSenderImpl implements LineMessageSender {
+//@Service
+public class LineMessageSenderLegacyImpl implements LineMessageSender {
 
     // 메시지 전송 status
     private static final int FAIL = 0;
@@ -40,25 +37,25 @@ public class LineMessageSenderImpl implements LineMessageSender {
     private final MessageLogJpaRepository messageRepository;
     private final AdminService adminService;
 
-    @Transactional
-    public void sendLineMessageByReservation() {
-
-        // Message 중에 sender가 이전 및 대기 중인 메시지 목록을 조회
-        List<MessageLog> reservedMessage =
-            messageRepository.findAllByReservedMessageBeforeNow(LocalDateTime.now());
-
-        for (MessageLog messageLog : reservedMessage) {
-            // 메시지 전송
-            int sendStatus = sendMessageToLine(messageLog);
-
-            // 전송 성공 시 메시지 상태 변경 및 sender time 설정
-            if (sendStatus == SUCCESS) {
-                messageLog.changeStatusAfterSend();
-            } else if (sendStatus == FAIL) {
-                messageLog.failedStatusBecauseError();
-            }
-        }
-    }
+//    @Transactional
+//    public void sendLineMessageByReservation() {
+//
+//        // Message 중에 sender가 이전 및 대기 중인 메시지 목록을 조회
+//        List<MessageLog> reservedMessage =
+//            messageRepository.findAllByReservedMessageBeforeNow(LocalDateTime.now());
+//
+//        for (MessageLog messageLog : reservedMessage) {
+//            // 메시지 전송
+//            int sendStatus = sendMessageToLine(messageLog);
+//
+//            // 전송 성공 시 메시지 상태 변경 및 sender time 설정
+//            if (sendStatus == SUCCESS) {
+//                messageLog.changeStatusAfterSend();
+//            } else if (sendStatus == FAIL) {
+//                messageLog.failedStatusBecauseError();
+//            }
+//        }
+//    }
 
     @Transactional
     public void sendLineMessageByReservationByMessageIds(List<Long> messageIds) {
@@ -66,18 +63,18 @@ public class LineMessageSenderImpl implements LineMessageSender {
         List<MessageLog> messageLogList = messageRepository.findAllById(messageIds);
         for (MessageLog messageLog : messageLogList) {
             // 예약 상태가 아니면 패스
-            if (!messageLog.getStatus().equals(ReservationStatus.PREPARE)) {
-                continue;
-            }
+//            if (!messageLog.getStatus().equals(ReservationStatus.PREPARE)) {
+//                continue;
+//            }
 
             // 메시지 전송
             int sendStatus = sendMessageToLine(messageLog);
 
             // 전송 성공 시 메시지 상태 변경 및 sender time 설정
             if (sendStatus == SUCCESS) {
-                messageLog.changeStatusAfterSend();
+//                messageLog.changeStatusAfterSend();
             } else if (sendStatus == FAIL) {
-                messageLog.failedStatusBecauseError();
+//                messageLog.failedStatusBecauseError();
             }
         }
     }
@@ -138,7 +135,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
      */
     private int sendMessageToLine(MessageLog messageLog) {
         // 그룹 목록에서 User의 lineId를 추출
-        List<String> lineIdList = messageLog.getMessageLogDetailInfoList().stream()
+        List<String> lineIdList = messageLog.getMessageLogDetailList().stream()
             .map((info) -> info.getUser().getLineUser().getLineId()).toList();
 
         String accessToken = messageLog.getChannel().getAccessToken();

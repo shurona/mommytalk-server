@@ -5,12 +5,7 @@ import com.shrona.mommytalk.line.domain.LineUser;
 import java.util.List;
 
 public interface LineMessageSender {
-
-    /**
-     * 예약된 메시지를 전달한다.
-     */
-    public void sendLineMessageByReservation();
-
+    
     /**
      * ids를 기준으로 메시지를 전달한다.
      */
