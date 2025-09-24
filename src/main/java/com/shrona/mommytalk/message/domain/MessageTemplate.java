@@ -20,8 +20,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Table(name = "scheduled_message_text")
-public class ScheduledMessageText {
+@Table(name = "message_template")
+public class MessageTemplate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -47,11 +47,11 @@ public class ScheduledMessageText {
     private MessageType messageType;
 
     /**
-     * 처음 생성 할 때 메시지 스케쥴 디테일
+     * 처음 생성 할 때 메시지 템플릿
      */
-    public static ScheduledMessageText of(
+    public static MessageTemplate of(
         MessageType type, String content, int childLevel, int userLevel) {
-        return ScheduledMessageText.builder()
+        return MessageTemplate.builder()
             .content(content)
             .childLevel(childLevel)
             .userLevel(userLevel)

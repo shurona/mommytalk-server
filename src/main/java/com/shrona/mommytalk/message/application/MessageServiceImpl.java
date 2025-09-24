@@ -12,7 +12,7 @@ import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.MessageType;
-import com.shrona.mommytalk.message.domain.ScheduledMessageText;
+import com.shrona.mommytalk.message.domain.MessageTemplate;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageTypeJpaRepository;
 import com.shrona.mommytalk.user.domain.User;
@@ -183,8 +183,8 @@ public class MessageServiceImpl implements MessageService {
 
         MessageLog messageLog = MessageLog.messageLog(channel, type, g, reserveTime, content);
 
-        // ScheduledMessageText를 레벨 조합으로 미리 Map에 저장 (한 번만 조회)
-        Map<String, ScheduledMessageText> levelMap = type.getScheduledMessageTextList()
+        // MessageTemplate를 레벨 조합으로 미리 Map에 저장 (한 번만 조회)
+        Map<String, MessageTemplate> levelMap = type.getMessageTemplateList()
             .stream()
             .collect(Collectors.toMap(
                 smt -> smt.getUserLevel() + "_" + smt.getChildLevel(), // key: "1_2"
@@ -193,11 +193,11 @@ public class MessageServiceImpl implements MessageService {
 
         sendUserInfo.forEach(user -> {
             String levelKey = user.getUserLevel() + "_" + user.getChildLevel();
-            ScheduledMessageText scheduledText = levelMap.get(levelKey);
+            MessageTemplate messageTemplate = levelMap.get(levelKey);
 
-            if (scheduledText != null) {
+            if (messageTemplate != null) {
                 messageLog.addMessageLogLineInfo(
-                    MessageLogDetail.createLogDetail(messageLog, user, scheduledText)
+                    MessageLogDetail.createLogDetail(messageLog, user, messageTemplate)
                 );
             }
         });

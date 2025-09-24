@@ -21,7 +21,7 @@ import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.LineFlexMessageR
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.TextContentDto;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
-import com.shrona.mommytalk.message.domain.ScheduledMessageText;
+import com.shrona.mommytalk.message.domain.MessageTemplate;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.MessageQueryRepository;
 import java.nio.charset.StandardCharsets;
@@ -68,29 +68,29 @@ public class LineMessageSenderImpl implements LineMessageSender {
 
             List<MessageLogDetail> mldiList = messageLog.getMessageLogDetailList();
 
-            // ScheduledMessageText.id를 기준으로 LineId 목록 생성
+            // MessageTemplate.id를 기준으로 LineId 목록 생성
             Map<Long, List<String>> lineIdsBySmtId = mldiList.stream()
                 .collect(Collectors.groupingBy(
-                    mldi -> mldi.getScheduledMessageText().getId(),
+                    mldi -> mldi.getMessageTemplate().getId(),
                     Collectors.mapping(
                         mldi -> mldi.getUser().getLineUser().getLineId(),
                         Collectors.toList()
                     )
                 ));
 
-            // ScheduledMessageText.id를 기준으로 ScheduledMessageText 객체 맵 생성
-            Map<Long, ScheduledMessageText> scheduledTextById = mldiList.stream()
+            // MessageTemplate.id를 기준으로 MessageTemplate 객체 맵 생성
+            Map<Long, MessageTemplate> messageTemplateById = mldiList.stream()
                 .collect(Collectors.toMap(
-                    mldi -> mldi.getScheduledMessageText().getId(),
-                    MessageLogDetail::getScheduledMessageText,
+                    mldi -> mldi.getMessageTemplate().getId(),
+                    MessageLogDetail::getMessageTemplate,
                     (existing, replacement) -> existing
                 ));
 
-            for (Long smtId : scheduledTextById.keySet()) {
+            for (Long smtId : messageTemplateById.keySet()) {
                 // 메시지 전송
                 int sendStatus = sendMessageToLine(
                     messageLog.getChannel(), lineIdsBySmtId.get(smtId),
-                    scheduledTextById.get(smtId));
+                    messageTemplateById.get(smtId));
                 // 전송 성공 시 메시지 상태 변경 및 sender time 설정
                 if (sendStatus == SEND_SUCCESS) {
                     // smtId인 MessageLogDetailInfo를 업데이트 해준다.
@@ -157,7 +157,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
      * 메시지를 라인에 전달한다.
      */
     private int sendMessageToLine(
-        Channel channel, List<String> lineIdList, ScheduledMessageText content) {
+        Channel channel, List<String> lineIdList, MessageTemplate content) {
 
         String accessToken = channel.getAccessToken();
         // 목록 및 accessToken이 비어 있으면 보내지 않는다.

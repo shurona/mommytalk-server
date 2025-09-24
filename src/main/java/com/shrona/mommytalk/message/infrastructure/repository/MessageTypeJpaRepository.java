@@ -11,8 +11,8 @@ public interface MessageTypeJpaRepository extends JpaRepository<MessageType, Lon
     Optional<MessageType> findByTitle(String title);
 
     /**
-     * 선택된 날짜에 생성된 DeliveryTime 조회 (ScheduledMessageText fetch join)
+     * 선택된 날짜에 생성된 DeliveryTime 조회 (MessageTemplate fetch join)
      */
-    @Query("SELECT mt FROM MessageType mt LEFT JOIN FETCH mt.scheduledMessageTextList WHERE mt.deliveryTime = :deliveryTime")
+    @Query("SELECT mt FROM MessageType mt LEFT JOIN FETCH mt.messageTemplateList WHERE mt.deliveryTime = :deliveryTime")
     Optional<MessageType> findByDeliveryTime(LocalDate deliveryTime);
 }

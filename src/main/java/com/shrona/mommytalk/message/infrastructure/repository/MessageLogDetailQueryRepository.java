@@ -7,7 +7,7 @@ import java.util.List;
 public interface MessageLogDetailQueryRepository {
 
     /**
-     * ScheduledMessageTextId를 기준으로 Status를 업데이트 한다.
+     * MessageTemplateId를 기준으로 Status를 업데이트 한다.
      */
     Long updateStatusByStmId(Long smtId, ReservationStatus status);
 

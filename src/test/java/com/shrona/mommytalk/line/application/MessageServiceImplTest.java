@@ -17,8 +17,8 @@ import com.shrona.mommytalk.message.application.MessageTypeServiceImpl;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageType;
-import com.shrona.mommytalk.message.domain.ScheduledMessageText;
-import com.shrona.mommytalk.message.infrastructure.repository.ScheduledMessageTextJpaRepository;
+import com.shrona.mommytalk.message.domain.MessageTemplate;
+import com.shrona.mommytalk.message.infrastructure.repository.MessageTemplateJpaRepository;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
@@ -60,7 +60,7 @@ class MessageServiceImplTest {
     @Autowired
     private ChannelJpaRepository channelRepository;
     @Autowired
-    private ScheduledMessageTextJpaRepository scheduledMessageTextJpaRepository;
+    private MessageTemplateJpaRepository messageTemplateJpaRepository;
     @MockitoBean
     private MessageUtils messageUtils;
 
@@ -78,8 +78,8 @@ class MessageServiceImplTest {
 
         Group beforeSave = Group.createGroup(channel, "name", "description");
         groupInfo = groupJpaRepository.save(beforeSave);
-        scheduledMessageTextJpaRepository.save(
-            ScheduledMessageText.of(mt, "컨텐츠", 2, 2));
+        messageTemplateJpaRepository.save(
+            MessageTemplate.of(mt, "컨텐츠", 2, 2));
 
         entityManager.flush();
         entityManager.clear();

@@ -36,7 +36,7 @@ public class MessageType extends BaseEntity {
     private LocalDate deliveryTime;
 
     @OneToMany(mappedBy = "messageType")
-    private List<ScheduledMessageText> scheduledMessageTextList = new ArrayList<>();
+    private List<MessageTemplate> messageTemplateList = new ArrayList<>();
 
     public static MessageType of(String title, String text, LocalDate deliveryTime) {
         MessageType type = new MessageType();
