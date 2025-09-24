@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.message.infrastructure.repository;
+package com.shrona.mommytalk.message.infrastructure.repository.query;
 
 import static com.shrona.mommytalk.line.domain.QLineUser.lineUser;
 import static com.shrona.mommytalk.message.domain.QMessageLogDetail.messageLogDetail;

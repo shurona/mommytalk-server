@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.message.infrastructure.repository;
+package com.shrona.mommytalk.message.infrastructure.repository.query;
 
 import static com.shrona.mommytalk.channel.domain.QChannel.channel;
 import static com.shrona.mommytalk.group.domain.QGroup.group;

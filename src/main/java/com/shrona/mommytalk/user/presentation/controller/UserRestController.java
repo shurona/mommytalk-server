@@ -3,7 +3,7 @@ package com.shrona.mommytalk.user.presentation.controller;
 import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.common.dto.PageResponseDto;
 import com.shrona.mommytalk.user.application.UserService;
-import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
+import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserListResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;

@@ -6,7 +6,7 @@ import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.group.application.GroupServiceImpl;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
-import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
+import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaRepository;
 import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

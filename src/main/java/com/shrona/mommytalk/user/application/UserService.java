@@ -2,7 +2,7 @@ package com.shrona.mommytalk.user.application;
 
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.User;
-import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
+import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
 import java.util.List;

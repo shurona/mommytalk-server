@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.message.infrastructure.repository;
+package com.shrona.mommytalk.message.infrastructure.repository.query;
 
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;

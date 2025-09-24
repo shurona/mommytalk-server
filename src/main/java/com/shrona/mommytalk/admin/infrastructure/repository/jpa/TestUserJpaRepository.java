@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.admin.infrastructure;
+package com.shrona.mommytalk.admin.infrastructure.repository.jpa;
 
 import com.shrona.mommytalk.admin.domain.TestUser;
 import com.shrona.mommytalk.channel.domain.Channel;

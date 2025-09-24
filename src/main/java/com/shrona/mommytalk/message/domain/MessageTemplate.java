@@ -42,6 +42,12 @@ public class MessageTemplate {
     @Column
     private String headerTwoLink;
 
+    @Column
+    private String mommyVoca;
+
+    @Column
+    private Boolean approved;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_type_id")
     private MessageType messageType;

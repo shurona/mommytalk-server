@@ -1,9 +1,10 @@
 package com.shrona.mommytalk.user.infrastructure;
 
 import com.shrona.mommytalk.line.domain.LineUser;
-import com.shrona.mommytalk.line.infrastructure.LineUserJpaRepository;
+import com.shrona.mommytalk.line.infrastructure.repository.jpa.LineUserJpaRepository;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
+import com.shrona.mommytalk.user.infrastructure.repository.jpa.UserJpaRepository;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

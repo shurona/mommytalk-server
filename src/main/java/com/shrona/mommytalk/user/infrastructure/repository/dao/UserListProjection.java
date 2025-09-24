@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.user.infrastructure.dao;
+package com.shrona.mommytalk.user.infrastructure.repository.dao;
 
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import java.time.LocalDateTime;

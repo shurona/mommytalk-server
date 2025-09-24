@@ -9,7 +9,7 @@ import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSingleSenderCl
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageSingleRequestBody;
 import com.shrona.mommytalk.message.domain.MessageLog;
-import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;

@@ -2,8 +2,8 @@ package com.shrona.mommytalk.admin.application;
 
 import com.shrona.mommytalk.admin.domain.AdminUser;
 import com.shrona.mommytalk.admin.domain.TestUser;
-import com.shrona.mommytalk.admin.infrastructure.AdminJpaRepository;
-import com.shrona.mommytalk.admin.infrastructure.TestUserJpaRepository;
+import com.shrona.mommytalk.admin.infrastructure.repository.jpa.AdminJpaRepository;
+import com.shrona.mommytalk.admin.infrastructure.repository.jpa.TestUserJpaRepository;
 import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.user.common.exception.UserErrorCode;

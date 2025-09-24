@@ -1,6 +1,6 @@
 package com.shrona.mommytalk.user.presentation.dtos.response;
 
-import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
+import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
 import java.time.LocalDateTime;
 import lombok.Builder;
 

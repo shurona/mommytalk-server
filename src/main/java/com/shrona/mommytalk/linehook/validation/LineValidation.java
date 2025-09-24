@@ -5,7 +5,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
+import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaRepository;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.user.infrastructure;
+package com.shrona.mommytalk.user.infrastructure.repository.jpa;
 
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.User;

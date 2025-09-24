@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.infrastructure;
+package com.shrona.mommytalk.line.infrastructure.repository.jpa;
 
 
 import com.shrona.mommytalk.channel.domain.Channel;

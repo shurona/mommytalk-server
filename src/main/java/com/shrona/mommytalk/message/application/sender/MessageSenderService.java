@@ -1,7 +1,7 @@
 package com.shrona.mommytalk.message.application.sender;
 
 import com.shrona.mommytalk.line.application.sender.LineMessageSender;
-import com.shrona.mommytalk.message.infrastructure.repository.MessageQueryRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

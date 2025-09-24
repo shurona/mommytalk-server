@@ -4,8 +4,8 @@ import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MES
 
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.domain.MessageType;
-import com.shrona.mommytalk.message.infrastructure.repository.MessageLogJpaRepository;
-import com.shrona.mommytalk.message.infrastructure.repository.MessageTypeJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
 import java.time.LocalDate;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

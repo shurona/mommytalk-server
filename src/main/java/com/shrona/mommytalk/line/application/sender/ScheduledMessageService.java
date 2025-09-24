@@ -2,7 +2,7 @@ package com.shrona.mommytalk.line.application.sender;
 
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
-import com.shrona.mommytalk.message.infrastructure.repository.MessageQueryRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

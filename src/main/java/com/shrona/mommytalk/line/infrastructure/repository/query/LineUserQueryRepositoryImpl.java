@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.infrastructure.repository;
+package com.shrona.mommytalk.line.infrastructure.repository.query;
 
 
 import static com.shrona.mommytalk.line.domain.QLineUser.lineUser;

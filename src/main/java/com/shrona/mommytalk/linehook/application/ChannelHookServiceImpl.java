@@ -13,7 +13,7 @@ import com.shrona.mommytalk.linehook.infrastructure.LineMessageJpaRepository;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
-import com.shrona.mommytalk.user.infrastructure.UserJpaRepository;
+import com.shrona.mommytalk.user.infrastructure.repository.jpa.UserJpaRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

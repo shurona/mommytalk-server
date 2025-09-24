@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.user.infrastructure.repository;
+package com.shrona.mommytalk.user.infrastructure.repository.query;
 
 import static com.shrona.mommytalk.kakao.domain.QChannelKakaoUser.channelKakaoUser;
 import static com.shrona.mommytalk.kakao.domain.QKakaoUser.kakaoUser;
@@ -11,7 +11,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shrona.mommytalk.user.domain.User;
-import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
+import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

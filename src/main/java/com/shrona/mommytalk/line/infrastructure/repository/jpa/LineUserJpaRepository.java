@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.line.infrastructure;
+package com.shrona.mommytalk.line.infrastructure.repository.jpa;
 
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.dao.LineUserWithPhoneDao;

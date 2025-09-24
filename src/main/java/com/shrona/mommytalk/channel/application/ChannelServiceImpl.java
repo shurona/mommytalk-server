@@ -1,7 +1,7 @@
 package com.shrona.mommytalk.channel.application;
 
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
+import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

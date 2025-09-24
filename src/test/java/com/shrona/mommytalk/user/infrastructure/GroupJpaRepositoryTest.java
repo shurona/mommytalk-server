@@ -5,7 +5,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.infrastructure.repository.GroupJpaRepository;
-import com.shrona.mommytalk.line.infrastructure.ChannelJpaRepository;
+import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;

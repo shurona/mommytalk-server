@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.admin.infrastructure;
+package com.shrona.mommytalk.admin.infrastructure.repository.jpa;
 
 import com.shrona.mommytalk.admin.domain.AdminUser;
 import java.util.Optional;

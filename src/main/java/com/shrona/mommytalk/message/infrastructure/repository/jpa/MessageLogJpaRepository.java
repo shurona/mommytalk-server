@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.message.infrastructure.repository;
+package com.shrona.mommytalk.message.infrastructure.repository.jpa;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;

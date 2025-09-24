@@ -1,7 +1,7 @@
-package com.shrona.mommytalk.user.infrastructure.repository;
+package com.shrona.mommytalk.user.infrastructure.repository.query;
 
 import com.shrona.mommytalk.user.domain.User;
-import com.shrona.mommytalk.user.infrastructure.dao.UserListProjection;
+import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
