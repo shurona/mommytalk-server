@@ -44,16 +44,16 @@ public class MessageLogDetail {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "message_template_id")
-    private MessageTemplate messageTemplate;
+    @JoinColumn(name = "message_content_id")
+    private MessageContent messageContent;
 
     public static MessageLogDetail createLogDetail(
-        MessageLog messageLog, User user, MessageTemplate messageTemplate) {
+        MessageLog messageLog, User user, MessageContent messageContent) {
         MessageLogDetail messageLogDetail = new MessageLogDetail();
         messageLogDetail.status = ReservationStatus.PREPARE;
         messageLogDetail.messageLog = messageLog;
         messageLogDetail.user = user;
-        messageLogDetail.messageTemplate = messageTemplate;
+        messageLogDetail.messageContent = messageContent;
         return messageLogDetail;
     }
 

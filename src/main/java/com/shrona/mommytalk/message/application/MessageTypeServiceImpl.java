@@ -25,10 +25,12 @@ public class MessageTypeServiceImpl implements MessageTypeService {
 
 
     @Transactional
-    public MessageType createMessageType(String title, String text, LocalDate localDate) {
-        Optional<MessageType> mt = messageTypeRepository.findByTitle(title);
-        MessageType messageType = MessageType.of(title, text, localDate);
-        return mt.orElseGet(() -> messageTypeRepository.save(messageType));
+    public MessageType createMessageType(String theme, String text, LocalDate localDate) {
+        Optional<MessageType> mt = messageTypeRepository.findByTheme(theme);
+        // TODO: Channel 파라미터 추가 필요
+        // MessageType messageType = MessageType.of(title, text, localDate, channel);
+        // return mt.orElseGet(() -> messageTypeRepository.save(messageType));
+        throw new UnsupportedOperationException("Channel 파라미터가 필요합니다.");
     }
 
     @Override

@@ -24,7 +24,7 @@ public class MessageLogDetailQueryRepositoryImpl implements
 
         return query.update(messageLogDetail)
             .set(messageLogDetail.status, status)
-            .where(messageLogDetail.messageTemplate.id.eq(smtId))
+            .where(messageLogDetail.messageContent.id.eq(smtId))
             .execute();
     }
 

@@ -11,7 +11,7 @@ import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
-import com.shrona.mommytalk.message.domain.MessageTemplate;
+import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
@@ -183,8 +183,8 @@ public class MessageServiceImpl implements MessageService {
 
         MessageLog messageLog = MessageLog.messageLog(channel, type, g, reserveTime, content);
 
-        // MessageTemplate를 레벨 조합으로 미리 Map에 저장 (한 번만 조회)
-        Map<String, MessageTemplate> levelMap = type.getMessageTemplateList()
+        // MessageContent를 레벨 조합으로 미리 Map에 저장 (한 번만 조회)
+        Map<String, MessageContent> levelMap = type.getMessageContentList()
             .stream()
             .collect(Collectors.toMap(
                 smt -> smt.getUserLevel() + "_" + smt.getChildLevel(), // key: "1_2"
@@ -193,11 +193,11 @@ public class MessageServiceImpl implements MessageService {
 
         sendUserInfo.forEach(user -> {
             String levelKey = user.getUserLevel() + "_" + user.getChildLevel();
-            MessageTemplate messageTemplate = levelMap.get(levelKey);
+            MessageContent messageContent = levelMap.get(levelKey);
 
-            if (messageTemplate != null) {
+            if (messageContent != null) {
                 messageLog.addMessageLogLineInfo(
-                    MessageLogDetail.createLogDetail(messageLog, user, messageTemplate)
+                    MessageLogDetail.createLogDetail(messageLog, user, messageContent)
                 );
             }
         });

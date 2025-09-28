@@ -9,7 +9,6 @@ import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
-import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSingleSenderClient;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageSingleRequestBody;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.ActionDto;
@@ -21,7 +20,7 @@ import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.LineFlexMessageR
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.TextContentDto;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
-import com.shrona.mommytalk.message.domain.MessageTemplate;
+import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +48,6 @@ public class LineMessageSenderImpl implements LineMessageSender {
     private static final String prefixHeader = "Bearer ";
     // restClient
     private final LineMessageSenderClient lineMessageSenderClient;
-    private final LineMessageSingleSenderClient lineMessageSingleSenderClient;
     // repository
     private final MessageQueryRepository messageRepository;
     private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
@@ -68,29 +66,29 @@ public class LineMessageSenderImpl implements LineMessageSender {
 
             List<MessageLogDetail> mldiList = messageLog.getMessageLogDetailList();
 
-            // MessageTemplate.id를 기준으로 LineId 목록 생성
+            // MessageContent.id를 기준으로 LineId 목록 생성
             Map<Long, List<String>> lineIdsBySmtId = mldiList.stream()
                 .collect(Collectors.groupingBy(
-                    mldi -> mldi.getMessageTemplate().getId(),
+                    mldi -> mldi.getMessageContent().getId(),
                     Collectors.mapping(
                         mldi -> mldi.getUser().getLineUser().getLineId(),
                         Collectors.toList()
                     )
                 ));
 
-            // MessageTemplate.id를 기준으로 MessageTemplate 객체 맵 생성
-            Map<Long, MessageTemplate> messageTemplateById = mldiList.stream()
+            // MessageContent.id를 기준으로 MessageContent 객체 맵 생성
+            Map<Long, MessageContent> messageContentById = mldiList.stream()
                 .collect(Collectors.toMap(
-                    mldi -> mldi.getMessageTemplate().getId(),
-                    MessageLogDetail::getMessageTemplate,
+                    mldi -> mldi.getMessageContent().getId(),
+                    MessageLogDetail::getMessageContent,
                     (existing, replacement) -> existing
                 ));
 
-            for (Long smtId : messageTemplateById.keySet()) {
+            for (Long smtId : messageContentById.keySet()) {
                 // 메시지 전송
                 int sendStatus = sendMessageToLine(
                     messageLog.getChannel(), lineIdsBySmtId.get(smtId),
-                    messageTemplateById.get(smtId));
+                    messageContentById.get(smtId));
                 // 전송 성공 시 메시지 상태 변경 및 sender time 설정
                 if (sendStatus == SEND_SUCCESS) {
                     // smtId인 MessageLogDetailInfo를 업데이트 해준다.
@@ -143,7 +141,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
         String accessToken = channel.getAccessToken();
         String decodeToken = base64ToUtf8(accessToken);
         try {
-            lineMessageSingleSenderClient.sendSingleMessage(prefixHeader + decodeToken,
+            lineMessageSenderClient.sendSingleMessage(prefixHeader + decodeToken,
                 LineMessageSingleRequestBody.of(lineUser.getLineId(), text));
         } catch (Exception e) {
             // TODO: 어떻게 처리할까
@@ -157,7 +155,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
      * 메시지를 라인에 전달한다.
      */
     private int sendMessageToLine(
-        Channel channel, List<String> lineIdList, MessageTemplate content) {
+        Channel channel, List<String> lineIdList, MessageContent content) {
 
         String accessToken = channel.getAccessToken();
         // 목록 및 accessToken이 비어 있으면 보내지 않는다.

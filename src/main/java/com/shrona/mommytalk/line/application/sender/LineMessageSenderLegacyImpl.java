@@ -5,7 +5,6 @@ import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
-import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSingleSenderClient;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageSingleRequestBody;
 import com.shrona.mommytalk.message.domain.MessageLog;
@@ -32,7 +31,6 @@ public class LineMessageSenderLegacyImpl implements LineMessageSender {
     private static final String prefixHeader = "Bearer ";
     // restClient
     private final LineMessageSenderClient lineMessageSenderClient;
-    private final LineMessageSingleSenderClient lineMessageSingleSenderClient;
     // repository
     private final MessageLogJpaRepository messageRepository;
     private final AdminService adminService;
@@ -120,7 +118,7 @@ public class LineMessageSenderLegacyImpl implements LineMessageSender {
         String accessToken = channel.getAccessToken();
         String decodeToken = base64ToUtf8(accessToken);
         try {
-            lineMessageSingleSenderClient.sendSingleMessage(prefixHeader + decodeToken,
+            lineMessageSenderClient.sendSingleMessage(prefixHeader + decodeToken,
                 LineMessageSingleRequestBody.of(lineUser.getLineId(), text));
         } catch (Exception e) {
             // TODO: 어떻게 처리할까

@@ -3,6 +3,7 @@ package com.shrona.mommytalk.channel.domain;
 import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.kakao.domain.ChannelKakaoUser;
 import com.shrona.mommytalk.line.domain.ChannelLineUser;
+import com.shrona.mommytalk.openai.domain.MessagePrompt;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -54,6 +55,9 @@ public class Channel extends BaseEntity {
 
     @OneToMany(mappedBy = "channel")
     private List<ChannelKakaoUser> channelKakaoUserList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "channel")
+    private List<MessagePrompt> messagePromptList = new ArrayList<>();
 
     public static Channel createChannel(String name, String description) {
         Channel channel = new Channel();

@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/channels/{channelId}/messages")
 @RestController
-public class MessageRestController {
+public class MessageLogRestController {
 
     private final MessageService messageService;
     private final MessageTypeService messageTypeService;
