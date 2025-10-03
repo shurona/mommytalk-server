@@ -18,9 +18,9 @@ import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.ButtonTypeDto;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.ContentType;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.LineFlexMessageRequestDto;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.TextContentDto;
+import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
-import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
 import java.nio.charset.StandardCharsets;
@@ -53,6 +53,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
     private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
     private final AdminService adminService;
 
+    @Transactional
     @Override
     public void sendLineMessageByReservationByMessageIds(List<Long> messageIds) {
 
@@ -61,27 +62,25 @@ public class LineMessageSenderImpl implements LineMessageSender {
         for (MessageLog messageLog : lineMessageByIds) {
 
             // 예약 상태인 messageLogDetail 목록을 갖고 온다.
-            messageLogDetailQueryRepository.findMldiListByStatusWithLine(
-                messageLog.getId(), PREPARE);
-
-            List<MessageLogDetail> mldiList = messageLog.getMessageLogDetailList();
+            List<MessageLogDetail> mldList = messageLogDetailQueryRepository
+                .findMldListByStatusWithLine(messageLog.getId(), PREPARE);
 
             // MessageContent.id를 기준으로 LineId 목록 생성
-            Map<Long, List<String>> lineIdsBySmtId = mldiList.stream()
+            Map<Long, List<String>> lineIdsBySmtId = mldList.stream()
                 .collect(Collectors.groupingBy(
-                    mldi -> mldi.getMessageContent().getId(),
+                    mld -> mld.getMessageContent().getId(),
                     Collectors.mapping(
-                        mldi -> mldi.getUser().getLineUser().getLineId(),
+                        mld -> mld.getUser().getLineUser().getLineId(),
                         Collectors.toList()
                     )
                 ));
 
             // MessageContent.id를 기준으로 MessageContent 객체 맵 생성
-            Map<Long, MessageContent> messageContentById = mldiList.stream()
+            Map<Long, MessageContent> messageContentById = mldList.stream()
                 .collect(Collectors.toMap(
-                    mldi -> mldi.getMessageContent().getId(),
+                    mld -> mld.getMessageContent().getId(),
                     MessageLogDetail::getMessageContent,
-                    (existing, replacement) -> existing
+                    (existing, replacement) -> existing // 이건 같은 것이 나오면 대체하냐의 옵션
                 ));
 
             for (Long smtId : messageContentById.keySet()) {
@@ -92,9 +91,11 @@ public class LineMessageSenderImpl implements LineMessageSender {
                 // 전송 성공 시 메시지 상태 변경 및 sender time 설정
                 if (sendStatus == SEND_SUCCESS) {
                     // smtId인 MessageLogDetailInfo를 업데이트 해준다.
-                    messageLogDetailQueryRepository.updateStatusByStmId(smtId, COMPLETE);
+                    messageLogDetailQueryRepository.updateStatusByStmId(
+                        smtId, messageLog.getId(), COMPLETE);
                 } else if (sendStatus == SEND_FAIL) {
-                    messageLogDetailQueryRepository.updateStatusByStmId(smtId, FAIL);
+                    messageLogDetailQueryRepository.updateStatusByStmId(
+                        smtId, messageLog.getId(), FAIL);
                 }
             }
         }

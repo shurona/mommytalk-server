@@ -15,15 +15,14 @@ public interface MessageService {
      * 선택된 그룹에 메시지 전송(제외 그룹 확인)
      */
     List<MessageLog> createMessageSelectGroup
-    (Channel channel, Long messageTypeId,
-        List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
+    (Channel channel, List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
         LocalDateTime reserveTime, String content);
 
     /**
      * 모든 그룹에 메시지 전송(제외 그룹 확인)
      */
     List<MessageLog> createMessageAllGroup
-    (Channel channel, Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime,
+    (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime,
         String content);
 
     /**

@@ -47,6 +47,8 @@ public class MessageUtils {
         // 예약 시간 계산
         long delaySeconds = calculateDelaySeconds(LocalDateTime.now(), reserveTime);
 
+        log.info("맑은 광인 {}", messageLogList.stream().map(MessageLog::getId).toList());
+
         switch (platform) {
             case ChannelPlatform.KAKAO -> {
 

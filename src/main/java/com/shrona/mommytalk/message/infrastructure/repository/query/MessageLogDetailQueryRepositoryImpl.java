@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.message.infrastructure.repository.query;
 
 import static com.shrona.mommytalk.line.domain.QLineUser.lineUser;
+import static com.shrona.mommytalk.message.domain.QMessageContent.messageContent;
 import static com.shrona.mommytalk.message.domain.QMessageLogDetail.messageLogDetail;
 import static com.shrona.mommytalk.user.domain.QUser.user;
 
@@ -20,15 +21,19 @@ public class MessageLogDetailQueryRepositoryImpl implements
     private final JPAQueryFactory query;
 
     @Override
-    public Long updateStatusByStmId(Long smtId, ReservationStatus status) {
+    public Long updateStatusByStmId(Long smtId, Long messageLogId, ReservationStatus status) {
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(messageLogDetail.messageContent.id.eq(smtId));
+        builder.and(messageLogDetail.messageLog.id.eq(messageLogId));
 
         return query.update(messageLogDetail)
             .set(messageLogDetail.status, status)
-            .where(messageLogDetail.messageContent.id.eq(smtId))
+            .where(builder)
             .execute();
     }
 
-    public List<MessageLogDetail> findMldiListByStatusWithLine(
+    public List<MessageLogDetail> findMldListByStatusWithLine(
         Long messageLogId, ReservationStatus status) {
 
         BooleanBuilder builder = new BooleanBuilder();
@@ -45,6 +50,7 @@ public class MessageLogDetailQueryRepositoryImpl implements
             .from(messageLogDetail)
             .leftJoin(messageLogDetail.user, user).fetchJoin()
             .leftJoin(user.lineUser, lineUser).fetchJoin()
+            .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
             .where(builder)
             .fetch();
     }

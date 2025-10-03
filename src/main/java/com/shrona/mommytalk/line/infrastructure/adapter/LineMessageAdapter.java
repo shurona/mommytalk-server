@@ -34,7 +34,7 @@ public class LineMessageAdapter {
     public LineMessageSenderClient LineMessageMultiCastClient() {
 
         RestClient restClient = RestClient.builder()
-            .baseUrl(lineBaseUrl + "/multicast")
+            .baseUrl(lineBaseUrl)
 //            .requestInterceptor(logRequestInterceptor())
             .build();
 

@@ -3,6 +3,7 @@ package com.shrona.mommytalk.message.application;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_ACCESS_DENIED;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_NOT_FOUND;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_PROMPT_NOT_EXIST;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.message.common.exception.MessageException;
@@ -12,9 +13,11 @@ import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContent
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpdateTemplateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.openai.application.OpenAiServiceImpl;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
 import com.shrona.mommytalk.openai.infrastructure.repository.MessagePromptJpaRepository;
+import java.time.LocalDate;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,22 +39,10 @@ public class MessageContentServiceImpl implements MessageContentService {
     @Transactional
     public MessageContent generateAiContent(Channel channel, AiGenerateRequestDto requestDto) {
 
-        // 1. MessageType 조회 또는 생성
+        // 1. MessageType 조회 (없으면 에러)
         MessageType messageType = messageTypeJpaRepository
             .findByChannelAndDeliveryTime(channel, requestDto.deliveryDate())
-            .orElseGet(() -> {
-                MessageType newType = MessageType.of(
-                    requestDto.theme(),
-                    requestDto.context(),
-                    requestDto.deliveryDate(),
-                    channel
-                );
-                return messageTypeJpaRepository.save(newType);
-            });
-
-        // 기존 MessageType이 있으면 내용 업데이트
-        messageType.updateContent(requestDto.theme(), requestDto.context());
-        messageTypeJpaRepository.save(messageType);
+            .orElseThrow(() -> new MessageException(MESSAGE_TYPE_NOT_FOUND));
 
         // 2. 동일한 레벨의 MessageContent가 이미 존재하는지 확인
         Optional<MessageContent> existingContent = messageContentJpaRepository
@@ -138,5 +129,28 @@ public class MessageContentServiceImpl implements MessageContentService {
         if (needsUpdate) {
             messageContentJpaRepository.save(messageContent);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ContentStatusResponseDto getContentStatus(Long channelId, LocalDate date) {
+
+        // 1. 해당 날짜의 MessageType 조회
+        Optional<MessageType> messageType = messageTypeJpaRepository
+            .findByChannelIdAndDeliveryTime(channelId, date);
+
+        // 2. MessageType이 없으면 모두 0으로 반환
+        if (messageType.isEmpty()) {
+            return ContentStatusResponseDto.of(0, 0);
+        }
+
+        // 3. MessageContent 개수 집계
+        int generatedCount = messageContentJpaRepository
+            .countByMessageType(messageType.get());
+
+        int approvedCount = messageContentJpaRepository
+            .countByMessageTypeAndApprovedTrue(messageType.get());
+
+        return ContentStatusResponseDto.of(generatedCount, approvedCount);
     }
 }

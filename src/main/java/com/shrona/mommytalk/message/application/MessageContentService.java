@@ -4,6 +4,8 @@ import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpdateTemplateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
+import java.time.LocalDate;
 
 public interface MessageContentService {
 
@@ -25,5 +27,10 @@ public interface MessageContentService {
      * 메시지 컨텐츠를 승인한다.
      */
     public void approveMessageContent(Long channelId, Long contentId);
+
+    /**
+     * 특정 날짜의 콘텐츠 상태를 조회한다.
+     */
+    public ContentStatusResponseDto getContentStatus(Long channelId, LocalDate date);
 
 }

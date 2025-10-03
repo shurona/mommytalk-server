@@ -106,4 +106,11 @@ public class MessageContent extends BaseEntity {
         return true; // 승인 완료, 업데이트 필요
     }
 
+    /**
+     * 컨텐츠 승인 취소
+     */
+    public void cancelApproval() {
+        this.approved = false;
+    }
+
 }

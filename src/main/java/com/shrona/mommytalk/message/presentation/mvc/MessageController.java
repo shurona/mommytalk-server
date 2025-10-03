@@ -147,14 +147,18 @@ public class MessageController {
             }
             messageService.createMessageSelectGroup(
                 channelInfo.get(),
-                1L, form.includeGroup(), form.excludeGroup(),
+                form.includeGroup(),
+                form.excludeGroup(),
                 localDateTime,
                 form.content());
         }
         // 전송이 전체 인 경우
         else if (form.targetType().equals(ALL.getType())) {
             messageService.createMessageAllGroup(
-                channelInfo.get(), 1L, form.excludeGroup(), localDateTime, form.content());
+                channelInfo.get(),
+                form.excludeGroup(),
+                localDateTime,
+                form.content());
         }
 
         return "redirect:/admin/channels/" + channelId + "/messages/list";

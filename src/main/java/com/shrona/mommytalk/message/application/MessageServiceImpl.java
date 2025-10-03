@@ -9,9 +9,9 @@ import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
+import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
-import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
@@ -50,14 +50,16 @@ public class MessageServiceImpl implements MessageService {
 
     @Transactional
     public List<MessageLog> createMessageSelectGroup
-        (Channel channel, Long messageTypeId,
-            List<Long> selectedGroupIds, List<Long> exceptGroupIds,
+        (Channel channel, List<Long> selectedGroupIds, List<Long> exceptGroupIds,
             LocalDateTime reserveTime, String content) {
 
-        MessageType typeInfo = messageTypeRepository.findByDeliveryTime(reserveTime.toLocalDate())
+        MessageType typeInfo = messageTypeRepository.findByDeliveryTime(
+                reserveTime.toLocalDate(), channel)
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
         List<Group> groupInfo = groupService.findGroupByIdList(selectedGroupIds);
+
+        log.info(groupInfo.stream().map(Group::getId).toList().toString());
 
         if (groupInfo.isEmpty()) {
             return null;
@@ -86,10 +88,10 @@ public class MessageServiceImpl implements MessageService {
 
     @Transactional
     public List<MessageLog> createMessageAllGroup
-        (Channel channel, Long messageTypeId, List<Long> exceptGroupIds, LocalDateTime reserveTime,
-            String content) {
+        (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime, String content) {
 
-        MessageType typeInfo = messageTypeRepository.findByDeliveryTime(reserveTime.toLocalDate())
+        MessageType typeInfo = messageTypeRepository.findByDeliveryTime(reserveTime.toLocalDate(),
+                channel)
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
         // todo: 추후에 그룹이 많아지면 loop으로 처리
@@ -170,9 +172,6 @@ public class MessageServiceImpl implements MessageService {
      */
     private MessageLog createMessageLogForGroup(Group g, Channel channel, MessageType type,
         LocalDateTime reserveTime, String content, Set<Long> exceptUserIds) {
-        List<UserGroup> userGroupList = groupService.findGroupById(g.getId(), true)
-            .getUserGroupList();
-
         List<User> sendUserInfo = groupService.findGroupById(g.getId(), true)
             .getUserGroupList()
             .stream()
@@ -190,6 +189,8 @@ public class MessageServiceImpl implements MessageService {
                 smt -> smt.getUserLevel() + "_" + smt.getChildLevel(), // key: "1_2"
                 smt -> smt
             ));
+
+        System.out.println(levelMap);
 
         sendUserInfo.forEach(user -> {
             String levelKey = user.getUserLevel() + "_" + user.getChildLevel();

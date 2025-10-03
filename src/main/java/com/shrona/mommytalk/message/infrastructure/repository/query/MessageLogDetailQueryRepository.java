@@ -9,12 +9,12 @@ public interface MessageLogDetailQueryRepository {
     /**
      * MessageTemplateId를 기준으로 Status를 업데이트 한다.
      */
-    Long updateStatusByStmId(Long smtId, ReservationStatus status);
+    Long updateStatusByStmId(Long smtId, Long messageLogId, ReservationStatus status);
 
     /**
      * status(Optional)에 해당하는 MessageLogDetailInfo 목록을 갖고 온다.
      */
-    List<MessageLogDetail> findMldiListByStatusWithLine(
+    List<MessageLogDetail> findMldListByStatusWithLine(
         Long messageLogId, ReservationStatus status);
 
 }
