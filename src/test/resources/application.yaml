@@ -35,3 +35,12 @@ admin:
 jwt:
   secret:
     key: 7Leo7JeF7Leo7JeF7Leo7JeF7Leo7JeF7Leo7JeF7Leo7JeF7Leo7JeF
+
+openai:
+  base-url: https://api.openai.com/v1
+  openApiKey: "OPEN_AI_KEY"
+
+kakao:
+  base-url: https://api-alimtalk.cloud.toast.com
+  app-key: "TEST_KAKAO_APP_KEY"
+  secret-key: "TEST_KAKAO_SECRET_KEY"

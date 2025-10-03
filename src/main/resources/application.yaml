@@ -31,9 +31,6 @@ line:
     token-url: https://api.line.me/oauth2/v2.1/token
     profile-url: https://api.line.me/v2/profile
 
-
-
-
 admin:
   header-key: ${ADMIN_HEADER_KEY}
   header-value: ${ADMIN_HEADER_VALUE}
@@ -46,4 +43,9 @@ jwt:
 openai:
   base-url: https://api.openai.com/v1
   openApiKey: ${OPEN_AI_KEY}
+
+kakao:
+  base-url: https://api-alimtalk.cloud.toast.com
+  app-key: ${KAKAO_APP_KEY}
+  secret-key: ${KAKAO_SECRET_KEY}
 
