@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.line.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
@@ -14,9 +15,10 @@ import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaReposit
 import com.shrona.mommytalk.line.infrastructure.repository.jpa.LineUserJpaRepository;
 import com.shrona.mommytalk.message.application.MessageServiceImpl;
 import com.shrona.mommytalk.message.application.MessageTypeServiceImpl;
+import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
-import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageContent;
+import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.user.domain.User;
@@ -74,7 +76,9 @@ class MessageServiceImplTest {
     public void beforeEach() {
         channel = channelRepository.save(Channel.createChannel("이름", "설명"));
         channel2 = channelRepository.save(Channel.createChannel("이름2", "설명"));
-        mt = messageTypeService.createMessageType("타이틀", "예시 포맷", currentDate);
+        mt = messageTypeService.createMessageType("타이틀", "예시 포맷", currentDate, channel);
+
+        MessageType mt2 = messageTypeService.createMessageType("두번째", "예시", currentDate, channel2);
 
         Group beforeSave = Group.createGroup(channel, "name", "description");
         groupInfo = groupJpaRepository.save(beforeSave);
@@ -89,9 +93,15 @@ class MessageServiceImplTest {
     @Test
     public void 날짜로_메시지_조회() {
 
-        MessageType messageTypeByDate = messageTypeService.findMessageTypeByDate(currentDate);
+        MessageType messageTypeByDate = messageTypeService.findMessageTypeByDate(
+            currentDate, channel);
+
+        Channel channel3 = channelRepository.save(Channel.createChannel("이름2", "설명"));
 
         assertThat(messageTypeByDate.getId()).isEqualTo(mt.getId());
+        assertThatThrownBy(() -> {
+            messageTypeService.findMessageTypeByDate(currentDate, channel3);
+        }).isInstanceOf(MessageException.class);
     }
 
     @Test
@@ -105,7 +115,7 @@ class MessageServiceImplTest {
 
         // when
         List<MessageLog> logList = messageService
-            .createMessageSelectGroup(channel, mt.getId(),
+            .createMessageSelectGroup(channel,
                 List.of(groupInfo.getId(), 2L), new ArrayList<>(),
                 reserveTime.plusHours(5), content);
         MessageLog afterSaveLog = messageService.findByMessageId(logList.getFirst().getId());
@@ -128,7 +138,7 @@ class MessageServiceImplTest {
         // when
         for (int i = 0; i < 200; i++) {
             messageService
-                .createMessageSelectGroup(channel, mt.getId(),
+                .createMessageSelectGroup(channel,
                     List.of(groupInfo.getId()), new ArrayList<>(),
                     reserveTime, content);
         }
@@ -185,12 +195,6 @@ class MessageServiceImplTest {
             ).toList()
         );
 
-//        exceptSecondGroupInfo.addUserToGroup(
-//            userList.subList(20, 88).stream().map(
-//                u -> UserGroup.createUserGroup(u, exceptGroupInfo)
-//            ).toList()
-//        );
-
         groupJpaRepository.saveAll(
             List.of(groupInfo, includeGroupInfo, exceptGroupInfo, exceptSecondGroupInfo));
 
@@ -199,7 +203,7 @@ class MessageServiceImplTest {
 
         // when
         List<MessageLog> messageLogList = messageService
-            .createMessageSelectGroup(channel, mt.getId(),
+            .createMessageSelectGroup(channel,
                 List.of(groupInfo.getId(), includeGroupInfo.getId()),
                 List.of(exceptGroupInfo.getId()),
                 reserveTime.plusHours(1), content);
@@ -224,21 +228,21 @@ class MessageServiceImplTest {
         // 이후 시간으로 추가
         for (int i = 0; i < 30; i++) {
             messageService
-                .createMessageSelectGroup(channel, mt.getId(),
+                .createMessageSelectGroup(channel,
                     List.of(groupInfo.getId()), new ArrayList<>(),
                     reserveTime.plusHours(3), content);
         }
         // 이전 시간으로 추가(reserveList로 조회될 크기)
         for (int i = 0; i < 15; i++) {
             messageService
-                .createMessageSelectGroup(channel, mt.getId(),
+                .createMessageSelectGroup(channel,
                     List.of(groupInfo.getId()), new ArrayList<>(),
                     reserveTime.minusHours(3), content);
         }
         // 다른 채널에 추가
         for (int i = 0; i < 2; i++) {
             messageService
-                .createMessageSelectGroup(channel2, mt.getId(),
+                .createMessageSelectGroup(channel2,
                     List.of(groupInfo.getId()), new ArrayList<>(),
                     reserveTime.minusHours(3), content);
         }
@@ -272,7 +276,7 @@ class MessageServiceImplTest {
         groupJpaRepository.save(groupInfo);
 
         List<MessageLog> messageLogList = messageService
-            .createMessageSelectGroup(channel, mt.getId(),
+            .createMessageSelectGroup(channel,
                 List.of(groupInfo.getId()), new ArrayList<>(),
                 reserveTime.plusHours(3), content);
 
