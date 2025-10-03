@@ -32,7 +32,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Transactional(readOnly = true)
@@ -108,6 +107,7 @@ public class UserServiceImpl implements UserService {
         Channel channel = channelRepository.findById(channelId)
             .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
+        // 채널 플랫폼에 맞춰서 페이징 조회
         return switch (channel.getChannelPlatform()) {
             case LINE -> userQueryRepository.findLineUsersByChannelIdWithPaging(
                 channelId, pageable
@@ -150,9 +150,6 @@ public class UserServiceImpl implements UserService {
         User userInfo = userRepository.findById(userId)
             .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        log.info("리드 온리 : {} ", TransactionSynchronizationManager.isCurrentTransactionReadOnly());
-        log.info("리드 온리 : {} ", TransactionSynchronizationManager.isActualTransactionActive());
-
         if (!requestDto.phoneNumber().equals(userInfo.getPhoneNumber().getPhoneNumber())) {
             PhoneNumber phoneNumber = new PhoneNumber(requestDto.phoneNumber());
 
@@ -169,8 +166,7 @@ public class UserServiceImpl implements UserService {
         userInfo.updateUserFromRequest(
             requestDto.childName(), requestDto.childLevel(), requestDto.userLevel()
         );
-
-//        userRepository.save(userInfo);
+        
     }
 
     @Transactional
