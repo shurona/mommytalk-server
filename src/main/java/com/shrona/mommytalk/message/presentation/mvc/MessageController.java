@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 //@RequestMapping("/admin/channels/{channelId}/messages")
@@ -154,11 +156,13 @@ public class MessageController {
         }
         // 전송이 전체 인 경우
         else if (form.targetType().equals(ALL.getType())) {
-            messageService.createMessageAllGroup(
-                channelInfo.get(),
-                form.excludeGroup(),
-                localDateTime,
-                form.content());
+            // TODO: 전체 전송은 로직 점검
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "현재 해당 기능은 수정중입니다");
+//            messageService.createMessageAllGroup(
+//                channelInfo.get(),
+//                form.excludeGroup(),
+//                localDateTime,
+//                form.content());
         }
 
         return "redirect:/admin/channels/" + channelId + "/messages/list";

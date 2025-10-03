@@ -43,6 +43,7 @@ public class MessageServiceImpl implements MessageService {
 
     // service
     private final GroupService groupService;
+    private final MessageContentService messageContentService;
 
     // Utils
     private final MessageUtils messageUtils;
@@ -53,14 +54,13 @@ public class MessageServiceImpl implements MessageService {
         (Channel channel, List<Long> selectedGroupIds, List<Long> exceptGroupIds,
             LocalDateTime reserveTime, String content) {
 
+        // 해당 날짜와 채널에 해당하는 MessageType 정보를 갖고 온다.
         MessageType typeInfo = messageTypeRepository.findByDeliveryTime(
                 reserveTime.toLocalDate(), channel)
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
+        // 선택된 그룹 정보를 갖고 온다.
         List<Group> groupInfo = groupService.findGroupByIdList(selectedGroupIds);
-
-        log.info(groupInfo.stream().map(Group::getId).toList().toString());
-
         if (groupInfo.isEmpty()) {
             return null;
         }
@@ -68,10 +68,13 @@ public class MessageServiceImpl implements MessageService {
         // 제외할 UserIds를 갖고 온다.
         Set<Long> exceptUserIds = getExceptUserIds(exceptGroupIds);
 
-        List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> createMessageLogForGroup(g, channel, typeInfo,
+        // 저장될 메세지 목록을 갖고 온다.
+        List<MessageLog> messageLogListForSave = groupInfo.stream()
+            .map(g -> createMessageLogForGroup(g, channel, typeInfo, // MessageLog 생성 로직
                 reserveTime, content, exceptUserIds))
-            .toList());
+            .toList();
+
+        List<MessageLog> messageLogList = messageLogRepository.saveAll(messageLogListForSave);
 
         // commit이 된 이후에 실행을 한다.
         TransactionSynchronizationManager.registerSynchronization(
@@ -170,30 +173,27 @@ public class MessageServiceImpl implements MessageService {
     /**
      * MessageLog를 생성해 주는 메소드
      */
-    private MessageLog createMessageLogForGroup(Group g, Channel channel, MessageType type,
+    private MessageLog createMessageLogForGroup(Group groupInfo, Channel channel, MessageType type,
         LocalDateTime reserveTime, String content, Set<Long> exceptUserIds) {
-        List<User> sendUserInfo = groupService.findGroupById(g.getId(), true)
+
+        // 보내지 않은 유저를 제외한 유저 목록을 생성한다.
+        List<User> sendUserInfo = groupService.findGroupById(groupInfo.getId(), true)
             .getUserGroupList()
             .stream()
             .map(UserGroup::getUser) // 유저 추출
-            .filter(user -> !exceptUserIds.contains(
-                user.getId())) // 제외 그룹 유저 한다.
+            .filter(user -> !exceptUserIds.contains(user.getId())) // 제외 그룹 유저 한다.
             .toList();
 
-        MessageLog messageLog = MessageLog.messageLog(channel, type, g, reserveTime, content);
+        MessageLog messageLog = MessageLog.messageLog(channel, type, groupInfo, reserveTime,
+            content);
 
         // MessageContent를 레벨 조합으로 미리 Map에 저장 (한 번만 조회)
-        Map<String, MessageContent> levelMap = type.getMessageContentList()
-            .stream()
-            .collect(Collectors.toMap(
-                smt -> smt.getUserLevel() + "_" + smt.getChildLevel(), // key: "1_2"
-                smt -> smt
-            ));
+        Map<String, MessageContent> levelMap = messageContentService
+            .groupMessageContentByLevel(type);
 
-        System.out.println(levelMap);
-
+        // 연관관계를 이용해서 MessageLogDetail 정보를 저장한다.
         sendUserInfo.forEach(user -> {
-            String levelKey = user.getUserLevel() + "_" + user.getChildLevel();
+            String levelKey = user.createKeyPropertyForMessageContent();
             MessageContent messageContent = levelMap.get(levelKey);
 
             if (messageContent != null) {

@@ -61,41 +61,35 @@ public class LineMessageSenderImpl implements LineMessageSender {
 
         for (MessageLog messageLog : lineMessageByIds) {
 
-            // 예약 상태인 messageLogDetail 목록을 갖고 온다.
+            // messageLogId가 동일하고 예약 상태인 messageLogDetail 목록을 갖고 온다.
             List<MessageLogDetail> mldList = messageLogDetailQueryRepository
                 .findMldListByStatusWithLine(messageLog.getId(), PREPARE);
 
             // MessageContent.id를 기준으로 LineId 목록 생성
-            Map<Long, List<String>> lineIdsBySmtId = mldList.stream()
-                .collect(Collectors.groupingBy(
-                    mld -> mld.getMessageContent().getId(),
-                    Collectors.mapping(
-                        mld -> mld.getUser().getLineUser().getLineId(),
-                        Collectors.toList()
-                    )
-                ));
+            Map<Long, List<String>> lineIdsByMessageContentId = groupLineIdsByMessageContentId(
+                mldList);
 
-            // MessageContent.id를 기준으로 MessageContent 객체 맵 생성
-            Map<Long, MessageContent> messageContentById = mldList.stream()
-                .collect(Collectors.toMap(
-                    mld -> mld.getMessageContent().getId(),
-                    MessageLogDetail::getMessageContent,
-                    (existing, replacement) -> existing // 이건 같은 것이 나오면 대체하냐의 옵션
-                ));
+            // MessageContent.id를 기준으로 MessageContent 객체 Map 생성
+            Map<Long, MessageContent> mldByMessageContentId = groupMldByMessageContentId(mldList);
 
-            for (Long smtId : messageContentById.keySet()) {
+            for (Long messageContentId : mldByMessageContentId.keySet()) {
                 // 메시지 전송
                 int sendStatus = sendMessageToLine(
-                    messageLog.getChannel(), lineIdsBySmtId.get(smtId),
-                    messageContentById.get(smtId));
+                    messageLog.getChannel(),  // 전송될 채널 정보
+                    // 전송될 MessageContent에 해당하는 LineId 목록
+                    lineIdsByMessageContentId.get(messageContentId),
+                    // 메시지 Content에 해당하는 MessageLogDetail Info
+                    mldByMessageContentId.get(messageContentId)
+                );
+
                 // 전송 성공 시 메시지 상태 변경 및 sender time 설정
                 if (sendStatus == SEND_SUCCESS) {
                     // smtId인 MessageLogDetailInfo를 업데이트 해준다.
                     messageLogDetailQueryRepository.updateStatusByStmId(
-                        smtId, messageLog.getId(), COMPLETE);
+                        messageContentId, messageLog.getId(), COMPLETE);
                 } else if (sendStatus == SEND_FAIL) {
                     messageLogDetailQueryRepository.updateStatusByStmId(
-                        smtId, messageLog.getId(), FAIL);
+                        messageContentId, messageLog.getId(), FAIL);
                 }
             }
         }
@@ -273,5 +267,31 @@ public class LineMessageSenderImpl implements LineMessageSender {
             text.substring(0, 100),
             bubbleMessage
         );
+    }
+
+    /**
+     * MessageLogDetail의 목록에서 messageContentId : MessageContent 형식으로 변환해준다.
+     */
+    private Map<Long, MessageContent> groupMldByMessageContentId(List<MessageLogDetail> mldList) {
+        return mldList.stream()
+            .collect(Collectors.toMap(
+                mld -> mld.getMessageContent().getId(),
+                MessageLogDetail::getMessageContent,
+                (existing, replacement) -> existing // 이건 같은 것이 나오면 대체하냐의 옵션
+            ));
+    }
+
+    /**
+     * 전송될 메시지 콘텐츠에 해당하는 라인 아이디 목록을 반환한다.
+     */
+    private Map<Long, List<String>> groupLineIdsByMessageContentId(List<MessageLogDetail> mldList) {
+        return mldList.stream()
+            .collect(Collectors.groupingBy(
+                mld -> mld.getMessageContent().getId(),
+                Collectors.mapping(
+                    mld -> mld.getUser().getLineUser().getLineId(),
+                    Collectors.toList()
+                )
+            ));
     }
 }

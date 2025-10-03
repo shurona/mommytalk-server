@@ -153,4 +153,11 @@ public class User extends BaseEntity {
         this.userLevel = userLevel;
     }
 
+    /**
+     * MessageContent와 레벨정보를 매핑하기 위한 키 프로퍼티 생성 userLevel_childLevel
+     */
+    public String createKeyPropertyForMessageContent() {
+        return this.userLevel + "_" + this.childLevel;
+    }
+
 }

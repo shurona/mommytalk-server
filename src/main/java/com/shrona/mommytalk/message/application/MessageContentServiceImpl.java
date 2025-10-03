@@ -18,7 +18,9 @@ import com.shrona.mommytalk.openai.application.OpenAiServiceImpl;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
 import com.shrona.mommytalk.openai.infrastructure.repository.MessagePromptJpaRepository;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -152,5 +154,15 @@ public class MessageContentServiceImpl implements MessageContentService {
             .countByMessageTypeAndApprovedTrue(messageType.get());
 
         return ContentStatusResponseDto.of(generatedCount, approvedCount);
+    }
+
+
+    public Map<String, MessageContent> groupMessageContentByLevel(MessageType messageType) {
+        return messageType.getMessageContentList()
+            .stream()
+            .collect(Collectors.toMap(
+                MessageContent::createKeyPropertyForMessageContent, // key: "1_2"
+                mt -> mt
+            ));
     }
 }
