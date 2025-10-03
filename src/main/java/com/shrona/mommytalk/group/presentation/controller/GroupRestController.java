@@ -9,6 +9,7 @@ import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.common.dto.PageResponseDto;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.domain.Group;
+import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.group.presentation.dtos.request.AddUserGroupRequestDto;
 import com.shrona.mommytalk.group.presentation.dtos.request.CreateGroupRequestDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.GroupListResponseDto;
@@ -21,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -87,13 +91,45 @@ public class GroupRestController {
         List<UserGroupMemberResponseDto> list = groupInfo.getUserGroupList().stream()
             .map((ug) -> UserGroupMemberResponseDto.of(ug.getUser(), ug)).toList();
 
-        return ApiResponse.success(GroupResponseDto.of(groupInfo, list));
+        return ApiResponse.success(GroupResponseDto.of(groupInfo));
     }
+
+    @GetMapping("/{groupId}/members")
+    public ApiResponse<PageResponseDto<?>> findUserGroupList(
+        @PathVariable("channelId") Long channelId,
+        @PathVariable("groupId") Long groupId,
+        @RequestParam(required = false, defaultValue = "10") Integer size,
+        @RequestParam(required = false, defaultValue = "0") Integer page,
+        @RequestParam(defaultValue = "DATE") String sort,
+        @RequestParam(defaultValue = "ASC") String direction
+    ) {
+        Sort sortInfo =
+            direction.equalsIgnoreCase("DESC") ?
+                Sort.by(Order.desc("createdAt"))
+                : Sort.by(Order.asc("createdAt"));
+        PageRequest pageRequest = PageRequest.of(page, size, sortInfo);
+
+        Group groupInfo = groupService.findGroupById(groupId, false);
+        Page<UserGroup> userGroupWithPage = groupService.findUserGroupByGroupId(groupInfo,
+            pageRequest);
+
+        List<UserGroupMemberResponseDto> list = userGroupWithPage.stream()
+            .map((ug) -> UserGroupMemberResponseDto.of(ug.getUser(), ug)).toList();
+
+        return ApiResponse.success(PageResponseDto.from(
+            list, userGroupWithPage.getTotalPages(),
+            userGroupWithPage.getNumber(),
+            userGroupWithPage.getTotalElements(),
+            userGroupWithPage.getTotalPages()
+        ));
+    }
+
 
     /**
      * 커스텀 그룹 생성
      */
     @PostMapping
+
     public ApiResponse<Long> createCustomGroup(
         @PathVariable("channelId") Long channelId,
         @RequestBody CreateGroupRequestDto requestDto

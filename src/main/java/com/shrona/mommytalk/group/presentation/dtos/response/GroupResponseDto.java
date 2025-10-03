@@ -4,7 +4,6 @@ import static lombok.AccessLevel.PRIVATE;
 
 import com.shrona.mommytalk.group.domain.Group;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import lombok.Builder;
 
 @Builder(access = PRIVATE)
@@ -14,12 +13,10 @@ public record GroupResponseDto(
     String type,
     String product,
     String createdAt,
-    String updatedAt,
-
-    List<UserGroupMemberResponseDto> members
+    String updatedAt
 ) {
 
-    public static GroupResponseDto of(Group group, List<UserGroupMemberResponseDto> members) {
+    public static GroupResponseDto of(Group group) {
         return GroupResponseDto.builder()
             .id(group.getId())
             .title(group.getName())
@@ -29,7 +26,6 @@ public record GroupResponseDto(
                 group.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd. HH:mm")))
             .updatedAt(
                 group.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd. HH:mm")))
-            .members(members)
             .build();
     }
 

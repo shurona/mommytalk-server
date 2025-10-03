@@ -43,6 +43,9 @@ public class Channel extends BaseEntity {
     @Column(name = "access_token")
     private String accessToken;
 
+    @Column(name = "kakao_sender_key")
+    private String kakaoSenderKey;
+
     @Column(name = "invite_message", length = 1000)
     private String inviteMessage;
 
