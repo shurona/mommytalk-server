@@ -11,6 +11,9 @@ import org.springframework.data.domain.Pageable;
 
 public interface MessageLogQueryRepository {
 
+    /**
+     * 메시지 로그를 id를 기준으로 조회한다.
+     */
     MessageLog findMessageLogById(Long messageId);
 
     /**

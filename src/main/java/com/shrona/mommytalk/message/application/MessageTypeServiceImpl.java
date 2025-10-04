@@ -1,7 +1,6 @@
 package com.shrona.mommytalk.message.application;
 
 import static com.shrona.mommytalk.channel.common.exception.ChannelErrorCode.CHANNEL_NOT_FOUND;
-import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_NOT_SCHEDULED_FOR_DATE;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.application.ChannelService;
@@ -48,8 +47,7 @@ public class MessageTypeServiceImpl implements MessageTypeService {
 
     @Override
     public MessageType findMessageTypeByDate(LocalDate localDate, Channel channel) {
-        return messageTypeRepository.findByDeliveryTime(localDate, channel)
-            .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
+        return messageTypeRepository.findByDeliveryTime(localDate, channel).orElse(null);
     }
 
     @Override

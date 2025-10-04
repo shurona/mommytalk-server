@@ -6,6 +6,8 @@ import static com.shrona.mommytalk.channel.common.exception.ChannelErrorCode.CHA
 import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.common.dto.ApiResponse;
+import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.message.application.MessageContentService;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
@@ -13,6 +15,7 @@ import com.shrona.mommytalk.message.presentation.dtos.request.UpdateTemplateRequ
 import com.shrona.mommytalk.message.presentation.dtos.response.AiGenerateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentTestRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.UpdateContentResponseDto;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ public class MessageContentRestController {
 
     private final MessageContentService messageContentService;
     private final ChannelService channelService;
+    private final LineMessageSender lineMessageSender;
 
     @PostMapping("/generate")
     public AiGenerateResponseDto generateAiContent(
@@ -55,9 +59,20 @@ public class MessageContentRestController {
     }
 
 
-    @PostMapping("/{contentId}/test")
-    public void testDelivery() {
+    @PostMapping("/test")
+    public ApiResponse<Boolean> testDelivery(
+        @PathVariable Long channelId,
+        @RequestBody MessageContentTestRequestDto requestDto
+    ) {
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
 
+        switch (channelInfo.getChannelPlatform()) {
+            case LINE -> lineMessageSender.sendTestLineMessage(channelInfo, requestDto.content());
+            case KAKAO -> System.out.println("카카오 입니다.");
+        }
+
+        return ApiResponse.success(true);
     }
 
     @PatchMapping("/{contentId}")
@@ -88,8 +103,6 @@ public class MessageContentRestController {
         @PathVariable Long channelId,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-
         return messageContentService.getContentStatus(channelId, date);
     }
-
 }

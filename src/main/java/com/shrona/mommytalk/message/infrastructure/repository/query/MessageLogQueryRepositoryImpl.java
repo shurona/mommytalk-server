@@ -38,6 +38,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
             ).fetchOne();
     }
 
+
     @Override
     public List<AvailableDateResponseDto> findAvailableMessageTypesWithFullApprovedContent(
         Channel channel, LocalDate startDate, LocalDate endDate) {

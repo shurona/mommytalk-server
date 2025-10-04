@@ -1,7 +1,6 @@
 package com.shrona.mommytalk.line.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
@@ -15,7 +14,6 @@ import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaReposit
 import com.shrona.mommytalk.line.infrastructure.repository.jpa.LineUserJpaRepository;
 import com.shrona.mommytalk.message.application.MessageServiceImpl;
 import com.shrona.mommytalk.message.application.MessageTypeServiceImpl;
-import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
@@ -99,9 +97,10 @@ class MessageServiceImplTest {
         Channel channel3 = channelRepository.save(Channel.createChannel("이름2", "설명"));
 
         assertThat(messageTypeByDate.getId()).isEqualTo(mt.getId());
-        assertThatThrownBy(() -> {
-            messageTypeService.findMessageTypeByDate(currentDate, channel3);
-        }).isInstanceOf(MessageException.class);
+        MessageType messageTypeByDate1 = messageTypeService.findMessageTypeByDate(currentDate,
+            channel3);
+
+        assertThat(messageTypeByDate1).isNull();
     }
 
     @Test
