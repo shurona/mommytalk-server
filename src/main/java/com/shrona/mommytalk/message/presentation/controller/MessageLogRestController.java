@@ -9,19 +9,25 @@ import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.common.dto.PageResponseDto;
+import com.shrona.mommytalk.message.application.MessageContentService;
+import com.shrona.mommytalk.message.application.MessageLogDetailService;
 import com.shrona.mommytalk.message.application.MessageService;
-import com.shrona.mommytalk.message.application.MessageTypeService;
 import com.shrona.mommytalk.message.common.exception.MessageErrorCode;
 import com.shrona.mommytalk.message.common.exception.MessageException;
+import com.shrona.mommytalk.message.domain.MessageLog;
+import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogQueryRepository;
 import com.shrona.mommytalk.message.presentation.dtos.request.ReserveMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.AvailableDateResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MessageLogDetailResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MessageLogInfoResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageLogResponseDto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +50,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class MessageLogRestController {
 
     private final MessageService messageService;
-    private final MessageTypeService messageTypeService;
+    private final MessageLogDetailService messageLogDetailService;
+    private final MessageContentService messageContentService;
     private final ChannelService channelService;
     private final MessageLogQueryRepository messageLogQueryRepository;
 
@@ -72,6 +79,54 @@ public class MessageLogRestController {
             messageLogPage.getTotalElements(),
             messageLogPage.getTotalPages()
         ));
+    }
+
+    /**
+     * MessageLog의 상세 정보를 반환
+     */
+    @GetMapping("/{messageLogId}")
+    public ApiResponse<MessageLogInfoResponseDto> getMessageLogInfo(
+        @PathVariable("channelId") Long channelId,
+        @PathVariable("messageLogId") Long messageLogId
+    ) {
+        MessageLog messageLogInfo = messageService.findInfoByMessageId(messageLogId);
+
+        Map<String, String> contentMap = messageContentService.groupMessageTextByLevel(
+            messageLogInfo.getMessageType());
+
+        return ApiResponse.success(
+            MessageLogInfoResponseDto.of(
+                messageLogInfo, contentMap
+            )
+        );
+    }
+
+    /**
+     * MessageLog 상세 페이지에서 MessageLogDetail 목록을 반환
+     */
+    @GetMapping("/{messageLogId}/details")
+    public ApiResponse<PageResponseDto<MessageLogDetailResponseDto>> getMessageLogDetailList(
+        @PathVariable("channelId") Long channelId,
+        @PathVariable("messageLogId") Long messageLogId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        Channel channel = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(ChannelErrorCode.CHANNEL_NOT_FOUND));
+
+        Page<MessageLogDetail> logDetailList = messageLogDetailService.findLogDetailListByLogId(
+            messageLogId, PageRequest.of(page, size));
+
+        return ApiResponse.success(
+            PageResponseDto.from(
+                logDetailList.stream()
+                    .map(logDetail -> MessageLogDetailResponseDto.of(channel, logDetail)).toList(),
+                logDetailList.getNumber(),
+                logDetailList.getSize(),
+                logDetailList.getTotalElements(),
+                logDetailList.getTotalPages()
+            )
+        );
     }
 
     /**

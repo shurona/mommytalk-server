@@ -165,4 +165,13 @@ public class MessageContentServiceImpl implements MessageContentService {
                 mt -> mt
             ));
     }
+
+    public Map<String, String> groupMessageTextByLevel(MessageType messageType) {
+        return messageType.getMessageContentList()
+            .stream()
+            .collect(Collectors.toMap(
+                MessageContent::createKeyPropertyForMessageContent, // key: "1_2"
+                MessageContent::getContent
+            ));
+    }
 }

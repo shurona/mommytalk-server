@@ -15,6 +15,7 @@ import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogQueryRepository;
 import com.shrona.mommytalk.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -40,6 +41,8 @@ public class MessageServiceImpl implements MessageService {
     // repository
     private final MessageLogJpaRepository messageLogRepository;
     private final MessageTypeJpaRepository messageTypeRepository;
+
+    private final MessageLogQueryRepository messageLogQueryRepository;
 
     // service
     private final GroupService groupService;
@@ -93,8 +96,8 @@ public class MessageServiceImpl implements MessageService {
     public List<MessageLog> createMessageAllGroup
         (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime, String content) {
 
-        MessageType typeInfo = messageTypeRepository.findByDeliveryTime(reserveTime.toLocalDate(),
-                channel)
+        MessageType typeInfo = messageTypeRepository.findByDeliveryTime(
+                reserveTime.toLocalDate(), channel)
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
         // todo: 추후에 그룹이 많아지면 loop으로 처리
@@ -127,6 +130,11 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public MessageLog findByMessageId(Long id) {
         return messageLogRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public MessageLog findInfoByMessageId(Long id) {
+        return messageLogQueryRepository.findMessageLogById(id);
     }
 
     @Override

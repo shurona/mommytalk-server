@@ -85,10 +85,10 @@ public class LineMessageSenderImpl implements LineMessageSender {
                 // 전송 성공 시 메시지 상태 변경 및 sender time 설정
                 if (sendStatus == SEND_SUCCESS) {
                     // smtId인 MessageLogDetailInfo를 업데이트 해준다.
-                    messageLogDetailQueryRepository.updateStatusByStmId(
+                    messageLogDetailQueryRepository.updateStatusByContentId(
                         messageContentId, messageLog.getId(), COMPLETE);
                 } else if (sendStatus == SEND_FAIL) {
-                    messageLogDetailQueryRepository.updateStatusByStmId(
+                    messageLogDetailQueryRepository.updateStatusByContentId(
                         messageContentId, messageLog.getId(), FAIL);
                 }
             }

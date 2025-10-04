@@ -10,25 +10,15 @@ import org.springframework.data.domain.Pageable;
 
 public interface MessageService {
 
-
-    /**
-     * 선택된 그룹에 메시지 전송(제외 그룹 확인)
-     */
-    List<MessageLog> createMessageSelectGroup
-    (Channel channel, List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
-        LocalDateTime reserveTime, String content);
-
-    /**
-     * 모든 그룹에 메시지 전송(제외 그룹 확인)
-     */
-    List<MessageLog> createMessageAllGroup
-    (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime,
-        String content);
-
     /**
      * 메시지 단일 조회
      */
     MessageLog findByMessageId(Long id);
+
+    /**
+     * 메시지 상세 조회
+     */
+    MessageLog findInfoByMessageId(Long id);
 
     /**
      * 메시지 로그 조회
@@ -49,6 +39,20 @@ public interface MessageService {
      * 로그의 라인 아이디 갯수를 갖고 온다.
      */
     Map<Long, Integer> findLineIdCountByLog(List<Long> list);
+
+    /**
+     * 선택된 그룹에 메시지 전송(제외 그룹 확인)
+     */
+    List<MessageLog> createMessageSelectGroup
+    (Channel channel, List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
+        LocalDateTime reserveTime, String content);
+
+    /**
+     * 모든 그룹에 메시지 전송(제외 그룹 확인)
+     */
+    List<MessageLog> createMessageAllGroup
+    (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime,
+        String content);
 
     /**
      * 메시지 내용 변경

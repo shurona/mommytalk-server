@@ -8,6 +8,7 @@ import static com.shrona.mommytalk.message.domain.QMessageType.messageType;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.presentation.dtos.response.AvailableDateResponseDto;
@@ -25,6 +26,17 @@ import org.springframework.stereotype.Repository;
 public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository {
 
     private final JPAQueryFactory query;
+
+    @Override
+    public MessageLog findMessageLogById(Long messageId) {
+        return query
+            .selectFrom(messageLog)
+            .leftJoin(messageLog.messageType, messageType).fetchJoin()
+            .leftJoin(messageType.messageContentList, messageContent).fetchJoin()
+            .where(
+                messageLog.id.eq(messageId)
+            ).fetchOne();
+    }
 
     @Override
     public List<AvailableDateResponseDto> findAvailableMessageTypesWithFullApprovedContent(

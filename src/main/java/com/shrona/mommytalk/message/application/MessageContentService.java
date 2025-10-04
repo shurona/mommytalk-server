@@ -38,4 +38,10 @@ public interface MessageContentService {
      */
     Map<String, MessageContent> groupMessageContentByLevel(MessageType messageType);
 
+    /**
+     * MessageType의 MessageContent 목록을
+     * userLevel_childLevel : content(String) 형식으로 변환해준다.
+     */
+    Map<String, String> groupMessageTextByLevel(MessageType messageType);
+
 }

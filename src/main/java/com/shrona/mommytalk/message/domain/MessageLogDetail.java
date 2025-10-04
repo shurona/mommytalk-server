@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.message.domain;
 
+import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.Column;
@@ -22,7 +23,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "message_log_detail")
-public class MessageLogDetail {
+public class MessageLogDetail extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
