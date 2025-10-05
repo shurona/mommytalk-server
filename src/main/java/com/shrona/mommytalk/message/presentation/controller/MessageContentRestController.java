@@ -11,11 +11,11 @@ import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.message.application.MessageContentService;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
-import com.shrona.mommytalk.message.presentation.dtos.request.UpdateTemplateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.MessageContentTestRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.AiGenerateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
-import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentTestRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.UpdateContentResponseDto;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -75,16 +75,14 @@ public class MessageContentRestController {
         return ApiResponse.success(true);
     }
 
-    @PatchMapping("/{contentId}")
-    public UpdateContentResponseDto updateAiContentTemplate(
+    @PostMapping
+    public ApiResponse<Boolean> upsertMessageContent(
         @PathVariable Long channelId,
-        @PathVariable("contentId") Long contentId,
-        @RequestBody UpdateTemplateRequestDto requestDto
+        @RequestBody UpsertMessageContentRequestDto requestDto
     ) {
+        messageContentService.upsertMessageContent(channelId, requestDto);
 
-        messageContentService.updateMessageContent(channelId, contentId, requestDto);
-
-        return UpdateContentResponseDto.success();
+        return ApiResponse.success(true);
     }
 
     @PatchMapping("/{contentId}/approve")

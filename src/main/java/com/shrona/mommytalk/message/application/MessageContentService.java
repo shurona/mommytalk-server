@@ -4,7 +4,7 @@ import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
-import com.shrona.mommytalk.message.presentation.dtos.request.UpdateTemplateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import java.time.LocalDate;
 import java.util.Map;
@@ -17,10 +17,9 @@ public interface MessageContentService {
     MessageContent generateAiContent(Channel channel, AiGenerateRequestDto requestDto);
 
     /**
-     * 메시지 컨텐츠를 업데이트한다.
+     * 메시지 컨텐츠를 생성 또는 업데이트한다.
      */
-    void updateMessageContent(Long channelId, Long contentId,
-        UpdateTemplateRequestDto requestDto);
+    void upsertMessageContent(Long channelId, UpsertMessageContentRequestDto requestDto);
 
     /**
      * 메시지 컨텐츠를 승인한다.

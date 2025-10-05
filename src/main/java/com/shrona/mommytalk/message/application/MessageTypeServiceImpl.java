@@ -62,13 +62,13 @@ public class MessageTypeServiceImpl implements MessageTypeService {
             .findByChannelIdAndDeliveryTime(channelId, date);
 
         return messageType.map(mt -> MessageTypeResponseDto.of(
+            mt.getId(),
             mt.getDeliveryTime(),
             mt.getTheme(),
             mt.getContext()
         ));
     }
 
-    @Override
     @Transactional
     public MessageTypeResponseDto createMessageType(Long channelId,
         MessageTypeRequestDto requestDto) {
@@ -87,6 +87,7 @@ public class MessageTypeServiceImpl implements MessageTypeService {
         MessageType savedMessageType = messageTypeRepository.save(messageType);
 
         return MessageTypeResponseDto.of(
+            savedMessageType.getId(),
             savedMessageType.getDeliveryTime(),
             savedMessageType.getTheme(),
             savedMessageType.getContext()
@@ -123,6 +124,7 @@ public class MessageTypeServiceImpl implements MessageTypeService {
         }
 
         return MessageTypeResponseDto.of(
+            updatedMessageType.getId(),
             updatedMessageType.getDeliveryTime(),
             updatedMessageType.getTheme(),
             updatedMessageType.getContext()

@@ -12,7 +12,7 @@ import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
-import com.shrona.mommytalk.message.presentation.dtos.request.UpdateTemplateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.openai.application.OpenAiServiceImpl;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class MessageContentServiceImpl implements MessageContentService {
@@ -36,8 +37,7 @@ public class MessageContentServiceImpl implements MessageContentService {
     private final MessageTypeJpaRepository messageTypeJpaRepository;
     private final MessageContentJpaRepository messageContentJpaRepository;
     private final OpenAiServiceImpl openAiService;
-
-    @Override
+    
     @Transactional
     public MessageContent generateAiContent(Channel channel, AiGenerateRequestDto requestDto) {
 
@@ -52,7 +52,7 @@ public class MessageContentServiceImpl implements MessageContentService {
                 messageType, requestDto.childLevel(), requestDto.userLevel());
 
         // regenerate=false이고 기존 컨텐츠가 있으면 기존 컨텐츠 반환
-        if (existingContent.isPresent() && !Boolean.TRUE.equals(requestDto.regenerate())) {
+        if (existingContent.isPresent() && !requestDto.regenerate()) {
             return existingContent.get();
         }
 
@@ -72,7 +72,7 @@ public class MessageContentServiceImpl implements MessageContentService {
         String generatedContent = openAiService.generateData(prompt);
 
         // 5. MessageContent 생성 또는 업데이트
-        if (existingContent.isPresent() && requestDto.regenerate()) {
+        if (existingContent.isPresent()) {
             // regenerate=true이고 기존 컨텐츠가 있으면 업데이트
             MessageContent existingMessageContent = existingContent.get();
             existingMessageContent.updateContent(generatedContent,
@@ -90,28 +90,41 @@ public class MessageContentServiceImpl implements MessageContentService {
         }
     }
 
-    @Override
     @Transactional
-    public void updateMessageContent(Long channelId, Long contentId,
-        UpdateTemplateRequestDto requestDto) {
+    public void upsertMessageContent(Long channelId, UpsertMessageContentRequestDto requestDto) {
 
-        // 1. MessageContent 조회
-        MessageContent messageContent = messageContentJpaRepository.findById(contentId)
-            .orElseThrow(() -> new MessageException(MESSAGE_CONTENT_NOT_FOUND));
+        // MessageType 조회 (없으면 에러)
+        MessageType messageType = messageTypeJpaRepository
+            .findById(requestDto.messageTypeId())
+            .orElseThrow(() -> new MessageException(MESSAGE_TYPE_NOT_FOUND));
 
-        // 2. 채널 권한 검증 (content의 messageType의 channel이 요청한 channelId와 일치하는지)
-        if (!messageContent.getMessageType().getChannel().getId().equals(channelId)) {
+        // 채널 권한 검증 (content의 messageType의 channel이 요청한 channelId와 일치하는지)
+        if (!messageType.getChannel().getId().equals(channelId)) {
             throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
         }
 
-        // 3. 컨텐츠 업데이트 (vocaUrl은 무시)
-        messageContent.updateContent(requestDto.messageText(), requestDto.diaryUrl());
+        // 동일한 레벨의 MessageContent가 이미 존재하는지 확인
+        Optional<MessageContent> existingContent = messageContentJpaRepository
+            .findByMessageTypeAndChildLevelAndUserLevel(
+                messageType, requestDto.childLevel(), requestDto.userLevel());
 
-        // 4. 저장
-        messageContentJpaRepository.save(messageContent);
+        if (existingContent.isPresent()) {
+            // TODO: 업데이트 하자
+            MessageContent messageContent = existingContent.get();
+            messageContent.updateContent(requestDto.content(), "https://www.diary.com");
+            messageContentJpaRepository.save(messageContent);
+        } else {
+            // 새 컨텐츠 생성
+            MessageContent messageContent = MessageContent.ofWithMockUrlsForUpsert(
+                messageType,
+                requestDto.content(),
+                requestDto.childLevel(),
+                requestDto.userLevel()
+            );
+            messageContentJpaRepository.save(messageContent);
+        }
     }
 
-    @Override
     @Transactional
     public void approveMessageContent(Long channelId, Long contentId) {
 
@@ -133,8 +146,6 @@ public class MessageContentServiceImpl implements MessageContentService {
         }
     }
 
-    @Override
-    @Transactional(readOnly = true)
     public ContentStatusResponseDto getContentStatus(Long channelId, LocalDate date) {
 
         // 1. 해당 날짜의 MessageType 조회
@@ -174,4 +185,5 @@ public class MessageContentServiceImpl implements MessageContentService {
                 MessageContent::getContent
             ));
     }
+
 }

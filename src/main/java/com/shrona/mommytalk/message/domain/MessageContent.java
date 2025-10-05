@@ -88,11 +88,29 @@ public class MessageContent extends BaseEntity {
     }
 
     /**
-     * 컨텐츠 업데이트
+     * Mock URL을 포함한 메시지 컨텐츠 생성 (사람이 생성 자동 승인)
+     */
+    public static MessageContent ofWithMockUrlsForUpsert(
+        MessageType type, String content, int childLevel, int userLevel) {
+        return MessageContent.builder()
+            .content(content)
+            .childLevel(childLevel)
+            .userLevel(userLevel)
+            .messageType(type)
+            .headerOneLink("https://cdn.example.com/mock-mom-audio.mp3")
+            .headerTwoLink("https://cdn.example.com/mock-child-audio.mp3")
+            .diaryUrl("https://mamitalk.example.com/diary")
+            .approved(true)
+            .build();
+    }
+
+    /**
+     * 컨텐츠 업데이트 및 승인
      */
     public void updateContent(String newContent, String newDiaryUrl) {
         this.content = newContent;
         this.diaryUrl = newDiaryUrl;
+        this.approved = true;
     }
 
     /**

@@ -175,7 +175,7 @@ public class GroupRestController {
      * 그룹에 유저 휴대전화 삭제
      */
     @DeleteMapping("/{groupId}/members/{userId}")
-    public ApiResponse<?> deleteUserFromGroup(
+    public ApiResponse<Boolean> deleteUserFromGroup(
         @PathVariable("channelId") Long channelId,
         @PathVariable("groupId") Long groupId,
         @PathVariable("userId") Long userId
@@ -183,7 +183,7 @@ public class GroupRestController {
 
         groupService.deleteUserFromGroupByIds(groupId, List.of(userId));
 
-        return ApiResponse.success("");
+        return ApiResponse.success(true);
     }
 
     /**
