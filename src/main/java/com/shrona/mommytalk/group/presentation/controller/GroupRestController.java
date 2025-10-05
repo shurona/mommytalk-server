@@ -181,7 +181,7 @@ public class GroupRestController {
         @PathVariable("userId") Long userId
     ) {
 
-        groupService.deleteUserFromGroupByIds(groupId, List.of(userId));
+        groupService.deleteUserFromGroupByUserIds(groupId, List.of(userId));
 
         return ApiResponse.success(true);
     }
