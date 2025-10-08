@@ -69,6 +69,11 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    public List<User> findUserListByGroupIds(List<Long> groupIds) {
+        return List.of();
+    }
+
+    @Override
     public Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable) {
         return userGroupRepository.findAllByGroupId(group, pageable);
     }

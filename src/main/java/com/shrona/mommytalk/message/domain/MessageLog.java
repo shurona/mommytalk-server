@@ -4,7 +4,6 @@ import static jakarta.persistence.CascadeType.PERSIST;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
-import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import jakarta.persistence.Column;
@@ -48,10 +47,6 @@ public class MessageLog extends BaseEntity {
     private MessageType messageType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
-    private Group group;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "channel_id")
     private Channel channel;
 
@@ -61,10 +56,9 @@ public class MessageLog extends BaseEntity {
 
 
     public static MessageLog messageLog(
-        Channel channel, MessageType type, Group group, LocalDateTime reserveTime, String content) {
+        Channel channel, MessageType type, LocalDateTime reserveTime, String content) {
         MessageLog log = new MessageLog();
         log.channel = channel;
-        log.group = group;
         log.reserveTime = reserveTime;
         log.messageType = type;
         log.content = content;

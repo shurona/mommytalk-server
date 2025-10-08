@@ -8,13 +8,19 @@ import static com.shrona.mommytalk.message.domain.QMessageType.messageType;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.presentation.dtos.response.AvailableDateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageLogResponseDto;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -56,6 +62,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
                         .from(messageContent)
 //                        .where(messageContent.approved.eq(true))
                         .groupBy(messageContent.messageType.id)
+//                        .having(messageContent.count().goe(9))
                         .having(messageContent.count().goe(0))
                 )
             )
@@ -68,7 +75,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
             .toList();
 
         // 3. MessageType별 승인된 Content 개수 조회
-        java.util.Map<Long, Long> contentCountMap = new java.util.HashMap<>();
+        Map<Long, Long> contentCountMap = new java.util.HashMap<>();
         if (!messageTypeIds.isEmpty()) {
             List<Tuple> countResults = query
                 .select(
@@ -121,8 +128,8 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
             .fetch();
 
         // 2. 결과를 그룹화하고 상태 계산
-        java.util.Map<Long, MessageLogResponseDto> resultMap = new java.util.LinkedHashMap<>();
-        java.util.Map<Long, Long> messageLogToTypeMap = new java.util.HashMap<>();
+        Map<Long, MessageLogResponseDto> resultMap = new LinkedHashMap<>();
+        Map<Long, Long> messageLogToTypeMap = new HashMap<>();
 
         for (Tuple row : rawResults) {
             Long id = row.get(messageLog.id);
@@ -151,7 +158,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
         }
 
         // 3. 페이징 적용
-        List<MessageLogResponseDto> allResults = new java.util.ArrayList<>(resultMap.values());
+        List<MessageLogResponseDto> allResults = new ArrayList<>(resultMap.values());
         int start = (int) pageable.getOffset();
         int end = Math.min(start + pageable.getPageSize(), allResults.size());
         List<MessageLogResponseDto> pagedResults = allResults.subList(start, end);
@@ -159,12 +166,12 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
         // 4. 페이징된 결과의 MessageType ID 목록 추출
         List<Long> messageTypeIds = pagedResults.stream()
             .map(dto -> messageLogToTypeMap.get(dto.id()))
-            .filter(java.util.Objects::nonNull)
+            .filter(Objects::nonNull)
             .distinct()
             .toList();
 
         // 5. MessageType별 승인된 Content 개수 조회
-        java.util.Map<Long, Long> contentCountMap = new java.util.HashMap<>();
+        Map<Long, Long> contentCountMap = new HashMap<>();
         if (!messageTypeIds.isEmpty()) {
             List<Tuple> countResults = query
                 .select(
@@ -211,4 +218,27 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
+
+    @Override
+    public List<LogMessageIdCount> findMessageCountPerLog(List<Long> ids) {
+        List<Tuple> results = query
+            .select(
+                messageLog.id,
+                messageLogDetail.count()
+            )
+            .from(messageLog)
+            .leftJoin(messageLog.messageLogDetailList, messageLogDetail)
+            .where(messageLog.id.in(ids))
+            .groupBy(messageLog.id)
+            .fetch();
+
+        return results.stream()
+            .map(tuple -> new LogMessageIdCount(
+                tuple.get(messageLog.id),
+                tuple.get(messageLogDetail.count())
+            ))
+            .toList();
+    }
+
+
 }

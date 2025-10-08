@@ -31,5 +31,5 @@ public interface GroupJpaRepository extends JpaRepository<Group, Long> {
      * 채널에 속한 그룹 목록 조회
      */
     Page<Group> findAllByChannel(Channel channel, Pageable pageable);
-    
+
 }

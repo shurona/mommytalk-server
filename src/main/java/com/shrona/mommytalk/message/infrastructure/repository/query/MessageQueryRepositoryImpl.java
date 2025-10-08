@@ -25,7 +25,6 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
         return query.select(messageLog)
             .from(messageLog)
-            .leftJoin(messageLog.group, group).fetchJoin()
             .leftJoin(group.channel, channel).fetchJoin()
             .where(messageLog.reserveTime.loe(time)
                 .and(messageLog.id.in(

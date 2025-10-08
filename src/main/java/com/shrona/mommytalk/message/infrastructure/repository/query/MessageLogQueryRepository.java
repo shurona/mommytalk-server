@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.message.infrastructure.repository.query;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.presentation.dtos.response.AvailableDateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageLogResponseDto;
@@ -26,5 +27,11 @@ public interface MessageLogQueryRepository {
      * 채널별 MessageLog 목록을 페이징으로 조회 (상태 포함)
      */
     Page<MessageLogResponseDto> findMessageLogsByChannel(Long channelId, Pageable pageable);
+
+    /**
+     * MessageLog ID 목록에 대한 MessageLogDetail 개수 조회
+     */
+    List<LogMessageIdCount> findMessageCountPerLog(List<Long> ids);
+
 
 }

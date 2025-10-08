@@ -29,6 +29,11 @@ public interface GroupService {
     List<Group> findGroupByIdList(List<Long> id);
 
     /**
+     * 그룹에 속한 유저 목록을 갖고 온다.
+     */
+    List<User> findUserListByGroupIds(List<Long> groupIds);
+
+    /**
      * 그룹에 해당하는 유저 그룹 목록 조회(페이징 정보 추가)
      */
     Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable);

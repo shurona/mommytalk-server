@@ -1,7 +1,6 @@
 package com.shrona.mommytalk.message.infrastructure.repository.jpa;
 
 import com.shrona.mommytalk.channel.domain.Channel;
-import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,13 +27,5 @@ public interface MessageLogJpaRepository extends JpaRepository<MessageLog, Long>
      * 채널을 기준으로 페이지 목록 조회
      */
     Page<MessageLog> findAllByChannel(Channel channel, Pageable pageable);
-
-    @Query(
-        "SELECT new com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount(m.id, COUNT(ml)) "
-            +
-            "FROM MessageLog m LEFT JOIN m.messageLogDetailList ml " +
-            "where m.id in :ids " +
-            "GROUP BY m.id")
-    List<LogMessageIdCount> findMessageCountPerLog(List<Long> ids);
 
 }

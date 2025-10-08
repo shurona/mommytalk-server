@@ -155,8 +155,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Map<Long, Integer> findLineIdCountByLog(List<Long> logIds) {
-        // 사용처
-        return messageLogRepository.findMessageCountPerLog(logIds)
+        return messageLogQueryRepository.findMessageCountPerLog(logIds)
             .stream()
             .collect(Collectors.toMap(
                 LogMessageIdCount::id,
@@ -192,7 +191,7 @@ public class MessageServiceImpl implements MessageService {
             .filter(user -> !exceptUserIds.contains(user.getId())) // 제외 그룹 유저 한다.
             .toList();
 
-        MessageLog messageLog = MessageLog.messageLog(channel, type, groupInfo, reserveTime,
+        MessageLog messageLog = MessageLog.messageLog(channel, type, reserveTime,
             content);
 
         // MessageContent를 레벨 조합으로 미리 Map에 저장 (한 번만 조회)
