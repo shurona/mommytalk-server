@@ -264,7 +264,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
 
         return new LineFlexMessageRequestDto(
             ContentType.FLEX,
-            text.substring(0, 100),
+            text.length() > 100 ? text.substring(0, 100) : text,
             bubbleMessage
         );
     }

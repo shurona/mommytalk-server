@@ -26,10 +26,10 @@ public record MessageLogInfoResponseDto(
             .id(messageLog.getId())
             .theme(messageLog.getMessageType().getTheme())
             .context(messageLog.getMessageType().getContext())
-            .deliveryDate(messageLog.getReserveTime().toString())
+            .deliveryDate(messageLog.getReserveTime().plusHours(9).toString())
             .contentInfo(contentInfo)
-            .createdAt(messageLog.getCreatedAt())
-            .updatedAt(messageLog.getUpdatedAt())
+            .createdAt(messageLog.getCreatedAt().plusHours(9))
+            .updatedAt(messageLog.getUpdatedAt().plusHours(9))
             .build();
     }
 
