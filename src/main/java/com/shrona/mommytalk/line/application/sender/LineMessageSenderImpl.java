@@ -77,6 +77,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
                 // 메시지 로그의 상품 정보가 있는 경우 그에 맞춰서 로직을 수행되게 한다.
                 int sendStatus;
                 switch (messageLog.getEntitlement().getType()) {
+                    // 일반 유저
                     case EntitlementType.MOMMYTALK -> {
                         // 메시지 전송
                         sendStatus = sendMessageToLine(
@@ -87,8 +88,15 @@ public class LineMessageSenderImpl implements LineMessageSender {
                             mldByMessageContentId.get(messageContentId)
                         );
                     }
+                    // 마미 보카
                     case EntitlementType.MOMMYVOCA -> {
-                        sendStatus = -12;
+                        sendStatus = sendMessageToLineWithButton(
+                            messageLog.getChannel(),  // 전송될 채널 정보
+                            // 전송될 MessageContent에 해당하는 LineId 목록
+                            lineIdsByMessageContentId.get(messageContentId),
+                            // 메시지 Content에 해당하는 MessageLogDetail Info
+                            mldByMessageContentId.get(messageContentId)
+                        );
                     }
                     default -> {
                         sendStatus = -1;
@@ -179,22 +187,55 @@ public class LineMessageSenderImpl implements LineMessageSender {
             List<String> subList = lineIdList.subList(i,
                 Math.min(i + CHUNK_SIZE, lineIdList.size()));
             try {
+                LineMessageMulticastRequestBody requestBody = LineMessageMulticastRequestBody.of(
+                    subList,
+                    content.getContent());
+                lineMessageSenderClient.SendMulticastMessage(
+                    prefixHeader + decodedString,
+                    requestBody
+                );
+            } catch (RestClientResponseException e) {
+                //TODO : 어떻게 처리할까
+                log.error("[전송 중 에러 발생] {} 번째에서 에러 발생 {} id 목록 \n에러 원인 {}",
+                    i, lineIdList, e.getMessage());
+                return SEND_FAIL;
+            }
+
+            // thread sleep
+            sleepThreadForRateLimit();
+        }
+
+        return SEND_SUCCESS;
+    }
+
+    /**
+     * 메시지를 마미보카와 함께 라인에 전달한다.
+     */
+    private int sendMessageToLineWithButton(
+        Channel channel, List<String> lineIdList, MessageContent content) {
+
+        String accessToken = channel.getAccessToken();
+        // 목록 및 accessToken이 비어 있으면 보내지 않는다.
+        if (lineIdList.isEmpty() || accessToken.isBlank()) {
+            return SEND_SUCCESS;
+        }
+
+        // accessToken을 Base64 -> utf8로 변환한다.
+        String decodedString = base64ToUtf8(accessToken);
+
+        // 라인 메시지 전송
+        for (int i = 0; i < lineIdList.size(); i += CHUNK_SIZE) {
+            List<String> subList = lineIdList.subList(i,
+                Math.min(i + CHUNK_SIZE, lineIdList.size()));
+            try {
                 LineMessageMulticastRequestBody requestBody;
 
                 // 헤더링크나 푸터링크가 있으면 Flex 메시지로 전송
                 String headerLink = content.getHeaderOneLink();
                 String bottomLink = content.getHeaderTwoLink();
 
-                if ((headerLink != null && !headerLink.trim().isEmpty()) ||
-                    (bottomLink != null && !bottomLink.trim().isEmpty())) {
-
-                    requestBody = LineMessageMulticastRequestBody.ofFlex(subList,
-                        createBubbleObj(content.getContent(), headerLink, bottomLink));
-                } else {
-                    // 일반 텍스트 메시지
-                    requestBody = LineMessageMulticastRequestBody.of(subList,
-                        content.getContent());
-                }
+                requestBody = LineMessageMulticastRequestBody.ofFlex(subList,
+                    createBubbleObj(content.getContent(), headerLink, bottomLink));
 
                 lineMessageSenderClient.SendMulticastMessage(
                     prefixHeader + decodedString,
