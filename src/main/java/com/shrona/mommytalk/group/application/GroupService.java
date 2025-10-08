@@ -54,6 +54,16 @@ public interface GroupService {
     Page<Group> findGroupList(Channel channel, Pageable pageable);
 
     /**
+     * 상품 정보가 담긴 그룹 정보 조회
+     */
+    List<Group> findEntitlementGroupList(Channel channel);
+
+    /**
+     * 커스텀 그룹 목록 조회
+     */
+    Page<Group> findCustomGroupList(Channel channel, Pageable pageable);
+
+    /**
      * 그룹 별로 라인 유저 숫자 매핑
      */
     Map<Long, Integer> findGroupPlatformUserCount(List<Long> groupIds, ChannelPlatform type);

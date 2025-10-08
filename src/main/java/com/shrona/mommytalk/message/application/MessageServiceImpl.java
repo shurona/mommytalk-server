@@ -1,11 +1,15 @@
 package com.shrona.mommytalk.message.application;
 
+import static com.shrona.mommytalk.group.common.exception.GroupErrorCode.GROUP_NOT_FOUND;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_NOT_SCHEDULED_FOR_DATE;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.entitlement.infrastructure.query.EntitlementQueryRepository;
 import com.shrona.mommytalk.group.application.GroupService;
+import com.shrona.mommytalk.group.common.exception.GroupException;
 import com.shrona.mommytalk.group.domain.Group;
-import com.shrona.mommytalk.group.domain.UserGroup;
+import com.shrona.mommytalk.group.infrastructure.repository.jpa.GroupJpaRepository;
+import com.shrona.mommytalk.group.infrastructure.repository.query.GroupQueryRepository;
 import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
@@ -18,6 +22,7 @@ import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpa
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogQueryRepository;
 import com.shrona.mommytalk.user.domain.User;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +32,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -41,8 +48,11 @@ public class MessageServiceImpl implements MessageService {
     // repository
     private final MessageLogJpaRepository messageLogRepository;
     private final MessageTypeJpaRepository messageTypeRepository;
+    private final GroupJpaRepository groupJpaRepository;
 
     private final MessageLogQueryRepository messageLogQueryRepository;
+    private final GroupQueryRepository groupQueryRepository;
+    private final EntitlementQueryRepository entitlementQueryRepository;
 
     // service
     private final GroupService groupService;
@@ -54,17 +64,27 @@ public class MessageServiceImpl implements MessageService {
 
     @Transactional
     public List<MessageLog> createMessageSelectGroup
-        (Channel channel, List<Long> selectedGroupIds, List<Long> exceptGroupIds,
-            LocalDateTime reserveTime, String content) {
+        (Channel channel, Long selectGroupId,
+            List<Long> selectedCustomGroupIds, List<Long> exceptGroupIds,
+            LocalDateTime reserveTime, String groupInfo) {
 
         // 해당 날짜와 채널에 해당하는 MessageType 정보를 갖고 온다.
         MessageType typeInfo = messageTypeRepository.findByDeliveryTime(
                 reserveTime.toLocalDate(), channel)
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
-        // 선택된 그룹 정보를 갖고 온다.
-        List<Group> groupInfo = groupService.findGroupByIdList(selectedGroupIds);
-        if (groupInfo.isEmpty()) {
+        Group entitlementGroupInfo = groupJpaRepository.findById(selectGroupId)
+            .orElseThrow(() -> new GroupException(GROUP_NOT_FOUND));
+        if (entitlementGroupInfo.getEntitlement() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 정보가 없습니다.");
+        }
+
+        // 선택된 그룹에 속한 유저 정보를 갖고 온다.
+        List<Long> groupList = new ArrayList<>(selectedCustomGroupIds);
+        groupList.add(selectGroupId);
+        List<User> userListByGroupIds = groupQueryRepository
+            .findUserListByGroupIds(groupList);
+        if (userListByGroupIds.isEmpty()) {
             return null;
         }
 
@@ -72,59 +92,62 @@ public class MessageServiceImpl implements MessageService {
         Set<Long> exceptUserIds = getExceptUserIds(exceptGroupIds);
 
         // 저장될 메세지 목록을 갖고 온다.
-        List<MessageLog> messageLogListForSave = groupInfo.stream()
-            .map(g -> createMessageLogForGroup(g, channel, typeInfo, // MessageLog 생성 로직
-                reserveTime, content, exceptUserIds))
-            .toList();
+        MessageLog messageLogForSave = createMessageLogForGroup(
+            channel, typeInfo, // MessageLog 생성 로직
+            userListByGroupIds,
+            reserveTime, groupInfo, exceptUserIds);
 
-        List<MessageLog> messageLogList = messageLogRepository.saveAll(messageLogListForSave);
+        // 상품 정보 업데이트
+        messageLogForSave.updateMessageEntitlement(entitlementGroupInfo.getEntitlement());
+
+        // messageLog 저장
+        MessageLog messageLogInfo = messageLogRepository.save(messageLogForSave);
 
         // commit이 된 이후에 실행을 한다.
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    messageUtils.registerTaskSchedule(messageLogList, reserveTime);
+                    messageUtils.registerTaskSchedule(List.of(messageLogInfo), reserveTime);
                 }
             }
         );
 
-        return messageLogList;
+        return List.of(messageLogInfo);
     }
 
     @Transactional
     public List<MessageLog> createMessageAllGroup
-        (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime, String content) {
+        (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime, String groupInfo) {
 
         MessageType typeInfo = messageTypeRepository.findByDeliveryTime(
                 reserveTime.toLocalDate(), channel)
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
-        // todo: 추후에 그룹이 많아지면 loop으로 처리
-        List<Group> groupInfo = groupService.findGroupListNotIn(channel, exceptGroupIds);
+        // todo: 유저 정보 set으로 갖고 오기
+        List<User> allUserList = new ArrayList<>();
 
-        if (groupInfo.isEmpty()) {
+        if (allUserList.isEmpty()) {
             return null;
         }
 
         Set<Long> exceptUserIds = getExceptUserIds(exceptGroupIds);
 
-        List<MessageLog> messageLogList = messageLogRepository.saveAll(groupInfo.stream()
-            .map(g -> createMessageLogForGroup(g, channel, typeInfo,
-                reserveTime, content, exceptUserIds))
-            .toList());
+        MessageLog messageLogInfo = createMessageLogForGroup(channel, typeInfo,
+            allUserList,
+            reserveTime, groupInfo, exceptUserIds);
 
         // commit이 된 이후에 실행을 한다.
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    messageUtils.registerTaskSchedule(messageLogList, reserveTime);
+                    messageUtils.registerTaskSchedule(List.of(messageLogInfo), reserveTime);
                 }
             }
         );
 
-        return messageLogList;
+        return List.of(messageLogInfo);
     }
 
     @Override
@@ -139,13 +162,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Page<MessageLog> findMessageLogList(Channel channel, Pageable pageable) {
-
         return messageLogRepository.findAllByChannel(channel, pageable);
-    }
-
-    @Override
-    public List<MessageLog> findReservedMessage(Channel channel) {
-        return messageLogRepository.findAllReservedMessageByChannel(channel, LocalDateTime.now());
     }
 
     @Override
@@ -163,36 +180,19 @@ public class MessageServiceImpl implements MessageService {
             ));
     }
 
-    @Transactional
-    public MessageLog updateMessageLog(Long messageId, String content) {
-
-        return messageLogRepository.findById(messageId)
-            .map(messageLog -> {
-                messageLog.updateMessage(content);
-                return messageLog;
-            })
-            .orElseThrow(() -> {
-                log.error("메시지 업데이트 실패: 존재하지 않는 messageId={}", messageId);
-                return new IllegalArgumentException("존재하지 않는 메시지 ID: " + messageId);
-            });
-    }
-
     /**
      * MessageLog를 생성해 주는 메소드
      */
-    private MessageLog createMessageLogForGroup(Group groupInfo, Channel channel, MessageType type,
-        LocalDateTime reserveTime, String content, Set<Long> exceptUserIds) {
+    private MessageLog createMessageLogForGroup(Channel channel, MessageType type,
+        List<User> userList, LocalDateTime reserveTime, String groupInfo, Set<Long> exceptUserIds) {
 
         // 보내지 않은 유저를 제외한 유저 목록을 생성한다.
-        List<User> sendUserInfo = groupService.findGroupById(groupInfo.getId(), true)
-            .getUserGroupList()
-            .stream()
-            .map(UserGroup::getUser) // 유저 추출
+        List<User> sendUserInfo = userList.stream()
             .filter(user -> !exceptUserIds.contains(user.getId())) // 제외 그룹 유저 한다.
             .toList();
 
-        MessageLog messageLog = MessageLog.messageLog(channel, type, reserveTime,
-            content);
+        MessageLog messageLog = MessageLog.messageLog(
+            channel, type, reserveTime, groupInfo);
 
         // MessageContent를 레벨 조합으로 미리 Map에 저장 (한 번만 조회)
         Map<String, MessageContent> levelMap = messageContentService

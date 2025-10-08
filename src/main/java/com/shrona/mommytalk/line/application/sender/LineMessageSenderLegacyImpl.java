@@ -152,7 +152,7 @@ public class LineMessageSenderLegacyImpl implements LineMessageSender {
             try {
                 lineMessageSenderClient.SendMulticastMessage(
                     prefixHeader + decodedString,
-                    LineMessageMulticastRequestBody.of(subList, messageLog.getContent())
+                    LineMessageMulticastRequestBody.of(subList, messageLog.getGroupInfo())
                 );
             } catch (RestClientResponseException e) {
                 //TODO : 어떻게 처리할까

@@ -12,7 +12,8 @@ import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.group.presentation.dtos.request.AddUserGroupRequestDto;
 import com.shrona.mommytalk.group.presentation.dtos.request.CreateGroupRequestDto;
-import com.shrona.mommytalk.group.presentation.dtos.response.GroupListResponseDto;
+import com.shrona.mommytalk.group.presentation.dtos.response.CustomGroupListResponseDto;
+import com.shrona.mommytalk.group.presentation.dtos.response.EntitlementGroupListResponseDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.GroupResponseDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.UserGroupMemberResponseDto;
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ public class GroupRestController {
      * 그룹 목록 조회
      */
     @GetMapping
-    public ApiResponse<PageResponseDto<GroupListResponseDto>> findUserGroupList(
+    public ApiResponse<List<EntitlementGroupListResponseDto>> findUserGroupList(
         @PathVariable("channelId") Long channelId
     ) {
 
@@ -55,7 +56,7 @@ public class GroupRestController {
         Channel channelInfo = channelService.findChannelById(channelId)
             .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
 
-        Page<Group> groupList = groupService.findGroupList(channelInfo, PageRequest.of(0, 10));
+        List<Group> groupList = groupService.findEntitlementGroupList(channelInfo);
 
         // Line 유저가 등록된 모든 유저의 숫자를 구한다.
         Map<Long, Integer> groupPlatformUserCount = groupService.findGroupPlatformUserCount(
@@ -65,8 +66,35 @@ public class GroupRestController {
         Map<Long, Integer> groupAllUserCount = groupService.findGroupAllUserCount(
             groupList.stream().map(Group::getId).toList(), channelInfo.getChannelPlatform());
 
-        List<GroupListResponseDto> list = groupList.stream().map(
-            (groupInfo) -> GroupListResponseDto.of(groupInfo, groupPlatformUserCount,
+        return ApiResponse.success(
+            groupList.stream().map(
+                g -> EntitlementGroupListResponseDto.of(
+                    g, groupPlatformUserCount, groupAllUserCount)
+            ).toList()
+        );
+    }
+
+    @GetMapping("/custom")
+    public ApiResponse<PageResponseDto<CustomGroupListResponseDto>> findCustomGroupList(
+        @PathVariable("channelId") Long channelId
+    ) {
+        // 채널 정보 갖고 온다.
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
+
+        Page<Group> groupList = groupService.findCustomGroupList(channelInfo,
+            PageRequest.of(0, 10));
+
+        // Line 유저가 등록된 모든 유저의 숫자를 구한다.
+        Map<Long, Integer> groupPlatformUserCount = groupService.findGroupPlatformUserCount(
+            groupList.stream().map(Group::getId).toList(), channelInfo.getChannelPlatform());
+
+        // Line이 등록되지 않은 모든 유저의 숫자를 구한다.
+        Map<Long, Integer> groupAllUserCount = groupService.findGroupAllUserCount(
+            groupList.stream().map(Group::getId).toList(), channelInfo.getChannelPlatform());
+
+        List<CustomGroupListResponseDto> list = groupList.stream().map(
+            (groupInfo) -> CustomGroupListResponseDto.of(groupInfo, groupPlatformUserCount,
                 groupAllUserCount)).toList();
 
         return ApiResponse.success(
@@ -94,6 +122,9 @@ public class GroupRestController {
         return ApiResponse.success(GroupResponseDto.of(groupInfo));
     }
 
+    /**
+     * 그룹에 속한 유저 멤버 목록 조회
+     */
     @GetMapping("/{groupId}/members")
     public ApiResponse<PageResponseDto<?>> findUserGroupList(
         @PathVariable("channelId") Long channelId,
@@ -129,7 +160,6 @@ public class GroupRestController {
      * 커스텀 그룹 생성
      */
     @PostMapping
-
     public ApiResponse<Long> createCustomGroup(
         @PathVariable("channelId") Long channelId,
         @RequestBody CreateGroupRequestDto requestDto

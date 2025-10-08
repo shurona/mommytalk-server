@@ -4,6 +4,7 @@ import static jakarta.persistence.CascadeType.PERSIST;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.entitlement.domain.Entitlement;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import jakarta.persistence.Column;
@@ -36,11 +37,15 @@ public class MessageLog extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(length = 1000)
-    private String content;
+    @Column(name = "group_info")
+    private String groupInfo;
 
     @Column(name = "reserve_time")
     private LocalDateTime reserveTime;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entitlement_id")
+    private Entitlement entitlement;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id")
@@ -56,12 +61,12 @@ public class MessageLog extends BaseEntity {
 
 
     public static MessageLog messageLog(
-        Channel channel, MessageType type, LocalDateTime reserveTime, String content) {
+        Channel channel, MessageType type, LocalDateTime reserveTime, String groupInfo) {
         MessageLog log = new MessageLog();
         log.channel = channel;
         log.reserveTime = reserveTime;
         log.messageType = type;
-        log.content = content;
+        log.groupInfo = groupInfo;
 
         return log;
     }
@@ -72,14 +77,22 @@ public class MessageLog extends BaseEntity {
         info.setMessageLogInfo(this);
     }
 
-    public void updateMessage(String content) {
+    /**
+     * MessageLog에 해당하는 상품정보 저장
+     */
+    public void updateMessageEntitlement(Entitlement entitlement) {
+        this.entitlement = entitlement;
+    }
+
+    public void updateMessage(String groupInfo) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime fiveMinutesBeforeReservation = reserveTime.minusMinutes(5);
 
+        // 5분전이는 정보를 바꿀 수 없다.
         if (now.isAfter(fiveMinutesBeforeReservation)) {
             throw new LineException(LineErrorCode.EDIT_RESERVED_TIME_EXPIRED);
         }
 
-        this.content = content;
+        this.groupInfo = groupInfo;
     }
 }

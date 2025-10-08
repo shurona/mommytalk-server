@@ -8,29 +8,27 @@ import java.util.Map;
 import lombok.Builder;
 
 @Builder(access = PRIVATE)
-public record GroupListResponseDto(
+public record CustomGroupListResponseDto(
     Long id,
     String title,
     String type,
-    String product,
     Integer memberCount,
     Integer friendCount,
     String createdAt,
     String updatedAt
 ) {
 
-    public static GroupListResponseDto of(
+    public static CustomGroupListResponseDto of(
         Group groupInfo, Map<Long, Integer> groupPlatformUserCount,
         Map<Long, Integer> groupAllUserCount
     ) {
 
-        return GroupListResponseDto.builder()
+        return CustomGroupListResponseDto.builder()
             .id(groupInfo.getId())
             .title(groupInfo.getName())
             .type(groupInfo.getGroupType().getCode())
-            .product("상품 이름")
-            .memberCount(groupAllUserCount.get(groupInfo.getId()))
-            .friendCount(groupPlatformUserCount.get(groupInfo.getId()))
+            .memberCount(groupAllUserCount.getOrDefault(groupInfo.getId(), 0))
+            .friendCount(groupPlatformUserCount.getOrDefault(groupInfo.getId(), 0))
             .createdAt(groupInfo.getCreatedAt().plusHours(9)
                 .format(DateTimeFormatter.ofPattern("yyyy.MM.dd. HH:mm")))
             .updatedAt(groupInfo.getUpdatedAt().plusHours(9).format(DateTimeFormatter.ofPattern(

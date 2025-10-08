@@ -18,7 +18,7 @@ public record MessageListForm(
             messageLog.getId(),
             messageLog.getReserveTime().plusHours(9), // TODO: 서버는 utc 사용하고 클라이언트에서 반영하도록 변경
             messageLog.getCreatedAt().plusHours(9),
-            messageLog.getContent(),
+            messageLog.getGroupInfo(),
             logLineIdCount.getOrDefault(messageLog.getId(), 0),
             "Status"
         );

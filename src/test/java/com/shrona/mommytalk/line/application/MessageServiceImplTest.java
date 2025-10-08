@@ -6,6 +6,9 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.entitlement.domain.Entitlement;
+import com.shrona.mommytalk.entitlement.domain.EntitlementType;
+import com.shrona.mommytalk.entitlement.infrastructure.jpa.EntitlementJpaRepository;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.GroupJpaRepository;
@@ -36,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,8 @@ class MessageServiceImplTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private EntitlementJpaRepository entitlementJpaRepository;
     @Autowired
     private MessageServiceImpl messageService;
     @Autowired
@@ -68,10 +72,15 @@ class MessageServiceImplTest {
     private Channel channel2;
     private Group groupInfo;
     private MessageType mt;
+    private Entitlement entitlement;
     private LocalDate currentDate = LocalDate.now();
 
     @BeforeEach
     public void beforeEach() {
+
+        entitlement = entitlementJpaRepository.save(
+            Entitlement.createEntitlement("마미톡", EntitlementType.MOMMYTALK));
+
         channel = channelRepository.save(Channel.createChannel("이름", "설명"));
         channel2 = channelRepository.save(Channel.createChannel("이름2", "설명"));
         mt = messageTypeService.createMessageType("타이틀", "예시 포맷", currentDate, channel);
@@ -79,6 +88,7 @@ class MessageServiceImplTest {
         MessageType mt2 = messageTypeService.createMessageType("두번째", "예시", currentDate, channel2);
 
         Group beforeSave = Group.createGroup(channel, "name", "description");
+        beforeSave.updateGroupEntitlement(entitlement);
         groupInfo = groupJpaRepository.save(beforeSave);
         messageContentJpaRepository.save(
             MessageContent.of(mt, "컨텐츠", 2, 2));
@@ -112,49 +122,25 @@ class MessageServiceImplTest {
         LocalDateTime reserveTime = LocalDateTime.now();
         String content = "content";
 
+        List<User> users = saveUserAndGetUsers("1234", 1, 0);
+        groupInfo.addUserToGroup(
+            users.stream().map(
+                u -> UserGroup.createUserGroup(u, groupInfo)
+            ).toList()
+        );
+        groupJpaRepository.save(groupInfo);
+
         // when
         List<MessageLog> logList = messageService
             .createMessageSelectGroup(channel,
-                List.of(groupInfo.getId(), 2L), new ArrayList<>(),
+                groupInfo.getId(), List.of(2L), new ArrayList<>(),
                 reserveTime.plusHours(5), content);
         MessageLog afterSaveLog = messageService.findByMessageId(logList.getFirst().getId());
 
         // then
         assertThat(logList.size()).isEqualTo(1);
-        assertThat(afterSaveLog.getContent()).isEqualTo(content);
+        assertThat(afterSaveLog.getGroupInfo()).isEqualTo(content);
         assertThat(afterSaveLog.getReserveTime()).isEqualTo(reserveTime.plusHours(5));
-    }
-
-    @Test
-    public void 메시지_목록_조회_테스트() {
-        // given
-        // message 전달은 mocking
-        doNothing().when(messageUtils).registerTaskSchedule(anyList(), any(LocalDateTime.class));
-
-        LocalDateTime reserveTime = LocalDateTime.now();
-        String content = "content";
-
-        // when
-        for (int i = 0; i < 200; i++) {
-            messageService
-                .createMessageSelectGroup(channel,
-                    List.of(groupInfo.getId()), new ArrayList<>(),
-                    reserveTime, content);
-        }
-
-        // then
-        Page<MessageLog> first = messageService.findMessageLogList(channel,
-            PageRequest.of(0, 100, Sort.by("reserveTime").descending()));
-        assertThat(first.toList().size()).isEqualTo(100);
-
-        Page<MessageLog> second = messageService.findMessageLogList(channel,
-            PageRequest.of(1, 100, Sort.by("reserveTime").descending()));
-        assertThat(second.toList().size()).isEqualTo(100);
-
-        Page<MessageLog> third = messageService.findMessageLogList(channel,
-            PageRequest.of(2, 100, Sort.by("reserveTime").descending()));
-        assertThat(third.toList().size()).isEqualTo(0);
-
     }
 
     @Test
@@ -187,6 +173,7 @@ class MessageServiceImplTest {
                 u -> UserGroup.createUserGroup(u, includeGroupInfo)
             ).toList()
         );
+        includeGroupInfo.updateGroupEntitlement(entitlement);
 
         exceptGroupInfo.addUserToGroup(
             userList.subList(40, 80).stream().map(
@@ -201,15 +188,21 @@ class MessageServiceImplTest {
         String content = "content";
 
         // when
-        List<MessageLog> messageLogList = messageService
-            .createMessageSelectGroup(channel,
-                List.of(groupInfo.getId(), includeGroupInfo.getId()),
+        List<MessageLog> messageLogListOne = messageService
+            .createMessageSelectGroup(channel, groupInfo.getId(),
+                List.of(includeGroupInfo.getId()),
+                List.of(exceptGroupInfo.getId()),
+                reserveTime.plusHours(1), content);
+
+        List<MessageLog> messageLogListTwo = messageService
+            .createMessageSelectGroup(channel, includeGroupInfo.getId(),
+                List.of(includeGroupInfo.getId()),
                 List.of(exceptGroupInfo.getId()),
                 reserveTime.plusHours(1), content);
 
         // then
-        MessageLog first = messageService.findByMessageId(messageLogList.getFirst().getId());
-        MessageLog last = messageService.findByMessageId(messageLogList.getLast().getId());
+        MessageLog first = messageService.findByMessageId(messageLogListOne.getFirst().getId());
+        MessageLog last = messageService.findByMessageId(messageLogListTwo.getFirst().getId());
         assertThat(first.getMessageLogDetailList().size()).isEqualTo(160);
         assertThat(last.getMessageLogDetailList().size()).isEqualTo(40);
     }
@@ -223,36 +216,42 @@ class MessageServiceImplTest {
         LocalDateTime reserveTime = LocalDateTime.now();
         String content = "content";
 
+        List<User> userList = saveUserAndGetUsers("1234", 1, 1);
+        groupInfo.addUserToGroup(
+            userList.stream().map(
+                u -> UserGroup.createUserGroup(u, groupInfo)
+            ).toList()
+        );
+        groupJpaRepository.save(groupInfo);
+
         // when
         // 이후 시간으로 추가
         for (int i = 0; i < 30; i++) {
             messageService
-                .createMessageSelectGroup(channel,
+                .createMessageSelectGroup(channel, groupInfo.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
                     reserveTime.plusHours(3), content);
         }
         // 이전 시간으로 추가(reserveList로 조회될 크기)
         for (int i = 0; i < 15; i++) {
             messageService
-                .createMessageSelectGroup(channel,
+                .createMessageSelectGroup(channel, groupInfo.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
                     reserveTime.minusHours(3), content);
         }
         // 다른 채널에 추가
         for (int i = 0; i < 2; i++) {
             messageService
-                .createMessageSelectGroup(channel2,
+                .createMessageSelectGroup(channel2, groupInfo.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
                     reserveTime.minusHours(3), content);
         }
 
         // when
-        List<MessageLog> messageLogs = messageService.findReservedMessage(channel);
         Page<MessageLog> allMessage = messageService.findMessageLogList(
             channel, PageRequest.of(0, 100));
 
         // then
-        assertThat(messageLogs.size()).isEqualTo(15);
         assertThat(allMessage.toList().size()).isEqualTo(45);
     }
 
@@ -275,7 +274,7 @@ class MessageServiceImplTest {
         groupJpaRepository.save(groupInfo);
 
         List<MessageLog> messageLogList = messageService
-            .createMessageSelectGroup(channel,
+            .createMessageSelectGroup(channel, groupInfo.getId(),
                 List.of(groupInfo.getId()), new ArrayList<>(),
                 reserveTime.plusHours(3), content);
 

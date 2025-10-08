@@ -171,16 +171,17 @@ public class MessageLogRestController {
         // 전송이 특정 그룹인 경우
         if (requestDto.messageTarget().equalsIgnoreCase(GROUP.getType())) {
             // 그룹 타겟 전송인데 그룹이 비어있는 경우
-            if (requestDto.includeGroup() == null || requestDto.includeGroup().isEmpty()) {
+            if (requestDto.includeGroupId() == null) {
                 return;
             }
 
             messageService.createMessageSelectGroup(
                 channelInfo.get(),
-                requestDto.includeGroup(),
+                requestDto.includeGroupId(),
+                requestDto.includeCustomGroup(),
                 requestDto.excludeGroup(),
                 localDateTime,
-                "");
+                requestDto.includeGroupId() + " " + requestDto.includeCustomGroup().toString());
         }
         // 전송이 전체 인 경우
         else if (requestDto.messageTarget().equalsIgnoreCase(ALL.getType())) {
@@ -188,7 +189,7 @@ public class MessageLogRestController {
                 channelInfo.get(),
                 requestDto.excludeGroup(),
                 localDateTime,
-                "");
+                "ex : " + requestDto.excludeGroup().toString());
         } else {
             throw new MessageException(MessageErrorCode.BAD_REQUEST);
         }

@@ -7,6 +7,7 @@ import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE
 import com.shrona.mommytalk.admin.application.AdminService;
 import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.entitlement.domain.EntitlementType;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
@@ -73,14 +74,26 @@ public class LineMessageSenderImpl implements LineMessageSender {
             Map<Long, MessageContent> mldByMessageContentId = groupMldByMessageContentId(mldList);
 
             for (Long messageContentId : mldByMessageContentId.keySet()) {
-                // 메시지 전송
-                int sendStatus = sendMessageToLine(
-                    messageLog.getChannel(),  // 전송될 채널 정보
-                    // 전송될 MessageContent에 해당하는 LineId 목록
-                    lineIdsByMessageContentId.get(messageContentId),
-                    // 메시지 Content에 해당하는 MessageLogDetail Info
-                    mldByMessageContentId.get(messageContentId)
-                );
+                // 메시지 로그의 상품 정보가 있는 경우 그에 맞춰서 로직을 수행되게 한다.
+                int sendStatus;
+                switch (messageLog.getEntitlement().getType()) {
+                    case EntitlementType.MOMMYTALK -> {
+                        // 메시지 전송
+                        sendStatus = sendMessageToLine(
+                            messageLog.getChannel(),  // 전송될 채널 정보
+                            // 전송될 MessageContent에 해당하는 LineId 목록
+                            lineIdsByMessageContentId.get(messageContentId),
+                            // 메시지 Content에 해당하는 MessageLogDetail Info
+                            mldByMessageContentId.get(messageContentId)
+                        );
+                    }
+                    case EntitlementType.MOMMYVOCA -> {
+                        sendStatus = -12;
+                    }
+                    default -> {
+                        sendStatus = -1;
+                    }
+                }
 
                 // 전송 성공 시 메시지 상태 변경 및 sender time 설정
                 if (sendStatus == SEND_SUCCESS) {

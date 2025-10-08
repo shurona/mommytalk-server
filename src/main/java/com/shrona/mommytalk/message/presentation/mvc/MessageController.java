@@ -11,7 +11,6 @@ import com.shrona.mommytalk.common.dto.PagingForm;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.line.application.sender.LineMessageSender;
-import com.shrona.mommytalk.line.presentation.dtos.MessageLogUpdateRequestDto;
 import com.shrona.mommytalk.line.presentation.form.MessageListForm;
 import com.shrona.mommytalk.line.presentation.form.MessageSendForm;
 import com.shrona.mommytalk.line.presentation.form.MessageTestForm;
@@ -149,6 +148,7 @@ public class MessageController {
             }
             messageService.createMessageSelectGroup(
                 channelInfo.get(),
+                form.includeGroup().getFirst(),
                 form.includeGroup(),
                 form.excludeGroup(),
                 localDateTime,
@@ -181,20 +181,6 @@ public class MessageController {
 
         return ResponseEntity.ok().build();
     }
-
-    @PatchMapping("/{messageId}")
-    public ResponseEntity<?> updateMessageLog(
-        @PathVariable("channelId") Long channelId, // 채널 아이디
-        @PathVariable("messageId") Long messageId, // 메시지 아이디
-        @RequestBody MessageLogUpdateRequestDto requestDto
-    ) {
-
-        messageService.updateMessageLog(messageId, requestDto.content());
-
-        return ResponseEntity.ok().build();
-
-    }
-
 
     /**
      * 테스트 전송 요청

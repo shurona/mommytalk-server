@@ -1,7 +1,6 @@
 package com.shrona.mommytalk.message.infrastructure.repository.query;
 
 import static com.shrona.mommytalk.channel.domain.QChannel.channel;
-import static com.shrona.mommytalk.group.domain.QGroup.group;
 import static com.shrona.mommytalk.message.domain.QMessageLog.messageLog;
 import static com.shrona.mommytalk.message.domain.QMessageLogDetail.messageLogDetail;
 import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE;
@@ -25,8 +24,8 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
 
         return query.select(messageLog)
             .from(messageLog)
-            .leftJoin(group.channel, channel).fetchJoin()
-            .where(messageLog.reserveTime.loe(time)
+            .leftJoin(messageLog.channel, channel).fetchJoin()
+            .where(messageLog.reserveTime.goe(time)
                 .and(messageLog.id.in(
                     JPAExpressions.select(messageLogDetail.messageLog.id)
                         .from(messageLogDetail)

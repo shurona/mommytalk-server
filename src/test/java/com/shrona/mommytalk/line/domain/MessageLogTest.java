@@ -17,14 +17,14 @@ class MessageLogTest {
         // given
         LocalDateTime reserveTime = LocalDateTime.now().plusMinutes(10);
         MessageLog messageLog = MessageLog.messageLog(
-            null, null, null, reserveTime, "원본 메시지");
+            null, null, reserveTime, "원본 메시지");
         String newContent = "새로운 메시지";
 
         // when
         messageLog.updateMessage(newContent);
 
         // then
-        Assertions.assertThat(messageLog.getContent()).isEqualTo(newContent);
+        Assertions.assertThat(messageLog.getGroupInfo()).isEqualTo(newContent);
     }
 
     @Test
@@ -33,7 +33,7 @@ class MessageLogTest {
         // given
         LocalDateTime reserveTime = LocalDateTime.now().plusMinutes(4);
         MessageLog messageLog = MessageLog.messageLog(
-            null, null, null, reserveTime, "원본 메시지");
+            null, null, reserveTime, "원본 메시지");
         String newContent = "새로운 메시지";
 
         // when, then
@@ -41,7 +41,7 @@ class MessageLogTest {
             .isInstanceOf(LineException.class);
 
         // 메시지 내용이 변경되지 않았는지 확인
-        assertEquals("원본 메시지", messageLog.getContent());
+        assertEquals("원본 메시지", messageLog.getGroupInfo());
     }
 
 }

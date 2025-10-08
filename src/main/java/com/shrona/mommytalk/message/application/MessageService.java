@@ -28,11 +28,6 @@ public interface MessageService {
     /**
      * 예약 된 메시지 목록 조회
      */
-    List<MessageLog> findReservedMessage(Channel channel);
-
-    /**
-     * 예약 된 메시지 목록 조회
-     */
     List<MessageLog> findAllByBeforeNow();
 
     /**
@@ -44,18 +39,14 @@ public interface MessageService {
      * 선택된 그룹에 메시지 전송(제외 그룹 확인)
      */
     List<MessageLog> createMessageSelectGroup
-    (Channel channel, List<Long> selectedGroupIds, List<Long> selectedExGroupIds,
-        LocalDateTime reserveTime, String content);
+    (Channel channel, Long selectGroupId,
+        List<Long> selectedCustomGroupIds, List<Long> selectedExGroupIds,
+        LocalDateTime reserveTime, String groupInfo);
 
     /**
      * 모든 그룹에 메시지 전송(제외 그룹 확인)
      */
     List<MessageLog> createMessageAllGroup
     (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime,
-        String content);
-
-    /**
-     * 메시지 내용 변경
-     */
-    MessageLog updateMessageLog(Long messageId, String content);
+        String groupInfo);
 }

@@ -7,7 +7,8 @@ public record ReserveMessageRequestDto(
     String deliveryDate,
     ZonedDateTime deliveryTime,
     String messageTarget, // all or groups
-    List<Long> includeGroup,
+    Long includeGroupId,
+    List<Long> includeCustomGroup,
     List<Long> excludeGroup
 ) {
 

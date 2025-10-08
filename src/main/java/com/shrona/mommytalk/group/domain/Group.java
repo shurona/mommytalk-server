@@ -4,6 +4,7 @@ import static com.shrona.mommytalk.group.domain.GroupType.CUSTOM;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.entitlement.domain.Entitlement;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,6 +51,10 @@ public class Group extends BaseEntity {
     @JoinColumn(name = "channel_id")
     private Channel channel;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entitlement_id")
+    private Entitlement entitlement;
+
     @BatchSize(size = 100)
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     private List<UserGroup> userGroupList = new ArrayList<>();
@@ -75,6 +80,10 @@ public class Group extends BaseEntity {
         if (newDescription != null && !newDescription.isBlank()) {
             this.description = newDescription;
         }
+    }
+
+    public void updateGroupEntitlement(Entitlement entitlement) {
+        this.entitlement = entitlement;
     }
 
 

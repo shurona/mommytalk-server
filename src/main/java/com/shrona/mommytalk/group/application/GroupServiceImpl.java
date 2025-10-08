@@ -3,10 +3,12 @@ package com.shrona.mommytalk.group.application;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.group.domain.Group;
+import com.shrona.mommytalk.group.domain.GroupType;
 import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.group.infrastructure.dao.GroupUserCount;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.GroupJpaRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.UserGroupJpaRepository;
+import com.shrona.mommytalk.group.infrastructure.repository.query.GroupQueryRepository;
 import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.User;
@@ -33,6 +35,8 @@ public class GroupServiceImpl implements GroupService {
     // jpa
     private final GroupJpaRepository groupRepository;
     private final UserGroupJpaRepository userGroupRepository;
+
+    private final GroupQueryRepository groupQueryRepository;
 
     // service
     private final UserService userService;
@@ -96,6 +100,16 @@ public class GroupServiceImpl implements GroupService {
     public Page<Group> findGroupList(Channel channel, Pageable pageable) {
 
         return groupRepository.findAllByChannel(channel, pageable);
+    }
+
+    @Override
+    public List<Group> findEntitlementGroupList(Channel channel) {
+        return groupQueryRepository.findEntitlementGroupListByChannel(channel.getId());
+    }
+
+    @Override
+    public Page<Group> findCustomGroupList(Channel channel, Pageable pageable) {
+        return groupRepository.findAllByChannelAndGroupType(channel, GroupType.CUSTOM, pageable);
     }
 
     @Override

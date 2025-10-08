@@ -18,12 +18,6 @@ public interface MessageLogJpaRepository extends JpaRepository<MessageLog, Long>
     List<MessageLog> findAllByBeforeNow(LocalDateTime now);
 
     /**
-     * 현재 시간보다 이전인 채널에 속한 메시지를 조회한다
-     */
-    @Query("select log from MessageLog log where log.reserveTime <= :now and channel = :channel")
-    List<MessageLog> findAllReservedMessageByChannel(Channel channel, LocalDateTime now);
-
-    /**
      * 채널을 기준으로 페이지 목록 조회
      */
     Page<MessageLog> findAllByChannel(Channel channel, Pageable pageable);
