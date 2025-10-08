@@ -5,7 +5,7 @@ import static com.shrona.mommytalk.user.common.exception.UserErrorCode.USER_NOT_
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.utils.PhoneProcess;
-import com.shrona.mommytalk.group.infrastructure.repository.UserGroupJpaRepository;
+import com.shrona.mommytalk.group.infrastructure.repository.jpa.UserGroupJpaRepository;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import com.shrona.mommytalk.line.domain.LineUser;
@@ -166,7 +166,7 @@ public class UserServiceImpl implements UserService {
         userInfo.updateUserFromRequest(
             requestDto.childName(), requestDto.childLevel(), requestDto.userLevel()
         );
-        
+
     }
 
     @Transactional

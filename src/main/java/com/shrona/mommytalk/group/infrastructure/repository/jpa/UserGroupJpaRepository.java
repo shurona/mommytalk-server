@@ -1,4 +1,4 @@
-package com.shrona.mommytalk.group.infrastructure.repository;
+package com.shrona.mommytalk.group.infrastructure.repository.jpa;
 
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;

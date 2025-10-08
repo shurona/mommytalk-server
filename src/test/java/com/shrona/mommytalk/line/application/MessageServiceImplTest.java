@@ -8,7 +8,7 @@ import static org.mockito.Mockito.doNothing;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
-import com.shrona.mommytalk.group.infrastructure.repository.GroupJpaRepository;
+import com.shrona.mommytalk.group.infrastructure.repository.jpa.GroupJpaRepository;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.repository.jpa.LineUserJpaRepository;
