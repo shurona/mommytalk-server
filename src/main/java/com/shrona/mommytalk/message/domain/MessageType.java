@@ -36,7 +36,7 @@ public class MessageType extends BaseEntity {
     @Column
     private String context;
 
-    @Column
+    @Column(name = "delivery_time")
     private LocalDate deliveryTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -46,7 +46,8 @@ public class MessageType extends BaseEntity {
     @OneToMany(mappedBy = "messageType")
     private List<MessageContent> messageContentList = new ArrayList<>();
 
-    public static MessageType of(String theme, String context, LocalDate deliveryTime, Channel channel) {
+    public static MessageType of(String theme, String context, LocalDate deliveryTime,
+        Channel channel) {
         MessageType type = new MessageType();
         type.theme = theme;
         type.context = context;

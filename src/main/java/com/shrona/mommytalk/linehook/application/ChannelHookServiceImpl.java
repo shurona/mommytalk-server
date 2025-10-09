@@ -80,6 +80,9 @@ public class ChannelHookServiceImpl implements ChannelHookService {
         // lineId 정보를 갖고 온다. 없으면 저장해준다.
         LineUser lineUserInfo = lineService.findOrCreateLineUser(lineId);
 
+        // 채널 라인 유저가 없으면 만들어준다.
+        lineService.findOrChannelLineUser(channelById.get(), lineUserInfo);
+
         // 메시지 저장
         lineMessageRepository.save(
             LineMessage.createLineMessage(channelId, lineUserInfo.getId(), content));

@@ -33,12 +33,12 @@ public class MessageLogDetail extends BaseEntity {
     @Column
     private ReservationStatus status;
 
+    @Column(name = "sent_time")
+    private LocalDateTime sentTime;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_log")
     private MessageLog messageLog;
-
-    @Column(name = "sent_time")
-    private LocalDateTime sentTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

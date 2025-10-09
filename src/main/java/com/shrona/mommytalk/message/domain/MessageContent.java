@@ -37,16 +37,16 @@ public class MessageContent extends BaseEntity {
     @Column
     private Integer userLevel;
 
-    @Column
+    @Column(name = "header_one_link")
     private String headerOneLink;
 
-    @Column
+    @Column(name = "header_two_link")
     private String headerTwoLink;
 
-    @Column
+    @Column(name = "mommy_voca")
     private String mommyVoca;
 
-    @Column
+    @Column(name = "diary_url")
     private String diaryUrl;
 
     @Column
