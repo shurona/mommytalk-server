@@ -1,16 +1,22 @@
 package com.shrona.mommytalk.message.application;
 
 import static com.shrona.mommytalk.group.common.exception.GroupErrorCode.GROUP_NOT_FOUND;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CHANNEL_MISMATCH;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_NOT_SCHEDULED_FOR_DATE;
+import static com.shrona.mommytalk.message.domain.type.ReservationStatus.FAIL;
+import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.entitlement.infrastructure.query.EntitlementQueryRepository;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.common.exception.GroupException;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.GroupJpaRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.query.GroupQueryRepository;
+import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
+import com.shrona.mommytalk.message.common.exception.MessageErrorCode;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.common.utils.MessageUtils;
 import com.shrona.mommytalk.message.domain.MessageContent;
@@ -19,6 +25,7 @@ import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogQueryRepository;
 import com.shrona.mommytalk.user.domain.User;
 import java.time.LocalDateTime;
@@ -51,12 +58,15 @@ public class MessageServiceImpl implements MessageService {
     private final GroupJpaRepository groupJpaRepository;
 
     private final MessageLogQueryRepository messageLogQueryRepository;
+    private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
     private final GroupQueryRepository groupQueryRepository;
     private final EntitlementQueryRepository entitlementQueryRepository;
 
     // service
     private final GroupService groupService;
     private final MessageContentService messageContentService;
+
+    private final LineMessageSender lineMessageSender;
 
     // Utils
     private final MessageUtils messageUtils;
@@ -150,6 +160,7 @@ public class MessageServiceImpl implements MessageService {
         return List.of(messageLogInfo);
     }
 
+
     @Override
     public MessageLog findByMessageId(Long id) {
         return messageLogRepository.findById(id).orElse(null);
@@ -180,6 +191,51 @@ public class MessageServiceImpl implements MessageService {
             ));
     }
 
+    @Transactional
+    public Long cancelMessage(Long messageLogId) {
+        MessageLog messageLog = messageLogRepository.findById(messageLogId).orElseThrow(
+            () -> new MessageException(MessageErrorCode.MESSAGE_LOG_NOT_FOUND)
+        );
+
+        // cancel
+        messageLog.cancelMessageLog();
+
+        messageLogDetailQueryRepository.cancelDetailByLogId(messageLogId);
+
+        return messageLog.getId();
+    }
+
+    @Transactional
+    public void resendMessage(Channel channel, Long messageLogId) {
+        MessageLog messageLog = messageLogRepository.findById(messageLogId).orElseThrow(
+            () -> new MessageException(MessageErrorCode.MESSAGE_LOG_NOT_FOUND)
+        );
+
+        if (messageLog.getReserveTime().isAfter(LocalDateTime.now())) {
+            throw new MessageException(MessageErrorCode.MESSAGE_NOT_DELIVER_YET);
+        }
+
+        if (messageLog.getCancel()) {
+            throw new MessageException(MessageErrorCode.MESSAGE_ALREADY_CANCEL);
+        }
+
+        if (!messageLog.getChannel().getId().equals(channel.getId())) {
+            throw new MessageException(MESSAGE_CHANNEL_MISMATCH);
+        }
+
+        ChannelPlatform platform = messageLog.getChannel().getChannelPlatform();
+
+        switch (platform) {
+            case ChannelPlatform.KAKAO -> {
+                // TODO: 카카오 추후 구현
+            }
+            case ChannelPlatform.LINE -> {
+                lineMessageSender.sendLineMessageByReservationByMessageIds(
+                    List.of(messageLogId), List.of(PREPARE, FAIL));
+            }
+        }
+    }
+
     /**
      * MessageLog를 생성해 주는 메소드
      */
@@ -204,7 +260,7 @@ public class MessageServiceImpl implements MessageService {
             MessageContent messageContent = levelMap.get(levelKey);
 
             if (messageContent != null) {
-                messageLog.addMessageLogLineInfo(
+                messageLog.addMessageLogDetailInfo(
                     MessageLogDetail.createLogDetail(messageLog, user, messageContent)
                 );
             }

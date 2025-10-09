@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.message.common.utils;
 
 import static com.shrona.mommytalk.common.utils.StaticVariable.NO_DELAY;
+import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
@@ -54,7 +55,7 @@ public class MessageUtils {
             case ChannelPlatform.LINE -> {
                 // 메시지 Sender를 Runner로 처리
                 Runnable task = () -> lineMessageSender.sendLineMessageByReservationByMessageIds(
-                    messageLogList.stream().map(MessageLog::getId).toList()
+                    messageLogList.stream().map(MessageLog::getId).toList(), List.of(PREPARE)
                 );
                 registerSchedule(task, delaySeconds);
             }

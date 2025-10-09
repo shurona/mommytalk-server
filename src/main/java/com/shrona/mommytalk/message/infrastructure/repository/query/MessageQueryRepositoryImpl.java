@@ -30,7 +30,8 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
                     JPAExpressions.select(messageLogDetail.messageLog.id)
                         .from(messageLogDetail)
                         .where(messageLogDetail.status.eq(PREPARE))
-                )))
+                ))
+                .and(messageLog.cancel.isFalse()))
             .fetch();
     }
 
@@ -39,6 +40,7 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         BooleanBuilder builder = new BooleanBuilder();
 
         builder.and(messageLog.id.in(messageLogIds));
+        builder.and(messageLog.cancel.isFalse());
 
         return query.select(messageLog)
             .from(messageLog)

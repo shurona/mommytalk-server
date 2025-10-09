@@ -49,4 +49,15 @@ public interface MessageService {
     List<MessageLog> createMessageAllGroup
     (Channel channel, List<Long> exceptGroupIds, LocalDateTime reserveTime,
         String groupInfo);
+
+
+    /**
+     * 메시지 캔슬
+     */
+    Long cancelMessage(Long messageLogId);
+
+    /**
+     * 재발송 로직
+     */
+    void resendMessage(Channel channel, Long messageLogId);
 }
