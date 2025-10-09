@@ -2,7 +2,6 @@ package com.shrona.mommytalk.line.application.sender;
 
 import static com.shrona.mommytalk.message.domain.type.ReservationStatus.COMPLETE;
 import static com.shrona.mommytalk.message.domain.type.ReservationStatus.FAIL;
-import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE;
 
 import com.shrona.mommytalk.admin.application.AdminService;
 import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
@@ -22,6 +21,7 @@ import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.TextContentDto;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
+import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
 import java.nio.charset.StandardCharsets;
@@ -55,8 +55,8 @@ public class LineMessageSenderImpl implements LineMessageSender {
     private final AdminService adminService;
 
     @Transactional
-    @Override
-    public void sendLineMessageByReservationByMessageIds(List<Long> messageIds) {
+    public void sendLineMessageByReservationByMessageIds(
+        List<Long> messageIds, List<ReservationStatus> statusList) {
 
         List<MessageLog> lineMessageByIds = messageRepository.findMessageByIds(messageIds);
 
@@ -64,7 +64,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
 
             // messageLogId가 동일하고 예약 상태인 messageLogDetail 목록을 갖고 온다.
             List<MessageLogDetail> mldList = messageLogDetailQueryRepository
-                .findMldListByStatusWithLine(messageLog.getId(), PREPARE);
+                .findMldListByStatusWithLine(messageLog.getId(), statusList);
 
             // MessageContent.id를 기준으로 LineId 목록 생성
             Map<Long, List<String>> lineIdsByMessageContentId = groupLineIdsByMessageContentId(

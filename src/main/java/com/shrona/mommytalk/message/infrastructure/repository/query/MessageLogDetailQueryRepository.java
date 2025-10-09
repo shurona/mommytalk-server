@@ -23,6 +23,12 @@ public interface MessageLogDetailQueryRepository {
      * status(Optional)에 해당하는 MessageLogDetailInfo 목록을 갖고 온다.
      */
     List<MessageLogDetail> findMldListByStatusWithLine(
-        Long messageLogId, ReservationStatus status);
+        Long messageLogId, List<ReservationStatus> status);
+
+
+    /**
+     * 메시지 LogId에 해당하는 것중 complete 이외에 모두 cancel
+     */
+    void cancelDetailByLogId(Long messageLogId);
 
 }

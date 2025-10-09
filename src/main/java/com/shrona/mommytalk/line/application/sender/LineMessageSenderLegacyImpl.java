@@ -8,6 +8,7 @@ import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageMulticastRequestBody;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.LineMessageSingleRequestBody;
 import com.shrona.mommytalk.message.domain.MessageLog;
+import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -34,6 +35,12 @@ public class LineMessageSenderLegacyImpl implements LineMessageSender {
     // repository
     private final MessageLogJpaRepository messageRepository;
     private final AdminService adminService;
+
+    @Override
+    public void sendLineMessageByReservationByMessageIds(List<Long> messageIds,
+        List<ReservationStatus> statusList) {
+
+    }
 
 //    @Transactional
 //    public void sendLineMessageByReservation() {

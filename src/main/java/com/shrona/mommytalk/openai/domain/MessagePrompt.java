@@ -34,6 +34,9 @@ public class MessagePrompt extends BaseEntity {
     @Column
     private String label;
 
+    @Column
+    private Boolean selected;
+
     @Enumerated(EnumType.STRING)
     @Column
     private PromptType type;
@@ -42,4 +45,36 @@ public class MessagePrompt extends BaseEntity {
     @JoinColumn(name = "channel_id")
     private Channel channel;
 
+    public static MessagePrompt of(Channel channel, String prompt, String label, PromptType type) {
+
+        MessagePrompt messagePrompt = new MessagePrompt();
+        messagePrompt.prompt = prompt;
+        messagePrompt.label = label;
+        messagePrompt.type = type;
+        messagePrompt.channel = channel;
+        messagePrompt.selected = false;
+        return messagePrompt;
+    }
+
+    /**
+     * 등록 시 변경사항
+     */
+    public void updateWhenRegister(String prompt, String label) {
+        this.prompt = prompt;
+        this.label = label;
+    }
+
+    /**
+     * 현재 프롬프트 비활성화
+     */
+    public void disablePrompt() {
+        this.selected = false;
+    }
+
+    /**
+     * 프롬프트를 등록한다.
+     */
+    public void registerPrompt() {
+        this.selected = true;
+    }
 }

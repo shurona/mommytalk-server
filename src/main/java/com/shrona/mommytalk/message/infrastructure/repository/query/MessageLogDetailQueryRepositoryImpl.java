@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Repository
@@ -41,7 +42,7 @@ public class MessageLogDetailQueryRepositoryImpl implements
             .limit(pageable.getPageSize())
             .orderBy(messageLogDetail.createdAt.desc())
             .fetch();
-        
+
         JPAQuery<Long> total = query.select(messageLogDetail.count())
             .from(messageLogDetail)
             .where(builder);
@@ -64,7 +65,7 @@ public class MessageLogDetailQueryRepositoryImpl implements
     }
 
     public List<MessageLogDetail> findMldListByStatusWithLine(
-        Long messageLogId, ReservationStatus status) {
+        Long messageLogId, List<ReservationStatus> status) {
 
         BooleanBuilder builder = new BooleanBuilder();
 
@@ -73,7 +74,7 @@ public class MessageLogDetailQueryRepositoryImpl implements
         builder.and(messageLogDetail.user.lineUser.isNotNull());
 
         if (status != null) {
-            builder.and(messageLogDetail.status.eq(status));
+            builder.and(messageLogDetail.status.in(status));
         }
 
         return query.select(messageLogDetail)
@@ -83,5 +84,18 @@ public class MessageLogDetailQueryRepositoryImpl implements
             .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
             .where(builder)
             .fetch();
+    }
+
+    @Transactional
+    public void cancelDetailByLogId(Long messageLogId) {
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(messageLogDetail.messageLog.id.eq(messageLogId));
+        builder.and(messageLogDetail.status.notIn(ReservationStatus.COMPLETE));
+
+        query.update(messageLogDetail)
+            .set(messageLogDetail.status, ReservationStatus.CANCEL)
+            .where(builder)
+            .execute();
     }
 }

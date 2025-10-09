@@ -32,6 +32,6 @@ public interface MessageLogQueryRepository {
      * MessageLog ID 목록에 대한 MessageLogDetail 개수 조회
      */
     List<LogMessageIdCount> findMessageCountPerLog(List<Long> ids);
-
+    
 
 }

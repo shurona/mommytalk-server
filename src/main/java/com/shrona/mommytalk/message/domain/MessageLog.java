@@ -43,6 +43,9 @@ public class MessageLog extends BaseEntity {
     @Column(name = "reserve_time")
     private LocalDateTime reserveTime;
 
+    @Column
+    private Boolean cancel;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "entitlement_id")
     private Entitlement entitlement;
@@ -67,12 +70,12 @@ public class MessageLog extends BaseEntity {
         log.reserveTime = reserveTime;
         log.messageType = type;
         log.groupInfo = groupInfo;
-
+        log.cancel = false;
         return log;
     }
 
     // 연관관계 메소드
-    public void addMessageLogLineInfo(MessageLogDetail info) {
+    public void addMessageLogDetailInfo(MessageLogDetail info) {
         messageLogDetailList.add(info);
         info.setMessageLogInfo(this);
     }
@@ -94,5 +97,12 @@ public class MessageLog extends BaseEntity {
         }
 
         this.groupInfo = groupInfo;
+    }
+
+    /**
+     * MessageLog를 cancel 한다.
+     */
+    public void cancelMessageLog() {
+        this.cancel = true;
     }
 }

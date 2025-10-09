@@ -16,7 +16,7 @@ import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageConte
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.openai.application.OpenAiServiceImpl;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
-import com.shrona.mommytalk.openai.infrastructure.repository.MessagePromptJpaRepository;
+import com.shrona.mommytalk.openai.infrastructure.repository.jpa.MessagePromptJpaRepository;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +37,7 @@ public class MessageContentServiceImpl implements MessageContentService {
     private final MessageTypeJpaRepository messageTypeJpaRepository;
     private final MessageContentJpaRepository messageContentJpaRepository;
     private final OpenAiServiceImpl openAiService;
-    
+
     @Transactional
     public MessageContent generateAiContent(Channel channel, AiGenerateRequestDto requestDto) {
 
@@ -57,6 +57,7 @@ public class MessageContentServiceImpl implements MessageContentService {
         }
 
         // 3. 메시지 프롬프트를 갖고 온다
+        // TODO: 여기 현재 선택된 거를 갖고 와야 한다.
         MessagePrompt messagePrompt = messagePromptJpaRepository.findByChannel(channel)
             .orElseThrow(() -> new MessageException(MESSAGE_PROMPT_NOT_EXIST));
 
