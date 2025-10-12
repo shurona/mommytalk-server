@@ -57,7 +57,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
             .allowedOrigins(
                 "http://localhost:5173",   // Vite 기본 포트
-                "http://localhost:5174"   // Vite 대체 포트
+                "http://localhost:5174",   // Vite 대체 포트
+                "https://test-mommytalk.shrona.com" // dev
             )
             .allowedMethods("GET", "POST", "PATCH", "DELETE", "PUT")
             .allowedHeaders(
