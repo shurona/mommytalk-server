@@ -10,6 +10,8 @@ public enum MessageErrorCode {
 
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 입력입니다."),
     MESSAGE_PROMPT_NOT_EXIST(HttpStatus.BAD_REQUEST, "현재 메시지 프롬프트가 존재하지 않습니다.."),
+    REGISTERED_MESSAGE_PROMPT(HttpStatus.BAD_REQUEST, "등록된 메시지 프롬프트는 삭제할 수 없습니다."),
+
     MESSAGE_NOT_SCHEDULED_FOR_DATE(HttpStatus.BAD_REQUEST, "해당 날짜에 메시지가 예약되어 있지 않았습니다."),
     MESSAGE_CONTENT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "해당 레벨의 메시지 컨텐츠가 이미 존재합니다."),
     MESSAGE_NOT_DELIVER_YET(HttpStatus.BAD_REQUEST, "메시지가 아직 발송되지 않았습니다."),

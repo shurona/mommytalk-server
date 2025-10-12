@@ -1,7 +1,6 @@
 package com.shrona.mommytalk.line.application;
 
 import com.shrona.mommytalk.group.application.GroupService;
-import com.shrona.mommytalk.line.application.sender.LineMessageSenderLegacyImpl;
 import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import org.junit.jupiter.api.Test;

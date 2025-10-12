@@ -17,7 +17,9 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
+@SQLRestriction(BaseEntity.DEFAULT_CONDITION)
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -76,5 +78,9 @@ public class MessagePrompt extends BaseEntity {
      */
     public void registerPrompt() {
         this.selected = true;
+    }
+
+    public void deletePrompt() {
+        this.isDeleted = true;
     }
 }

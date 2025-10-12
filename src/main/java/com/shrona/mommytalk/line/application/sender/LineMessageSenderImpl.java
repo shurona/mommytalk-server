@@ -4,7 +4,7 @@ import static com.shrona.mommytalk.message.domain.type.ReservationStatus.COMPLET
 import static com.shrona.mommytalk.message.domain.type.ReservationStatus.FAIL;
 
 import com.shrona.mommytalk.admin.application.AdminService;
-import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
+import com.shrona.mommytalk.admin.presentation.form.TestUserServiceDto;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.entitlement.domain.EntitlementType;
 import com.shrona.mommytalk.line.domain.LineUser;
@@ -122,7 +122,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
     public boolean sendTestLineMessage(Channel channel, String text) {
         // 테스트 유저 목록을 갖고 온다.
         List<String> lineIdList = adminService.findAllTestUser(channel)
-            .stream().map(TestUserForm::lineId)
+            .stream().map(TestUserServiceDto::socialId)
             .filter(s -> !s.isBlank()).toList();
 
         log.info("[테스트 메시지] 메시지 발송 아이디 목록 {}", lineIdList);

@@ -86,7 +86,7 @@ public class LineUserController {
     /**
      * 라인 유저의 휴대전화를 초기화 하는 EndPoint
      */
-//    @PatchMapping("/admin/friends/{lineId}")
+//    @PatchMapping("/admin/friends/{socialId}")
     public ResponseEntity<?> clearLineUserPhoneNumber() {
 
         return ResponseEntity.ok().build();

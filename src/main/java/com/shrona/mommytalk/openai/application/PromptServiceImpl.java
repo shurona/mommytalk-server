@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.openai.application;
 
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_PROMPT_NOT_EXIST;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.REGISTERED_MESSAGE_PROMPT;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.message.common.exception.MessageException;
@@ -77,6 +78,20 @@ public class PromptServiceImpl implements PromptService {
         return messagePrompt.getId();
     }
 
+    @Transactional
+    public Long deletePrompt(Long promptId) {
+
+        MessagePrompt messagePrompt = messagePromptRepository.findById(promptId).orElseThrow();
+
+        if (messagePrompt.getIsDeleted()) {
+            throw new MessageException(REGISTERED_MESSAGE_PROMPT);
+        }
+
+        messagePrompt.deletePrompt();
+
+        return messagePrompt.getId();
+    }
+
     /**
      * 프롬프트를 비활성화 한다.
      */
@@ -91,4 +106,5 @@ public class PromptServiceImpl implements PromptService {
         messagePrompt.disablePrompt();
         messagePromptRepository.save(messagePrompt);
     }
+
 }

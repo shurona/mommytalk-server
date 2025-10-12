@@ -61,7 +61,7 @@ public class GroupQueryRepositoryImplTest {
 
         Group group2 = Group.createGroup(channel, "그룹 2", "설명");
 
-        LineUser lineUser = LineUser.createLineUser("lineId");
+        LineUser lineUser = LineUser.createLineUser("socialId");
         LineUser lineUser2 = LineUser.createLineUser("lineId2");
 
         lineUserJpaRepository.saveAll(List.of(lineUser2, lineUser));

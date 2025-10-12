@@ -77,7 +77,7 @@ public class ChannelHookServiceImpl implements ChannelHookService {
             return false;
         }
 
-        // lineId 정보를 갖고 온다. 없으면 저장해준다.
+        // socialId 정보를 갖고 온다. 없으면 저장해준다.
         LineUser lineUserInfo = lineService.findOrCreateLineUser(lineId);
 
         // 채널 라인 유저가 없으면 만들어준다.

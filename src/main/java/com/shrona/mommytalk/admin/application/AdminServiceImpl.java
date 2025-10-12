@@ -4,7 +4,7 @@ import com.shrona.mommytalk.admin.domain.AdminUser;
 import com.shrona.mommytalk.admin.domain.TestUser;
 import com.shrona.mommytalk.admin.infrastructure.repository.jpa.AdminJpaRepository;
 import com.shrona.mommytalk.admin.infrastructure.repository.jpa.TestUserJpaRepository;
-import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
+import com.shrona.mommytalk.admin.presentation.form.TestUserServiceDto;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.user.common.exception.UserErrorCode;
 import com.shrona.mommytalk.user.common.exception.UserException;
@@ -64,9 +64,9 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<TestUserForm> findAllTestUser(Channel channel) {
+    public List<TestUserServiceDto> findAllTestUser(Channel channel) {
         return testUserRepository.findAllByChannel(channel).stream()
-            .map(TestUserForm::of).toList();
+            .map(tu -> TestUserServiceDto.of(tu, channel.getChannelPlatform())).toList();
     }
 
     @Transactional

@@ -7,7 +7,7 @@ import com.shrona.mommytalk.admin.domain.AdminUser;
 import com.shrona.mommytalk.admin.presentation.dtos.AdminAddPhoneNumberRequestBody;
 import com.shrona.mommytalk.admin.presentation.dtos.AdminDeleteTestUser;
 import com.shrona.mommytalk.admin.presentation.form.LoginForm;
-import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
+import com.shrona.mommytalk.admin.presentation.form.TestUserServiceDto;
 import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ChannelForm;
@@ -108,7 +108,7 @@ public class AdminController {
             return HOME_VIEW;
         }
 
-        List<TestUserForm> allTestUser = adminService.findAllTestUser(channelInfo.get());
+        List<TestUserServiceDto> allTestUser = adminService.findAllTestUser(channelInfo.get());
         model.addAttribute("testUserList", allTestUser);
 
         // 채널 정보 모델에 등록

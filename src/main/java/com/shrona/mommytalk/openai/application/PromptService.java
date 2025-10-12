@@ -6,6 +6,9 @@ import com.shrona.mommytalk.openai.domain.type.PromptType;
 
 public interface PromptService {
 
+    /**
+     * 프롬프트 목록 조회
+     */
     MessagePrompt findMessagePromptList(Channel channel);
 
     /**
@@ -27,6 +30,11 @@ public interface PromptService {
      * prompt를 사용 등록한다.
      */
     Long registerPromptInfo(Channel channel, Long promptId);
+
+    /**
+     * 프롬프트를 삭제 한다.
+     */
+    Long deletePrompt(Long promptId);
 
 
 }

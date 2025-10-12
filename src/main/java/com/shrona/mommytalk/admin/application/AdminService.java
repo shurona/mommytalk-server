@@ -1,7 +1,7 @@
 package com.shrona.mommytalk.admin.application;
 
 import com.shrona.mommytalk.admin.domain.AdminUser;
-import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
+import com.shrona.mommytalk.admin.presentation.form.TestUserServiceDto;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.user.domain.User;
 import java.util.List;
@@ -36,7 +36,7 @@ public interface AdminService {
     /**
      * 테스트 대상 목록 조회
      */
-    public List<TestUserForm> findAllTestUser(Channel channel);
+    public List<TestUserServiceDto> findAllTestUser(Channel channel);
 
     /**
      * 테스트 유저를 등록한다.

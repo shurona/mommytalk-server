@@ -106,7 +106,7 @@ public class LineServiceImpl implements LineService {
 
     @Transactional
     public void clearLineUserPhoneNumber(String lineId) {
-//        Optional<LineUser> lineInfoOpt = lineUserRepository.findByLineId(lineId);
+//        Optional<LineUser> lineInfoOpt = lineUserRepository.findByLineId(socialId);
 //        if (lineInfoOpt.isEmpty()) {
 //            return;
 //        }

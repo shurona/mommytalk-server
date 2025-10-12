@@ -1,7 +1,7 @@
 package com.shrona.mommytalk.kakao.application.sender;
 
 import com.shrona.mommytalk.admin.application.AdminService;
-import com.shrona.mommytalk.admin.presentation.form.TestUserForm;
+import com.shrona.mommytalk.admin.presentation.form.TestUserServiceDto;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.kakao.infrastructure.sender.NhnKakaoMessageClient;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.KakaoFriendTalkRequestDto;
@@ -156,7 +156,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         // 테스트 유저 목록 조회
         List<String> testPhoneNumbers = adminService.findAllTestUser(channel)
             .stream()
-            .map(TestUserForm::phoneNumber)
+            .map(TestUserServiceDto::phoneNumber)
             .filter(phone -> phone != null && !phone.isBlank())
             .toList();
 

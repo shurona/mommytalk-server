@@ -19,6 +19,7 @@ import com.shrona.mommytalk.openai.presentation.dtos.response.PromptResponseDto;
 import com.shrona.mommytalk.openai.presentation.dtos.response.SelectedPromptResponseDto;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -158,5 +159,19 @@ public class MessagePromptRestController {
         Long pId = promptService.registerPromptInfo(channel, promptId);
 
         return ApiResponse.success(pId);
+    }
+
+    /**
+     * 프롬프트 삭제한다.
+     */
+    @DeleteMapping("/prompt/{promptId}")
+    public ApiResponse<Boolean> deletePrompt(
+        @PathVariable("channelId") Long channelId,
+        @PathVariable("promptId") Long promptId
+    ) {
+
+        Long l = promptService.deletePrompt(promptId);
+
+        return ApiResponse.success(true);
     }
 }
