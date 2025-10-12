@@ -5,7 +5,6 @@ import com.shrona.mommytalk.line.infrastructure.sender.LineMessageSenderClient;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,10 +19,6 @@ public class LineMessageDeliveryMockTest {
 
     @Mock
     private LineMessageSenderClient lineMessageSenderClient;
-
-    @InjectMocks
-    private LineMessageSenderLegacyImpl messageSender; // 테스트 대상 클래스
-
 
     @Test
     public void 라인_메시지_발송_테스트() {
