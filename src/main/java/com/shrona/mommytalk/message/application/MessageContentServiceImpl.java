@@ -2,7 +2,6 @@ package com.shrona.mommytalk.message.application;
 
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_ACCESS_DENIED;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_NOT_FOUND;
-import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_PROMPT_NOT_EXIST;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.domain.Channel;
@@ -16,7 +15,8 @@ import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageConte
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.openai.application.OpenAiServiceImpl;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
-import com.shrona.mommytalk.openai.infrastructure.repository.jpa.MessagePromptJpaRepository;
+import com.shrona.mommytalk.openai.domain.type.PromptType;
+import com.shrona.mommytalk.openai.infrastructure.repository.query.MessagePromptQueryRepository;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
@@ -33,7 +33,8 @@ public class MessageContentServiceImpl implements MessageContentService {
     private static int MIN_LEVEL = 1;
     private static int MAX_LEVEL = 3;
 
-    private final MessagePromptJpaRepository messagePromptJpaRepository;
+
+    private final MessagePromptQueryRepository messagePromptQueryRepository;
     private final MessageTypeJpaRepository messageTypeJpaRepository;
     private final MessageContentJpaRepository messageContentJpaRepository;
     private final OpenAiServiceImpl openAiService;
@@ -57,20 +58,12 @@ public class MessageContentServiceImpl implements MessageContentService {
         }
 
         // 3. 메시지 프롬프트를 갖고 온다
-        // TODO: 여기 현재 선택된 거를 갖고 와야 한다.
-        MessagePrompt messagePrompt = messagePromptJpaRepository.findByChannel(channel)
-            .orElseThrow(() -> new MessageException(MESSAGE_PROMPT_NOT_EXIST));
+        MessagePrompt messagePrompt = messagePromptQueryRepository.findSelectedPromptByChannelAndType(
+            channel, PromptType.BASIC);
 
         // 4. OpenAI 프롬프트 생성 및 API 호출
-        String prompt = openAiService.buildMommyTalkPrompt(
-            messagePrompt.getPrompt(),
-            requestDto.theme(),
-            requestDto.context(),
-            requestDto.userLevel(),
-            requestDto.childLevel()
-        );
-
-        String generatedContent = openAiService.generateData(prompt);
+        String generatedContent = openAiService.generateData(messagePrompt, messageType,
+            requestDto.userLevel(), requestDto.childLevel());
 
         // 5. MessageContent 생성 또는 업데이트
         if (existingContent.isPresent()) {

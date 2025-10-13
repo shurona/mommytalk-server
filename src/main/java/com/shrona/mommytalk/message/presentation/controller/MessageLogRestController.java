@@ -212,7 +212,7 @@ public class MessageLogRestController {
 
     @DeleteMapping("/{messageId}/cancel")
     public ApiResponse<Boolean> cancelMessageLog(
-        @PathVariable("messageIds") Long messageId
+        @PathVariable("messageId") Long messageId
     ) {
 
         messageService.cancelMessage(messageId);

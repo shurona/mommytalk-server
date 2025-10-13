@@ -1,5 +1,9 @@
 package com.shrona.mommytalk.openai.application;
 
+import com.shrona.mommytalk.message.domain.MessageType;
+import com.shrona.mommytalk.openai.domain.MessagePrompt;
+import com.shrona.mommytalk.openai.domain.OpenAiUsageLog;
+import com.shrona.mommytalk.openai.infrastructure.repository.jpa.OpenAiUsageLogJpaRepository;
 import com.shrona.mommytalk.openai.infrastructure.sender.OpenAiClient;
 import com.shrona.mommytalk.openai.infrastructure.sender.dto.OpenAiRequest;
 import com.shrona.mommytalk.openai.infrastructure.sender.dto.OpenAiResponse;
@@ -15,6 +19,7 @@ import org.springframework.stereotype.Service;
 public class OpenAiServiceImpl implements OpenAiService {
 
     private final OpenAiClient openAiClient;
+    private final OpenAiUsageLogJpaRepository openAiUsageLogJpaRepository;
 
     @Value("${openai.openApiKey}")
     private String apiKey;
@@ -62,7 +67,12 @@ public class OpenAiServiceImpl implements OpenAiService {
     }
 
     @Override
-    public String generateData(String prompt) {
+    public String generateData(MessagePrompt prompt, MessageType type, int userLevel,
+        int childLevel) {
+
+        String assemblePrompt = buildMommyTalkPrompt(
+            prompt.getPrompt(), type.getTheme(), type.getContext(), userLevel, childLevel);
+
         try {
             // OpenAI API 요청 생성
             OpenAiRequest request = OpenAiRequest.builder()
@@ -72,7 +82,7 @@ public class OpenAiServiceImpl implements OpenAiService {
                 .messages(List.of(
                     OpenAiRequest.Message.builder()
                         .role("user")
-                        .content(prompt)
+                        .content(assemblePrompt)
                         .build()
                 ))
                 .build();
@@ -87,6 +97,15 @@ public class OpenAiServiceImpl implements OpenAiService {
             // 응답에서 텍스트 추출
             if (response.getChoices() != null && !response.getChoices().isEmpty()) {
                 String content = response.getChoices().get(0).getMessage().getContent();
+                OpenAiUsageLog usageLog = OpenAiUsageLog.of(type, prompt, "gpt-4o",
+                    "message_generation",
+                    response.getUsage().getPromptTokens(),
+                    response.getUsage().getCompletionTokens(),
+                    response.getUsage().getTotalTokens());
+
+                // 로깅을 위한 저장
+                openAiUsageLogJpaRepository.save(usageLog);
+
                 log.info("OpenAI API 응답 성공. Tokens used: {}", response.getUsage().getTotalTokens());
                 return content;
             } else {
