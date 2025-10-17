@@ -20,11 +20,16 @@ public interface MessageLogDetailQueryRepository {
         Long messageContentId, Long messageLogId, ReservationStatus status);
 
     /**
-     * status(Optional)에 해당하는 MessageLogDetailInfo 목록을 갖고 온다.
+     * status(Optional)에 해당하는 MessageLogDetailInfo 목록을 갖고 온다. (LINE용)
      */
     List<MessageLogDetail> findMldListByStatusWithLine(
         Long messageLogId, List<ReservationStatus> status);
 
+    /**
+     * status(Optional)에 해당하는 MessageLogDetailInfo 목록을 갖고 온다. (KAKAO용)
+     */
+    List<MessageLogDetail> findMldListByStatusWithKakao(
+        Long messageLogId, List<ReservationStatus> status);
 
     /**
      * 메시지 LogId에 해당하는 것중 complete 이외에 모두 cancel

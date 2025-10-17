@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.message.infrastructure.repository.query;
 
+import static com.shrona.mommytalk.kakao.domain.QKakaoUser.kakaoUser;
 import static com.shrona.mommytalk.line.domain.QLineUser.lineUser;
 import static com.shrona.mommytalk.message.domain.QMessageContent.messageContent;
 import static com.shrona.mommytalk.message.domain.QMessageLogDetail.messageLogDetail;
@@ -81,6 +82,30 @@ public class MessageLogDetailQueryRepositoryImpl implements
             .from(messageLogDetail)
             .leftJoin(messageLogDetail.user, user).fetchJoin()
             .leftJoin(user.lineUser, lineUser).fetchJoin()
+            .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
+            .where(builder)
+            .fetch();
+    }
+
+    public List<MessageLogDetail> findMldListByStatusWithKakao(
+        Long messageLogId, List<ReservationStatus> status) {
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        builder.and(messageLogDetail.messageLog.id.eq(messageLogId));
+
+        // 카카오 유저가 있고, 전화번호가 있는 사용자만 조회
+        builder.and(messageLogDetail.user.kakaoUser.isNotNull());
+        builder.and(messageLogDetail.user.phoneNumber.isNotNull());
+
+        if (status != null) {
+            builder.and(messageLogDetail.status.in(status));
+        }
+
+        return query.select(messageLogDetail)
+            .from(messageLogDetail)
+            .leftJoin(messageLogDetail.user, user).fetchJoin()
+            .leftJoin(user.kakaoUser, kakaoUser).fetchJoin()
             .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
             .where(builder)
             .fetch();

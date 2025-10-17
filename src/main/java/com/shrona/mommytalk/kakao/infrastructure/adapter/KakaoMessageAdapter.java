@@ -3,6 +3,7 @@ package com.shrona.mommytalk.kakao.infrastructure.adapter;
 import com.shrona.mommytalk.kakao.infrastructure.sender.NhnKakaoMessageClient;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -37,8 +38,8 @@ public class KakaoMessageAdapter {
     public NhnKakaoMessageClient kakaoFriendTalkClient() {
         RestClient restClient = RestClient.builder()
             .baseUrl(kakaoBaseUrl)
-            .defaultUriVariables(java.util.Map.of("appkey", kakaoAppKey))
-//            .requestInterceptor(logRequestInterceptor())
+            .defaultUriVariables(Map.of("appkey", kakaoAppKey))
+            .requestInterceptor(logRequestInterceptor())
             .build();
 
         RestClientAdapter adapter = RestClientAdapter.create(restClient);

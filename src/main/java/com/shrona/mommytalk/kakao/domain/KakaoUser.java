@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.kakao.domain;
 
+import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "kakao_user")
-public class KakaoUser {
+public class KakaoUser extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

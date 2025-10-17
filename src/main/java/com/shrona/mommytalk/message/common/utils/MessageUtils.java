@@ -5,6 +5,7 @@ import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
+import com.shrona.mommytalk.kakao.application.sender.KakaoMessageSender;
 import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.message.domain.MessageLog;
@@ -25,6 +26,7 @@ public class MessageUtils {
     private final TaskScheduler taskScheduler;
 
     private final LineMessageSender lineMessageSender;
+    private final KakaoMessageSender kakaoMessageSender;
 
     /**
      * 두 시간 사이의 초를 계산한다.
@@ -50,7 +52,10 @@ public class MessageUtils {
 
         switch (platform) {
             case ChannelPlatform.KAKAO -> {
-
+                // 메시지 Sender를 Runner로 처리
+                kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
+                    messageLogList.stream().map(MessageLog::getId).toList(), List.of(PREPARE)
+                );
             }
             case ChannelPlatform.LINE -> {
                 // 메시지 Sender를 Runner로 처리

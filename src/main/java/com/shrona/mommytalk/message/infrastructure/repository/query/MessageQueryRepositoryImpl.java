@@ -25,13 +25,15 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
         return query.select(messageLog)
             .from(messageLog)
             .leftJoin(messageLog.channel, channel).fetchJoin()
-            .where(messageLog.reserveTime.goe(time)
-                .and(messageLog.id.in(
-                    JPAExpressions.select(messageLogDetail.messageLog.id)
-                        .from(messageLogDetail)
-                        .where(messageLogDetail.status.eq(PREPARE))
-                ))
-                .and(messageLog.cancel.isFalse()))
+            .where(
+                messageLog.cancel.isFalse()
+                    .and(messageLog.id.in(
+                        JPAExpressions.select(messageLogDetail.messageLog.id)
+                            .from(messageLogDetail)
+                            .where(messageLogDetail.status.eq(PREPARE))
+                    ))
+//                    .and(messageLog.reserveTime.goe(time))
+            )
             .fetch();
     }
 

@@ -14,6 +14,7 @@ import com.shrona.mommytalk.group.common.exception.GroupException;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.GroupJpaRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.query.GroupQueryRepository;
+import com.shrona.mommytalk.kakao.application.sender.KakaoMessageSender;
 import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.line.infrastructure.dao.LogMessageIdCount;
 import com.shrona.mommytalk.message.common.exception.MessageErrorCode;
@@ -67,6 +68,7 @@ public class MessageServiceImpl implements MessageService {
     private final MessageContentService messageContentService;
 
     private final LineMessageSender lineMessageSender;
+    private final KakaoMessageSender kakaoMessageSender;
 
     // Utils
     private final MessageUtils messageUtils;
@@ -92,8 +94,7 @@ public class MessageServiceImpl implements MessageService {
         // 선택된 그룹에 속한 유저 정보를 갖고 온다.
         List<Long> groupList = new ArrayList<>(selectedCustomGroupIds);
         groupList.add(selectGroupId);
-        List<User> userListByGroupIds = groupQueryRepository
-            .findUserListByGroupIds(groupList);
+        List<User> userListByGroupIds = groupQueryRepository.findUserListByGroupIds(groupList);
         if (userListByGroupIds.isEmpty()) {
             return null;
         }
@@ -227,7 +228,8 @@ public class MessageServiceImpl implements MessageService {
 
         switch (platform) {
             case ChannelPlatform.KAKAO -> {
-                // TODO: 카카오 추후 구현
+                kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
+                    List.of(messageLogId), List.of(PREPARE, FAIL));
             }
             case ChannelPlatform.LINE -> {
                 lineMessageSender.sendLineMessageByReservationByMessageIds(
