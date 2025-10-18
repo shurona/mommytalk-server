@@ -7,18 +7,22 @@ import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ApiResponse;
+import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
+import com.shrona.mommytalk.kakao.application.sender.KakaoMessageSender;
 import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.message.application.MessageContentService;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.MessageContentTestRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
-import com.shrona.mommytalk.message.presentation.dtos.response.AiGenerateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentAudioResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.UpdateContentResponseDto;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/channels/{channelId}/contents")
@@ -36,12 +41,29 @@ public class MessageContentRestController {
 
     private final MessageContentService messageContentService;
     private final ChannelService channelService;
+
     private final LineMessageSender lineMessageSender;
+    private final KakaoMessageSender kakaoMessageSender;
+
+    @GetMapping("/{contentId}")
+    public ApiResponse<MessageContentResponseDto> findById(
+        @PathVariable Long channelId,
+        @PathVariable Long contentId
+    ) {
+        // 채널 정보 갖고 온다.
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
+
+        MessageContent content = messageContentService.findById(contentId);
+
+        return ApiResponse.success(MessageContentResponseDto.of(content, ""));
+    }
 
     @PostMapping("/generate")
-    public AiGenerateResponseDto generateAiContent(
+    public ApiResponse<Long> generateAiContent(
         @PathVariable Long channelId,
-        @RequestBody AiGenerateRequestDto requestDto) {
+        @RequestBody AiGenerateRequestDto requestDto
+    ) {
 
         // 채널 정보 갖고 온다.
         Channel channelInfo = channelService.findChannelById(channelId)
@@ -55,7 +77,7 @@ public class MessageContentRestController {
         MessageContentResponseDto contentDto = MessageContentResponseDto.of(generatedContent,
             requestDto.language());
 
-        return AiGenerateResponseDto.of(contentDto);
+        return ApiResponse.success(contentDto.id());
     }
 
 
@@ -69,20 +91,39 @@ public class MessageContentRestController {
 
         switch (channelInfo.getChannelPlatform()) {
             case LINE -> lineMessageSender.sendTestLineMessage(channelInfo, requestDto.content());
-            case KAKAO -> System.out.println("카카오 입니다.");
+            case KAKAO -> kakaoMessageSender.sendTestMessage(channelInfo, requestDto.content());
         }
 
         return ApiResponse.success(true);
     }
 
     @PostMapping
-    public ApiResponse<Boolean> upsertMessageContent(
+    public ApiResponse<Long> upsertMessageContent(
         @PathVariable Long channelId,
         @RequestBody UpsertMessageContentRequestDto requestDto
     ) {
-        messageContentService.upsertMessageContent(channelId, requestDto);
+        Long id = messageContentService.upsertMessageContent(channelId, requestDto);
 
-        return ApiResponse.success(true);
+        return ApiResponse.success(id);
+    }
+
+    @PostMapping("/{contentId}/audio")
+    public ApiResponse<MessageContentAudioResponseDto> insertAudio(
+        @PathVariable Long channelId,
+        @PathVariable Long contentId,
+        @RequestBody ContentAudioRequestDto requestDto
+    ) {
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
+
+        log.info("오디오 생성 요청 - messageContentId: {}, text length: {}",
+            requestDto.messageContentId(), requestDto.text().length());
+
+        ElevenLabsMedia elevenLabsMedia = messageContentService.updateContentAudio(channelInfo,
+            contentId, requestDto);
+
+        return ApiResponse.success(MessageContentAudioResponseDto.of(
+            elevenLabsMedia.getFileUrl(), elevenLabsMedia.getFileName()));
     }
 
     @PatchMapping("/{contentId}/approve")

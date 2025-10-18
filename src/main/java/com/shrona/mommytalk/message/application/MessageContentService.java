@@ -1,15 +1,22 @@
 package com.shrona.mommytalk.message.application;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import java.time.LocalDate;
 import java.util.Map;
 
 public interface MessageContentService {
+
+    /**
+     * MessageContent 단일 조회
+     */
+    MessageContent findById(Long id);
 
     /**
      * AI 컨텐츠를 생성한다.
@@ -19,7 +26,13 @@ public interface MessageContentService {
     /**
      * 메시지 컨텐츠를 생성 또는 업데이트한다.
      */
-    void upsertMessageContent(Long channelId, UpsertMessageContentRequestDto requestDto);
+    Long upsertMessageContent(Long channelId, UpsertMessageContentRequestDto requestDto);
+
+    /**
+     * Content의 오디오를 업데이트 해준다.
+     */
+    ElevenLabsMedia updateContentAudio(Channel channelInfo, Long contentId,
+        ContentAudioRequestDto requestDto);
 
     /**
      * 메시지 컨텐츠를 승인한다.
@@ -42,5 +55,4 @@ public interface MessageContentService {
      * userLevel_childLevel : content(String) 형식으로 변환해준다.
      */
     Map<String, String> groupMessageTextByLevel(MessageType messageType);
-
 }

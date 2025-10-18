@@ -231,8 +231,8 @@ public class LineMessageSenderImpl implements LineMessageSender {
                 LineMessageMulticastRequestBody requestBody;
 
                 // 헤더링크나 푸터링크가 있으면 Flex 메시지로 전송
-                String headerLink = content.getHeaderOneLink();
-                String bottomLink = content.getHeaderTwoLink();
+                String headerLink = content.getHeaderOneLink().getFileUrl();
+                String bottomLink = content.getHeaderTwoLink().getFileUrl();
 
                 requestBody = LineMessageMulticastRequestBody.ofFlex(subList,
                     createBubbleObj(content.getContent(), headerLink, bottomLink));

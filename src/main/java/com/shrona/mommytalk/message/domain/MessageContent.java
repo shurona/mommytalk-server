@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.message.domain;
 
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -37,11 +38,13 @@ public class MessageContent extends BaseEntity {
     @Column
     private Integer userLevel;
 
-    @Column(name = "header_one_link")
-    private String headerOneLink;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "header_one_link")
+    private ElevenLabsMedia headerOneLink;
 
-    @Column(name = "header_two_link")
-    private String headerTwoLink;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "header_two_link")
+    private ElevenLabsMedia headerTwoLink;
 
     @Column(name = "mommy_voca")
     private String mommyVoca;
@@ -73,16 +76,13 @@ public class MessageContent extends BaseEntity {
     /**
      * Mock URL을 포함한 메시지 컨텐츠 생성
      */
-    public static MessageContent ofWithMockUrls(
+    public static MessageContent createByAi(
         MessageType type, String content, int childLevel, int userLevel) {
         return MessageContent.builder()
             .content(content)
             .childLevel(childLevel)
             .userLevel(userLevel)
             .messageType(type)
-            .headerOneLink("https://cdn.example.com/mock-mom-audio.mp3")
-            .headerTwoLink("https://cdn.example.com/mock-child-audio.mp3")
-            .diaryUrl("https://mamitalk.example.com/diary")
             .approved(false)
             .build();
     }
@@ -91,15 +91,13 @@ public class MessageContent extends BaseEntity {
      * Mock URL을 포함한 메시지 컨텐츠 생성 (사람이 생성 자동 승인)
      */
     public static MessageContent ofWithMockUrlsForUpsert(
-        MessageType type, String content, int childLevel, int userLevel) {
+        MessageType type, String content, String diaryUrl, int childLevel, int userLevel) {
         return MessageContent.builder()
             .content(content)
             .childLevel(childLevel)
             .userLevel(userLevel)
             .messageType(type)
-            .headerOneLink("https://cdn.example.com/mock-mom-audio.mp3")
-            .headerTwoLink("https://cdn.example.com/mock-child-audio.mp3")
-            .diaryUrl("https://mamitalk.example.com/diary")
+            .diaryUrl(diaryUrl)
             .approved(true)
             .build();
     }
@@ -136,6 +134,20 @@ public class MessageContent extends BaseEntity {
      */
     public String createKeyPropertyForMessageContent() {
         return this.userLevel + "_" + this.childLevel;
+    }
+
+    /**
+     * 미디어 버튼 생성
+     */
+    public void updateButtonOne(ElevenLabsMedia media) {
+        this.headerOneLink = media;
+    }
+
+    /**
+     * 미디어 버튼 생성
+     */
+    public void updateButtonTwo(ElevenLabsMedia media) {
+        this.headerTwoLink = media;
     }
 
 }

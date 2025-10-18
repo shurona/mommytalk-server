@@ -378,8 +378,8 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                 KakaoFriendTalkRequestDto requestBody;
 
                 // 헤더링크나 푸터링크가 있으면 버튼 메시지로 전송
-                String headerLink = content.getHeaderOneLink();
-                String bottomLink = content.getHeaderTwoLink();
+                String headerLink = content.getHeaderOneLink().getFileUrl();
+                String bottomLink = content.getHeaderTwoLink().getFileUrl();
 
                 // 버튼 목록 생성
                 List<ButtonDto> buttons = createButtons(headerLink, bottomLink);

@@ -5,12 +5,16 @@ import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MES
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.elevenlabs.application.ElevenLabsService;
+import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageContentQueryRepository;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.openai.application.OpenAiServiceImpl;
@@ -22,22 +26,28 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 public class MessageContentServiceImpl implements MessageContentService {
 
-    private static int MIN_LEVEL = 1;
-    private static int MAX_LEVEL = 3;
-
-
     private final MessagePromptQueryRepository messagePromptQueryRepository;
     private final MessageTypeJpaRepository messageTypeJpaRepository;
     private final MessageContentJpaRepository messageContentJpaRepository;
+    private final MessageContentQueryRepository messageContentQueryRepository;
+
+    private final ElevenLabsService elevenLabsService;
     private final OpenAiServiceImpl openAiService;
+
+    @Override
+    public MessageContent findById(Long id) {
+        return messageContentQueryRepository.findById(id);
+    }
 
     @Transactional
     public MessageContent generateAiContent(Channel channel, AiGenerateRequestDto requestDto) {
@@ -74,7 +84,7 @@ public class MessageContentServiceImpl implements MessageContentService {
             return messageContentJpaRepository.save(existingMessageContent);
         } else {
             // 새 컨텐츠 생성
-            MessageContent messageContent = MessageContent.ofWithMockUrls(
+            MessageContent messageContent = MessageContent.createByAi(
                 messageType,
                 generatedContent,
                 requestDto.childLevel(),
@@ -85,7 +95,7 @@ public class MessageContentServiceImpl implements MessageContentService {
     }
 
     @Transactional
-    public void upsertMessageContent(Long channelId, UpsertMessageContentRequestDto requestDto) {
+    public Long upsertMessageContent(Long channelId, UpsertMessageContentRequestDto requestDto) {
 
         // MessageType 조회 (없으면 에러)
         MessageType messageType = messageTypeJpaRepository
@@ -103,20 +113,46 @@ public class MessageContentServiceImpl implements MessageContentService {
                 messageType, requestDto.childLevel(), requestDto.userLevel());
 
         if (existingContent.isPresent()) {
-            // TODO: 업데이트 하자
             MessageContent messageContent = existingContent.get();
-            messageContent.updateContent(requestDto.content(), "https://www.diary.com");
+            messageContent.updateContent(requestDto.content(), requestDto.diaryUrl());
             messageContentJpaRepository.save(messageContent);
+
+            return existingContent.get().getId();
         } else {
             // 새 컨텐츠 생성
             MessageContent messageContent = MessageContent.ofWithMockUrlsForUpsert(
                 messageType,
                 requestDto.content(),
+                requestDto.diaryUrl(),
                 requestDto.childLevel(),
                 requestDto.userLevel()
             );
-            messageContentJpaRepository.save(messageContent);
+            MessageContent newContent = messageContentJpaRepository.save(messageContent);
+            return newContent.getId();
         }
+    }
+
+    @Transactional
+    public ElevenLabsMedia updateContentAudio(
+        Channel channelInfo, Long contentId, ContentAudioRequestDto requestDto) {
+
+        // MessageContent 조회
+        MessageContent messageContent = messageContentJpaRepository.findById(contentId)
+            .orElseThrow(() -> new MessageException(MESSAGE_CONTENT_NOT_FOUND));
+
+        ElevenLabsMedia elevenLabsMedia = elevenLabsService.generateAudio(
+            requestDto.toElevenLabsRequest(), contentId);
+
+        switch (requestDto.audioRole()) {
+            case CHILD -> messageContent.updateButtonOne(elevenLabsMedia);
+            case MOMMY -> messageContent.updateButtonTwo(elevenLabsMedia);
+            default -> {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "지원하지 않는 Audio Role");
+            }
+        }
+
+        return elevenLabsMedia;
     }
 
     @Transactional

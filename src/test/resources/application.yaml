@@ -44,3 +44,18 @@ kakao:
   base-url: https://api-alimtalk.cloud.toast.com
   app-key: "TEST_KAKAO_APP_KEY"
   secret-key: "TEST_KAKAO_SECRET_KEY"
+
+elevenlabs:
+  base-url: "base-url"
+  api-key: "api-key" # 환경 변수로 관리
+  voice-id: "Xb7hH8MSUJpSbSDYk0k2"
+  output-dir: "elevenlabs"
+
+cloudflare:
+  r2:
+    account-id: "account-id"
+    access-key-id: "access-key-id"
+    secret-access-key: "access-key"
+    bucket-name: "bucket-name"
+    endpoint: "https://www.endpoint.com"
+    public-url: "https://www.public-url.com"

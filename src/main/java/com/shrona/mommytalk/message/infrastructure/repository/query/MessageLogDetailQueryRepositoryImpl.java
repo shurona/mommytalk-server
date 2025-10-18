@@ -9,6 +9,7 @@ import static com.shrona.mommytalk.user.domain.QUser.user;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.shrona.mommytalk.elevenlabs.domain.QElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import java.util.List;
@@ -78,11 +79,17 @@ public class MessageLogDetailQueryRepositoryImpl implements
             builder.and(messageLogDetail.status.in(status));
         }
 
+        // 다른 별칭 사용
+        QElevenLabsMedia headerOneMedia = new QElevenLabsMedia("headerOneMedia");
+        QElevenLabsMedia headerTwoMedia = new QElevenLabsMedia("headerTwoMedia");
+
         return query.select(messageLogDetail)
             .from(messageLogDetail)
             .leftJoin(messageLogDetail.user, user).fetchJoin()
             .leftJoin(user.lineUser, lineUser).fetchJoin()
             .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
+            .leftJoin(messageContent.headerOneLink, headerOneMedia).fetchJoin()
+            .leftJoin(messageContent.headerTwoLink, headerTwoMedia).fetchJoin()
             .where(builder)
             .fetch();
     }
@@ -102,11 +109,17 @@ public class MessageLogDetailQueryRepositoryImpl implements
             builder.and(messageLogDetail.status.in(status));
         }
 
+        // 다른 별칭 사용
+        QElevenLabsMedia headerOneMedia = new QElevenLabsMedia("headerOneMedia");
+        QElevenLabsMedia headerTwoMedia = new QElevenLabsMedia("headerTwoMedia");
+
         return query.select(messageLogDetail)
             .from(messageLogDetail)
             .leftJoin(messageLogDetail.user, user).fetchJoin()
             .leftJoin(user.kakaoUser, kakaoUser).fetchJoin()
             .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
+            .leftJoin(messageContent.headerOneLink, headerOneMedia).fetchJoin()
+            .leftJoin(messageContent.headerTwoLink, headerTwoMedia).fetchJoin()
             .where(builder)
             .fetch();
     }

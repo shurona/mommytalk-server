@@ -10,13 +10,16 @@ import lombok.Builder;
 public record MessageContentResponseDto(
     Long id,
     String theme,
+    String context,
     String deliveryDate,
     Integer childLevel,
     Integer momLevel,
     String language,
     String messageText,
     String momAudioUrl,
+    String momAudioText,
     String childAudioUrl,
+    String childAudioText,
     String vocaUrl,
     String diaryUrl,
     String status,
@@ -25,23 +28,46 @@ public record MessageContentResponseDto(
 ) {
 
     public static MessageContentResponseDto of(MessageContent content, String language) {
+
+        String momAudioUrl = "";
+        String momAudioText = "";
+
+        String childAudioUrl = "";
+        String childAudioText = "";
+
+        if (content.getHeaderOneLink() != null) {
+            momAudioUrl = content.getHeaderOneLink().getFileUrl();
+            momAudioText = content.getHeaderOneLink().getText();
+        }
+
+        if (content.getHeaderTwoLink() != null) {
+            childAudioUrl = content.getHeaderTwoLink().getFileUrl();
+            childAudioText = content.getHeaderTwoLink().getText();
+        }
+
         return MessageContentResponseDto.builder()
             .id(content.getId())
             .theme(content.getMessageType().getTheme())
+            .context(content.getMessageType().getContext())
             .deliveryDate(content.getMessageType().getDeliveryTime().toString())
             .childLevel(content.getChildLevel())
             .momLevel(content.getUserLevel())
             .language(language)
             .messageText(content.getContent())
-            .momAudioUrl(content.getHeaderOneLink() != null ? content.getHeaderOneLink() : "https://cdn.example.com/mock-mom-audio.mp3")
-            .childAudioUrl(content.getHeaderTwoLink() != null ? content.getHeaderTwoLink() : "https://cdn.example.com/mock-child-audio.mp3")
+            .momAudioText(momAudioText)
+            .momAudioUrl(momAudioUrl)
+            .childAudioText(childAudioText)
+            .childAudioUrl(childAudioUrl)
             .vocaUrl(content.getMommyVoca())
-            .diaryUrl(content.getDiaryUrl() != null ? content.getDiaryUrl() : "https://mamitalk.example.com/diary")
-            .status(content.getApproved() != null && content.getApproved() ? "approved" : "generated")
+            .diaryUrl(content.getDiaryUrl() != null ? content.getDiaryUrl()
+                : "https://mamitalk.example.com/diary")
+            .status(
+                content.getApproved() != null && content.getApproved() ? "approved" : "generated")
             .createdAt(content.getCreatedAt() != null ? content.getCreatedAt().plusHours(9)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")) : null)
             .updatedAt(content.getUpdatedAt() != null ? content.getUpdatedAt().plusHours(9)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")) : null)
             .build();
     }
+    
 }

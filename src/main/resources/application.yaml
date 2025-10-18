@@ -49,3 +49,17 @@ kakao:
   app-key: ${KAKAO_APP_KEY}
   secret-key: ${KAKAO_SECRET_KEY}
 
+elevenlabs:
+  base-url: https://api.elevenlabs.io
+  api-key: ${ELEVENLABS_API_KEY}  # 환경 변수로 관리
+  voice-id: Xb7hH8MSUJpSbSDYk0k2
+  output-dir: elevenlabs           # 프로젝트 루트/elevenlabs/에 저장
+
+cloudflare:
+  r2:
+    account-id: ${CLOUDFLARE_ACCOUNT_ID}
+    access-key-id: ${CLOUDFLARE_ACCESS_KEY_ID}
+    secret-access-key: ${CLOUDFLARE_SECRET_ACCESS_KEY}
+    bucket-name: ${CLOUDFLARE_BUCKET_NAME}
+    endpoint: ${CLOUDFLARE_ENDPOINT}  # https://<account-id>.r2.cloudflarestorage.com
+    public-url: ${CLOUDFLARE_PUBLIC_URL}  # 공개 URL (optional)
