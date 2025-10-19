@@ -87,7 +87,7 @@ class GroupServiceImplTest {
         userService.createUser(two);
 
         // when
-        groupService.addUserToGroup(group.getId(), List.of(one, two, wrongInfo));
+        groupService.addUserToGroup(channel, group.getId(), List.of(one, two, wrongInfo));
 
         // 반영
         em.flush();

@@ -119,7 +119,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public List<User> findOrCreateUsersWithLinesByPhoneNumbers(List<String> phoneNumberList) {
+    public List<User> findOrCreateUsersByPhoneNumbers(List<String> phoneNumberList) {
 
         // 중복제거
         List<String> removeDupNumber = new ArrayList<>(new HashSet<>(phoneNumberList));

@@ -183,8 +183,10 @@ public class GroupRestController {
         @PathVariable("groupId") Long groupId,
         @RequestBody AddUserGroupRequestDto requestDto
     ) {
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
 
-        groupService.addUserToGroup(groupId, requestDto.phoneNumbers());
+        groupService.addUserToGroup(channelInfo, groupId, requestDto.phoneNumbers());
 
         return ApiResponse.success("");
     }
@@ -210,8 +212,10 @@ public class GroupRestController {
         @PathVariable("groupId") Long groupId,
         @PathVariable("userId") Long userId
     ) {
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
 
-        groupService.deleteUserFromGroupByUserIds(groupId, List.of(userId));
+        groupService.deleteUserFromGroupByUserIds(channelInfo, groupId, List.of(userId));
 
         return ApiResponse.success(true);
     }

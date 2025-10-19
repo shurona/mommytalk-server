@@ -50,7 +50,7 @@ public interface UserService {
     /**
      * 휴대전화 번호 입력을 기준으로 없는 유저는 생성 후 조회
      */
-    List<User> findOrCreateUsersWithLinesByPhoneNumbers(List<String> phoneNumberList);
+    List<User> findOrCreateUsersByPhoneNumbers(List<String> phoneNumberList);
 
     /**
      * 유저 정보를 업데이트 해준다.

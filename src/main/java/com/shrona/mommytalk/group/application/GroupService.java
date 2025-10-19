@@ -76,7 +76,7 @@ public interface GroupService {
     /**
      * 그룹에 전화번호 추가(구)
      */
-    void addUserToGroup(Long groupId, List<String> phoneNumberList);
+    void addUserToGroup(Channel channel, Long groupId, List<String> phoneNumberList);
 
     /**
      * 그룹 목록(영구) 삭제
@@ -106,7 +106,7 @@ public interface GroupService {
     /**
      * 그룹에서 유저 아이디를 기준으로 유저그룹 목록 삭제
      */
-    public void deleteUserFromGroupByUserIds(Long id, List<Long> userIds);
+    void deleteUserFromGroupByUserIds(Channel channel, Long id, List<Long> userIds);
 
 
     /**

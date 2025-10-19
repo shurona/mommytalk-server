@@ -69,7 +69,7 @@ public class MessageTypeRestController {
             return ApiResponse.success(null);
         }
 
-        Map<String, String> contentMap = messageContentService.groupMessageTextByLevel(
+        Map<String, Boolean> contentMap = messageContentService.groupMessageApprovedByLevel(
             messageTypeByDate);
 
         return ApiResponse.success(

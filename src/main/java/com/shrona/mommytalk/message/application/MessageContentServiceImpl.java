@@ -6,11 +6,14 @@ import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MES
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.NEED_MORE_DATE_FOR_APPROVED;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.cloudflare.application.CloudflareService;
 import com.shrona.mommytalk.elevenlabs.application.ElevenLabsService;
 import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
+import com.shrona.mommytalk.elevenlabs.infrastructure.reposiotry.ElevenLabsMediaRepository;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
+import com.shrona.mommytalk.message.domain.type.AudioRole;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageContentQueryRepository;
@@ -27,11 +30,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
@@ -43,6 +48,8 @@ public class MessageContentServiceImpl implements MessageContentService {
     private final MessageContentQueryRepository messageContentQueryRepository;
 
     private final ElevenLabsService elevenLabsService;
+    private final ElevenLabsMediaRepository elevenLabsMediaRepository;
+    private final CloudflareService cloudflareService;
     private final OpenAiServiceImpl openAiService;
 
     @Override
@@ -143,13 +150,18 @@ public class MessageContentServiceImpl implements MessageContentService {
     public ElevenLabsMedia updateContentAudio(
         Channel channelInfo, Long contentId, ContentAudioRequestDto requestDto) {
 
-        // MessageContent 조회
+        // 1. MessageContent 조회
         MessageContent messageContent = messageContentJpaRepository.findById(contentId)
             .orElseThrow(() -> new MessageException(MESSAGE_CONTENT_NOT_FOUND));
 
+        // 2. 기존 오디오 삭제 처리
+        deleteOldAudioIfExists(messageContent, requestDto.audioRole());
+
+        // 3. 새 오디오 생성
         ElevenLabsMedia elevenLabsMedia = elevenLabsService.generateAudio(
             requestDto.toElevenLabsRequest(), contentId);
 
+        // 4. MessageContent 업데이트
         switch (requestDto.audioRole()) {
             case CHILD -> messageContent.updateButtonOne(elevenLabsMedia);
             case MOMMY -> messageContent.updateButtonTwo(elevenLabsMedia);
@@ -160,6 +172,46 @@ public class MessageContentServiceImpl implements MessageContentService {
         }
 
         return elevenLabsMedia;
+    }
+
+    /**
+     * 기존 오디오 삭제 처리
+     */
+    private void deleteOldAudioIfExists(MessageContent messageContent, AudioRole audioRole) {
+        ElevenLabsMedia oldMedia = switch (audioRole) {
+            case CHILD -> messageContent.getHeaderOneLink();
+            case MOMMY -> messageContent.getHeaderTwoLink();
+        };
+
+        if (oldMedia == null) {
+            log.info("기존 {} 오디오 없음, 삭제 스킵", audioRole);
+            return;
+        }
+
+        log.info("기존 {} 오디오 삭제 시작 - ID: {}, URL: {}",
+            audioRole, oldMedia.getId(), oldMedia.getFileUrl());
+
+        // 1. R2에서 파일 삭제 (실패해도 계속 진행)
+        try {
+            String fileKey = oldMedia.extractFileKey();
+            if (fileKey != null) {
+                cloudflareService.deleteFile(fileKey);
+                log.info("R2 파일 삭제 성공: {}", fileKey);
+            }
+        } catch (Exception e) {
+            log.warn("R2 파일 삭제 실패 (작업 계속 진행): {}", e.getMessage());
+            // 실패해도 계속 진행
+        }
+
+        // 2. ElevenLabsMedia 논리 삭제
+        try {
+            oldMedia.markAsDeleted();
+            elevenLabsMediaRepository.save(oldMedia);
+            log.info("ElevenLabsMedia 논리 삭제 완료 - ID: {}", oldMedia.getId());
+        } catch (Exception e) {
+            log.error("ElevenLabsMedia 논리 삭제 실패: {}", e.getMessage(), e);
+            // 이것도 실패해도 계속 진행
+        }
     }
 
     @Transactional
@@ -226,6 +278,15 @@ public class MessageContentServiceImpl implements MessageContentService {
             .collect(Collectors.toMap(
                 MessageContent::createKeyPropertyForMessageContent, // key: "1_2"
                 MessageContent::getContent
+            ));
+    }
+
+    public Map<String, Boolean> groupMessageApprovedByLevel(MessageType messageType) {
+        return messageType.getMessageContentList()
+            .stream()
+            .collect(Collectors.toMap(
+                MessageContent::createKeyPropertyForMessageContent, // key: "1_2"
+                MessageContent::getApproved
             ));
     }
 

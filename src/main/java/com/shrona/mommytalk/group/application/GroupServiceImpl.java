@@ -50,7 +50,7 @@ public class GroupServiceImpl implements GroupService {
         Group groupInfo = groupRepository.save(Group.createGroup(channel, name, description));
 
         // 휴대전화 목록에 맞는 유저를 group에 추가해준다.
-        generateGroupUserInfo(groupInfo, phoneList);
+        generateGroupUserInfo(channel, groupInfo, phoneList);
 
         return groupRepository.findById(groupInfo.getId()).orElseThrow();
     }
@@ -150,13 +150,13 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Transactional
-    public void addUserToGroup(Long groupId, List<String> phoneNumberList) {
+    public void addUserToGroup(Channel channel, Long groupId, List<String> phoneNumberList) {
         Optional<Group> groupInfo = groupRepository.findGroupWithUsers(groupId);
         if (groupInfo.isEmpty()) {
             return;
         }
 
-        generateGroupUserInfo(groupInfo.get(), phoneNumberList);
+        generateGroupUserInfo(channel, groupInfo.get(), phoneNumberList);
     }
 
     @Transactional
@@ -210,14 +210,14 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Transactional
-    public void deleteUserFromGroupByUserIds(Long id, List<Long> userIds) {
+    public void deleteUserFromGroupByUserIds(Channel channel, Long id, List<Long> userIds) {
         Optional<Group> groupInfo = groupRepository.findById(id);
         if (groupInfo.isEmpty()) {
             return;
         }
 
         groupInfo.get().getUserGroupList().clear();
-        userGroupRepository.deleteAllByUserId(userIds);
+        userGroupRepository.deleteAllByUserIdAndGroupId(userIds, id);
     }
 
     /**
@@ -263,10 +263,19 @@ public class GroupServiceImpl implements GroupService {
      * phoneNumber 목록을 조사해서 없는 번호는 입력해준다.
      */
     @Transactional
-    private void generateGroupUserInfo(Group groupInfo, List<String> phoneNumberList) {
+    private void generateGroupUserInfo(
+        Channel channel, Group groupInfo, List<String> phoneNumberList) {
+
         // 입력된 전화번호를 유저 생성 및 라인 유저와 매칭 후 List 반환
-        List<User> userListFromPhoneNumber = userService
-            .findOrCreateUsersWithLinesByPhoneNumbers(phoneNumberList);
+        List<User> userListFromPhoneNumber = userListFromPhoneNumber = userService
+            .findOrCreateUsersByPhoneNumbers(phoneNumberList);
+//        switch (channel.getChannelPlatform()) {
+//            case LINE -> userListFromPhoneNumber = userService
+//                .findOrCreateUsersWithLinesByPhoneNumbers(phoneNumberList);
+//            case KAKAO -> userListFromPhoneNumber = userService
+//                .findOrCreateUsersWithLinesByPhoneNumbers(phoneNumberList);
+//            default -> throw new GroupException(GroupErrorCode.BAD_REQUEST);
+//        }
 
         // group에 이미 존재하는 번호들을 추출한다.
         List<User> pList = groupInfo.getUserGroupList().stream()

@@ -36,7 +36,7 @@ public class ElevenLabsMedia extends BaseEntity {
 
     public static ElevenLabsMedia of(
         String text, String fileUrl, String fileName, Integer fileSize) {
-        
+
         ElevenLabsMedia elevenLabsMedia = new ElevenLabsMedia();
         elevenLabsMedia.text = text;
         elevenLabsMedia.fileUrl = fileUrl;
@@ -44,6 +44,25 @@ public class ElevenLabsMedia extends BaseEntity {
         elevenLabsMedia.fileSize = fileSize;
 
         return elevenLabsMedia;
+    }
+
+    /**
+     * 논리 삭제 처리
+     */
+    public void markAsDeleted() {
+        this.isDeleted = true;
+    }
+
+    /**
+     * R2 파일 키 추출 (삭제용)
+     * fileUrl에서 경로 추출: https://domain.com/audio/2025/01/file.mp3 → audio/2025/01/file.mp3
+     */
+    public String extractFileKey() {
+        if (this.fileUrl == null) {
+            return null;
+        }
+        int index = fileUrl.indexOf("/audio/");
+        return index >= 0 ? fileUrl.substring(index + 1) : null;
     }
 
 }

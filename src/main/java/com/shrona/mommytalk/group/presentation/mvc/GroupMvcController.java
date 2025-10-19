@@ -174,7 +174,7 @@ public class GroupMvcController {
         @RequestBody GroupAddUserRequestBody requestBody
     ) {
         // 유저 추가
-        groupService.addUserToGroup(groupId, requestBody.phoneNumberList());
+        groupService.addUserToGroup(null, groupId, requestBody.phoneNumberList());
 
         return ResponseEntity.ok().build();
     }

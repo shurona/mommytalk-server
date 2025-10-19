@@ -128,7 +128,7 @@ class UserServiceImplTest {
         phoneNumberList.add(wrongPhone);
 
         // when
-        List<User> userListAfterSave = userService.findOrCreateUsersWithLinesByPhoneNumbers(
+        List<User> userListAfterSave = userService.findOrCreateUsersByPhoneNumbers(
             phoneNumberList);
 
         // then
