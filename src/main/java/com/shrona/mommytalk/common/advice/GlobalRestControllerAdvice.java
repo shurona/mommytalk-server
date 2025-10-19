@@ -2,6 +2,7 @@ package com.shrona.mommytalk.common.advice;
 
 
 import com.shrona.mommytalk.common.dto.ApiResponse;
+import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.user.common.exception.UserException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,12 @@ public class GlobalRestControllerAdvice {
     @ExceptionHandler(UserException.class)
     public ApiResponse<?> handleUserException(UserException ex) {
         return ApiResponse.error(ex.getMessage());
+    }
+
+    @ExceptionHandler(MessageException.class)
+    public ResponseEntity<?> handleMessageException(MessageException ex) {
+        return ResponseEntity.status(ex.getCode().getStatus())
+            .body(ApiResponse.error(ex.getMessage()));
     }
 
     /**

@@ -19,6 +19,11 @@ public interface MessageContentService {
     MessageContent findById(Long id);
 
     /**
+     * MessageContent type과 유저 레벨을 기준으로 조회
+     */
+    MessageContent findByTypeAndUserLevel(Long typeId, Integer userLevel, Integer childLevel);
+
+    /**
      * AI 컨텐츠를 생성한다.
      */
     MessageContent generateAiContent(Channel channel, AiGenerateRequestDto requestDto);

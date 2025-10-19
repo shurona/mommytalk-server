@@ -35,4 +35,27 @@ public class MessageContentQueryRepositoryImpl implements MessageContentQueryRep
             .where(builder)
             .fetchOne();
     }
+
+    @Override
+    public MessageContent findByTypeAndUserLevel(
+        Long typeId, Integer userLevel, Integer childLevel) {
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        builder.and(messageContent.messageType.id.eq(typeId));
+        builder.and(
+            messageContent.userLevel.eq(userLevel).and(messageContent.childLevel.eq(childLevel)));
+
+        // 다른 별칭 사용
+        QElevenLabsMedia headerOneMedia = new QElevenLabsMedia("headerOneMedia");
+        QElevenLabsMedia headerTwoMedia = new QElevenLabsMedia("headerTwoMedia");
+
+        return query.select(messageContent)
+            .from(messageContent)
+            .leftJoin(messageContent.messageType, messageType).fetchJoin()
+            .leftJoin(messageContent.headerOneLink, headerOneMedia).fetchJoin()
+            .leftJoin(messageContent.headerTwoLink, headerTwoMedia).fetchJoin()
+            .where(builder)
+            .fetchOne();
+    }
 }

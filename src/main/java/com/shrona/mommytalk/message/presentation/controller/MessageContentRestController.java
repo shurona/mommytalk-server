@@ -14,7 +14,6 @@ import com.shrona.mommytalk.message.application.MessageContentService;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
-import com.shrona.mommytalk.message.presentation.dtos.request.MessageContentTestRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentAudioResponseDto;
@@ -44,6 +43,28 @@ public class MessageContentRestController {
 
     private final LineMessageSender lineMessageSender;
     private final KakaoMessageSender kakaoMessageSender;
+
+
+    @GetMapping
+    public ApiResponse<MessageContentResponseDto> findByTypeAndLevel(
+        @PathVariable Long channelId,
+        @RequestParam("type") Long typeId,
+        @RequestParam("child") int childLevel,
+        @RequestParam("user") int userLevel
+    ) {
+        // 채널 정보 갖고 온다.
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
+
+        MessageContent content =
+            messageContentService.findByTypeAndUserLevel(typeId, userLevel, childLevel);
+
+        if (content == null) {
+            return ApiResponse.success(null);
+        }
+
+        return ApiResponse.success(MessageContentResponseDto.of(content, ""));
+    }
 
     @GetMapping("/{contentId}")
     public ApiResponse<MessageContentResponseDto> findById(
@@ -81,17 +102,17 @@ public class MessageContentRestController {
     }
 
 
-    @PostMapping("/test")
+    @PostMapping("/{contentId}/test")
     public ApiResponse<Boolean> testDelivery(
         @PathVariable Long channelId,
-        @RequestBody MessageContentTestRequestDto requestDto
+        @PathVariable Long contentId
     ) {
         Channel channelInfo = channelService.findChannelById(channelId)
             .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
 
         switch (channelInfo.getChannelPlatform()) {
-            case LINE -> lineMessageSender.sendTestLineMessage(channelInfo, requestDto.content());
-            case KAKAO -> kakaoMessageSender.sendTestMessage(channelInfo, requestDto.content());
+            case LINE -> lineMessageSender.sendTestLineMessage(channelInfo, contentId);
+            case KAKAO -> kakaoMessageSender.sendTestMessage(channelInfo, contentId);
         }
 
         return ApiResponse.success(true);

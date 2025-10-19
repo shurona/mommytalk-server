@@ -196,7 +196,7 @@ public class MessageController {
             return ResponseEntity.badRequest().build();
         }
 
-        if (lineMessageSender.sendTestLineMessage(channelInfo.get(), form.content())) {
+        if (lineMessageSender.sendTestLineMessage(channelInfo.get(), 1L)) {
             return ResponseEntity.ok(Map.of("success", true));
         } else {
             return ResponseEntity.internalServerError().build();

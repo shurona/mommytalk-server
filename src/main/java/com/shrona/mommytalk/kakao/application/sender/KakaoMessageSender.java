@@ -37,5 +37,5 @@ public interface KakaoMessageSender {
     /**
      * 테스트 메시지 전송
      */
-    boolean sendTestMessage(Channel channel, String content);
+    boolean sendTestMessage(Channel channel, Long messageContentId);
 }

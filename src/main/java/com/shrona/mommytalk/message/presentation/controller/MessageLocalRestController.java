@@ -33,7 +33,8 @@ public class MessageLocalRestController {
             return ResponseEntity.badRequest().build();
         }
 
-        boolean b = lineMessageSender.sendTestLineMessage(channel.get(), requestBody.text());
+        boolean b = lineMessageSender.sendTestLineMessage(
+            channel.get(), requestBody.messageContentId());
 
         return ResponseEntity.ok().body(new TestMessageResponseBody(b));
     }

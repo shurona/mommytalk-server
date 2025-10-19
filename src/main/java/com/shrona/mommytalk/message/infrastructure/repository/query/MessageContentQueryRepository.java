@@ -6,4 +6,5 @@ public interface MessageContentQueryRepository {
 
     MessageContent findById(Long id);
 
+    MessageContent findByTypeAndUserLevel(Long typeId, Integer userLevel, Integer childLevel);
 }

@@ -43,7 +43,7 @@ public record KakaoFriendTalkRequestDto(
     /**
      * 텍스트 메시지 생성 (다중 수신자)
      */
-    public static KakaoFriendTalkRequestDto ofMultiWithScheduled(
+    public static KakaoFriendTalkRequestDto ofMulti(
         String senderKey,
         List<String> recipientNos,
         String content,
@@ -93,6 +93,7 @@ public record KakaoFriendTalkRequestDto(
         String senderKey,
         List<String> recipientNos,
         String content,
+        String reserveTime,
         List<ButtonDto> buttons
     ) {
         List<RecipientDto> recipients = recipientNos.stream()

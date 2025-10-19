@@ -22,6 +22,7 @@ import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageContentQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
 import java.nio.charset.StandardCharsets;
@@ -51,6 +52,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
     private final LineMessageSenderClient lineMessageSenderClient;
     // repository
     private final MessageQueryRepository messageRepository;
+    private final MessageContentQueryRepository messageContentQueryRepository;
     private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
     private final AdminService adminService;
 
@@ -90,7 +92,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
                     }
                     // 마미 보카
                     case EntitlementType.MOMMYVOCA -> {
-                        sendStatus = sendMessageToLineWithButton(
+                        sendStatus = sendMessageToLineWithDiary(
                             messageLog.getChannel(),  // 전송될 채널 정보
                             // 전송될 MessageContent에 해당하는 LineId 목록
                             lineIdsByMessageContentId.get(messageContentId),
@@ -119,13 +121,15 @@ public class LineMessageSenderImpl implements LineMessageSender {
     }
 
     @Override
-    public boolean sendTestLineMessage(Channel channel, String text) {
+    public boolean sendTestLineMessage(Channel channel, Long messageContentId) {
         // 테스트 유저 목록을 갖고 온다.
         List<String> lineIdList = adminService.findAllTestUser(channel)
             .stream().map(TestUserServiceDto::socialId)
             .filter(s -> !s.isBlank()).toList();
 
         log.info("[테스트 메시지] 메시지 발송 아이디 목록 {}", lineIdList);
+
+        MessageContent content = messageContentQueryRepository.findById(messageContentId);
 
         if (lineIdList.isEmpty()) {
             return true;
@@ -138,12 +142,20 @@ public class LineMessageSenderImpl implements LineMessageSender {
 
         // 테스트용 라인 메시지
         try {
-            LineMessageMulticastRequestBody lineMessageMulticastRequestBody
-                = LineMessageMulticastRequestBody.of(lineIdList, text);
+
+            LineMessageMulticastRequestBody requestBody;
+
+            // 헤더링크나 푸터링크가 있으면 Flex 메시지로 전송
+            String headerOne = content.getHeaderOneLink().getFileUrl();
+            String headerTwo = content.getHeaderTwoLink().getFileUrl();
+            String diaryUrl = content.getDiaryUrl();
+
+            requestBody = LineMessageMulticastRequestBody.ofFlex(lineIdList,
+                createBubbleObj(content.getContent(), headerOne, headerTwo, diaryUrl));
 
             // 메시지 전송
             lineMessageSenderClient.SendMulticastMessage(prefixHeader + decodedString,
-                lineMessageMulticastRequestBody);
+                requestBody);
         } catch (Exception e) {
             log.error("에러 발생 : " + e.getMessage());
             return false;
@@ -187,9 +199,15 @@ public class LineMessageSenderImpl implements LineMessageSender {
             List<String> subList = lineIdList.subList(i,
                 Math.min(i + CHUNK_SIZE, lineIdList.size()));
             try {
-                LineMessageMulticastRequestBody requestBody = LineMessageMulticastRequestBody.of(
-                    subList,
-                    content.getContent());
+                LineMessageMulticastRequestBody requestBody;
+
+                // 헤더링크나 푸터링크가 있으면 Flex 메시지로 전송
+                String headerOne = content.getHeaderOneLink().getFileUrl();
+                String headerTwo = content.getHeaderTwoLink().getFileUrl();
+
+                requestBody = LineMessageMulticastRequestBody.ofFlex(subList,
+                    createBubbleObj(content.getContent(), headerOne, headerTwo, null));
+
                 lineMessageSenderClient.SendMulticastMessage(
                     prefixHeader + decodedString,
                     requestBody
@@ -211,7 +229,7 @@ public class LineMessageSenderImpl implements LineMessageSender {
     /**
      * 메시지를 마미보카와 함께 라인에 전달한다.
      */
-    private int sendMessageToLineWithButton(
+    private int sendMessageToLineWithDiary(
         Channel channel, List<String> lineIdList, MessageContent content) {
 
         String accessToken = channel.getAccessToken();
@@ -231,11 +249,12 @@ public class LineMessageSenderImpl implements LineMessageSender {
                 LineMessageMulticastRequestBody requestBody;
 
                 // 헤더링크나 푸터링크가 있으면 Flex 메시지로 전송
-                String headerLink = content.getHeaderOneLink().getFileUrl();
-                String bottomLink = content.getHeaderTwoLink().getFileUrl();
+                String headerOne = content.getHeaderOneLink().getFileUrl();
+                String headerTwo = content.getHeaderTwoLink().getFileUrl();
+                String bottomLink = content.getDiaryUrl();
 
                 requestBody = LineMessageMulticastRequestBody.ofFlex(subList,
-                    createBubbleObj(content.getContent(), headerLink, bottomLink));
+                    createBubbleObj(content.getContent(), headerOne, headerTwo, bottomLink));
 
                 lineMessageSenderClient.SendMulticastMessage(
                     prefixHeader + decodedString,
@@ -268,8 +287,11 @@ public class LineMessageSenderImpl implements LineMessageSender {
         }
     }
 
-    private LineFlexMessageRequestDto createBubbleObj(String text, String headerLink,
-        String bottomLink) {
+    /**
+     * BubbleObj 생성한다.
+     */
+    private LineFlexMessageRequestDto createBubbleObj(
+        String text, String headerOneLink, String headerTwoLink, String bottomLink) {
         // Body 생성
         BoxTypeDto body = new BoxTypeDto(
             ContentType.BOX,
@@ -279,28 +301,31 @@ public class LineMessageSenderImpl implements LineMessageSender {
 
         // Header 생성 (헤더링크가 있을 때만)
         BoxTypeDto header = null;
-        if (headerLink != null && !headerLink.trim().isEmpty()) {
+        if (checkLinkExist(headerOneLink) && checkLinkExist(headerTwoLink)) {
             header = new BoxTypeDto(
                 ContentType.BOX,
-                "vertical",
+                "horizontal",
                 List.of(
                     new ButtonTypeDto(
-                        ContentType.BUTTON, "primary", "sm", new ActionDto(
-                        "uri", "発音を聞く\uD83D\uDD08", headerLink.trim()
-                    )
-                    )
+                        ContentType.BUTTON, "primary", "sm", null, new ActionDto(
+                        "uri", "mommy voice", headerOneLink.trim()
+                    )),
+                    new ButtonTypeDto(
+                        ContentType.BUTTON, "primary", "sm", "xl", new ActionDto(
+                        "uri", "child voice", headerTwoLink.trim()
+                    ))
                 )
             );
         }
 
         // Footer 생성 (푸터링크가 있을 때만)
         BoxTypeDto footer = null;
-        if (bottomLink != null && !bottomLink.trim().isEmpty()) {
+        if (checkLinkExist(bottomLink)) {
             footer = new BoxTypeDto(
                 ContentType.BOX,
                 "vertical",
                 List.of(new ButtonTypeDto(ContentType.BUTTON,
-                    "secondary", "sm",
+                    "secondary", "sm", null,
                     new ActionDto(
                         "uri", "デジタルフラッシュカード\uD83D\uDCE9", bottomLink.trim()
                     )
@@ -347,5 +372,9 @@ public class LineMessageSenderImpl implements LineMessageSender {
                     Collectors.toList()
                 )
             ));
+    }
+
+    private boolean checkLinkExist(String givenUrl) {
+        return givenUrl != null && !givenUrl.trim().isEmpty();
     }
 }

@@ -22,7 +22,7 @@ public record MessageContentResponseDto(
     String childAudioText,
     String vocaUrl,
     String diaryUrl,
-    String status,
+    Boolean status,
     String createdAt,
     String updatedAt
 ) {
@@ -59,15 +59,13 @@ public record MessageContentResponseDto(
             .childAudioText(childAudioText)
             .childAudioUrl(childAudioUrl)
             .vocaUrl(content.getMommyVoca())
-            .diaryUrl(content.getDiaryUrl() != null ? content.getDiaryUrl()
-                : "https://mamitalk.example.com/diary")
-            .status(
-                content.getApproved() != null && content.getApproved() ? "approved" : "generated")
+            .diaryUrl(content.getDiaryUrl())
+            .status(content.getApproved())
             .createdAt(content.getCreatedAt() != null ? content.getCreatedAt().plusHours(9)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")) : null)
             .updatedAt(content.getUpdatedAt() != null ? content.getUpdatedAt().plusHours(9)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")) : null)
             .build();
     }
-    
+
 }

@@ -15,6 +15,7 @@ import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageContentQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
 import com.shrona.mommytalk.user.domain.User;
@@ -50,6 +51,8 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     // repository
     private final MessageQueryRepository messageRepository;
     private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
+    private final MessageContentQueryRepository messageContentQueryRepository;
+
 
     @Value("${kakao.secret-key}")
     private String kakaoSecretKey;
@@ -94,7 +97,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                     }
                     // 마미 보카
                     case EntitlementType.MOMMYVOCA -> {
-                        sendStatus = sendMessageToKakaoWithButton(
+                        sendStatus = sendMessageToKakaoWithDiary(
                             messageLog.getChannel(),  // 전송될 채널 정보
                             // 전송될 MessageContent에 해당하는 전화번호 목록
                             phoneNumbersByMessageContentId.get(messageContentId),
@@ -169,7 +172,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             );
 
             try {
-                KakaoFriendTalkRequestDto request = KakaoFriendTalkRequestDto.ofMultiWithScheduled(
+                KakaoFriendTalkRequestDto request = KakaoFriendTalkRequestDto.ofMulti(
                     senderKey,
                     chunk,
                     content,
@@ -243,13 +246,15 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     }
 
     @Override
-    public boolean sendTestMessage(Channel channel, String content) {
+    public boolean sendTestMessage(Channel channel, Long messageContentId) {
         // 테스트 유저 목록 조회
         List<String> testPhoneNumbers = adminService.findAllTestUser(channel)
             .stream()
             .map(TestUserServiceDto::phoneNumber)
             .filter(phone -> phone != null && !phone.isBlank())
             .toList();
+
+        MessageContent content = messageContentQueryRepository.findById(messageContentId);
 
         log.info("[Kakao 테스트 메시지] 발송 전화번호 목록: {}", testPhoneNumbers);
 
@@ -261,16 +266,38 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         String senderKey = channel.getKakaoSenderKey();
 
         try {
-            KakaoFriendTalkRequestDto request = KakaoFriendTalkRequestDto.ofMultiWithScheduled(
-                senderKey,
-                testPhoneNumbers,
-                content,
-                null
-            );
+            KakaoFriendTalkRequestDto requestBody;
+
+            // 3개 버튼: mommy voice, child voice, 플래시카드
+            String mommyVoice = content.getHeaderOneLink().getFileUrl();
+            String childVoice = content.getHeaderTwoLink().getFileUrl();
+            String flashCard = content.getDiaryUrl();
+
+            // 버튼 목록 생성
+            List<ButtonDto> buttons = createButtons(mommyVoice, childVoice, flashCard);
+
+            if (buttons.isEmpty()) {
+                // 버튼이 없으면 일반 메시지로 전송
+                requestBody = KakaoFriendTalkRequestDto.ofMulti(
+                    senderKey,
+                    testPhoneNumbers,
+                    content.getContent(),
+                    null
+                );
+            } else {
+                // 버튼이 있으면 버튼 메시지로 전송
+                requestBody = KakaoFriendTalkRequestDto.ofWithButtons(
+                    senderKey,
+                    testPhoneNumbers,
+                    content.getContent(),
+                    null,
+                    buttons
+                );
+            }
 
             KakaoFriendTalkResponseDto response = nhnKakaoMessageClient.sendMessage(
                 kakaoSecretKey,
-                request
+                requestBody
             );
 
             logResponse(response);
@@ -329,64 +356,19 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             List<String> subList = phoneNumberList.subList(i,
                 Math.min(i + CHUNK_SIZE, phoneNumberList.size()));
             try {
-                KakaoFriendTalkRequestDto requestBody = KakaoFriendTalkRequestDto.ofMultiWithScheduled(
-                    senderKey,
-                    subList,
-                    content.getContent(),
-                    reserveTime.format(DATE_FORMATTER)
-                );
-
-                KakaoFriendTalkResponseDto response = nhnKakaoMessageClient.sendMessage(
-                    kakaoSecretKey,
-                    requestBody
-                );
-
-                if (!logResponse(response)) {
-                    return SEND_FAIL;
-                }
-            } catch (RestClientResponseException e) {
-                log.error("[전송 중 에러 발생] {} 번째에서 에러 발생 {} 전화번호 목록 \n에러 원인 {}",
-                    i, phoneNumberList, e.getMessage());
-                return SEND_FAIL;
-            }
-
-            // thread sleep
-            sleepForRateLimit();
-        }
-
-        return SEND_SUCCESS;
-    }
-
-    /**
-     * 메시지를 마미보카 버튼과 함께 카카오에 전달한다.
-     */
-    private int sendMessageToKakaoWithButton(
-        Channel channel, List<String> phoneNumberList,
-        MessageContent content, LocalDateTime reserveTime) {
-
-        String senderKey = channel.getKakaoSenderKey();
-        // 목록 및 senderKey가 비어 있으면 보내지 않는다.
-        if (phoneNumberList.isEmpty() || senderKey == null || senderKey.isBlank()) {
-            return SEND_SUCCESS;
-        }
-
-        // 카카오 메시지 전송
-        for (int i = 0; i < phoneNumberList.size(); i += CHUNK_SIZE) {
-            List<String> subList = phoneNumberList.subList(i,
-                Math.min(i + CHUNK_SIZE, phoneNumberList.size()));
-            try {
                 KakaoFriendTalkRequestDto requestBody;
 
-                // 헤더링크나 푸터링크가 있으면 버튼 메시지로 전송
-                String headerLink = content.getHeaderOneLink().getFileUrl();
-                String bottomLink = content.getHeaderTwoLink().getFileUrl();
+                // 3개 버튼: mommy voice, child voice, 플래시카드
+                String mommyVoice = content.getHeaderOneLink().getFileUrl();
+                String childVoice = content.getHeaderTwoLink().getFileUrl();
+                String flashCard = content.getDiaryUrl();
 
                 // 버튼 목록 생성
-                List<ButtonDto> buttons = createButtons(headerLink, bottomLink);
+                List<ButtonDto> buttons = createButtons(mommyVoice, childVoice, flashCard);
 
                 if (buttons.isEmpty()) {
                     // 버튼이 없으면 일반 메시지로 전송
-                    requestBody = KakaoFriendTalkRequestDto.ofMultiWithScheduled(
+                    requestBody = KakaoFriendTalkRequestDto.ofMulti(
                         senderKey,
                         subList,
                         content.getContent(),
@@ -398,6 +380,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                         senderKey,
                         subList,
                         content.getContent(),
+                        reserveTime.format(DATE_FORMATTER),
                         buttons
                     );
                 }
@@ -424,32 +407,113 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     }
 
     /**
-     * 헤더 링크와 푸터 링크로 버튼 목록 생성
+     * 메시지를 마미보카 버튼과 함께 카카오에 전달한다.
      */
-    private List<ButtonDto> createButtons(String headerLink, String bottomLink) {
+    private int sendMessageToKakaoWithDiary(
+        Channel channel, List<String> phoneNumberList,
+        MessageContent content, LocalDateTime reserveTime) {
+
+        String senderKey = channel.getKakaoSenderKey();
+        // 목록 및 senderKey가 비어 있으면 보내지 않는다.
+        if (phoneNumberList.isEmpty() || senderKey == null || senderKey.isBlank()) {
+            return SEND_SUCCESS;
+        }
+
+        // 카카오 메시지 전송
+        for (int i = 0; i < phoneNumberList.size(); i += CHUNK_SIZE) {
+            List<String> subList = phoneNumberList.subList(i,
+                Math.min(i + CHUNK_SIZE, phoneNumberList.size()));
+            try {
+                KakaoFriendTalkRequestDto requestBody;
+
+                // 3개 버튼: mommy voice, child voice, 플래시카드
+                String mommyVoice = content.getHeaderOneLink().getFileUrl();
+                String childVoice = content.getHeaderTwoLink().getFileUrl();
+                String flashCard = content.getDiaryUrl();
+
+                // 버튼 목록 생성
+                List<ButtonDto> buttons = createButtons(mommyVoice, childVoice, flashCard);
+
+                if (buttons.isEmpty()) {
+                    // 버튼이 없으면 일반 메시지로 전송
+                    requestBody = KakaoFriendTalkRequestDto.ofMulti(
+                        senderKey,
+                        subList,
+                        content.getContent(),
+                        reserveTime.format(DATE_FORMATTER)
+                    );
+                } else {
+                    // 버튼이 있으면 버튼 메시지로 전송
+                    requestBody = KakaoFriendTalkRequestDto.ofWithButtons(
+                        senderKey,
+                        subList,
+                        content.getContent(),
+                        reserveTime.format(DATE_FORMATTER),
+                        buttons
+                    );
+                }
+
+                KakaoFriendTalkResponseDto response = nhnKakaoMessageClient.sendMessage(
+                    kakaoSecretKey,
+                    requestBody
+                );
+
+                if (!logResponse(response)) {
+                    return SEND_FAIL;
+                }
+            } catch (RestClientResponseException e) {
+                log.error("[전송 중 에러 발생] {} 번째에서 에러 발생 {} 전화번호 목록 \n에러 원인 {}",
+                    i, phoneNumberList, e.getMessage());
+                return SEND_FAIL;
+            }
+
+            // thread sleep
+            sleepForRateLimit();
+        }
+
+        return SEND_SUCCESS;
+    }
+
+    /**
+     * 3개 버튼 생성: mommy voice, child voice, 플래시카드 (LINE 스타일과 동일)
+     */
+    private List<ButtonDto> createButtons(String mommyVoice, String childVoice, String flashCard) {
         List<ButtonDto> buttons = new java.util.ArrayList<>();
 
-        // 헤더 버튼 (발음 듣기)
-        if (headerLink != null && !headerLink.trim().isEmpty()) {
+        // 1. Mommy Voice 버튼
+        if (mommyVoice != null && !mommyVoice.trim().isEmpty()) {
             buttons.add(new ButtonDto(
                 "1",                    // ordering
                 "WL",                   // type: 웹링크
-                "発音を聞く🔈",          // name
-                headerLink.trim(),      // linkMo
-                headerLink.trim(),      // linkPc
+                "mommy voice",          // name
+                mommyVoice.trim(),      // linkMo
+                mommyVoice.trim(),      // linkPc
                 null,                   // schemeIos
                 null                    // schemeAndroid
             ));
         }
 
-        // 푸터 버튼 (디지털 플래시카드)
-        if (bottomLink != null && !bottomLink.trim().isEmpty()) {
+        // 2. Child Voice 버튼
+        if (childVoice != null && !childVoice.trim().isEmpty()) {
             buttons.add(new ButtonDto(
-                "2",                            // ordering
+                "2",                    // ordering
+                "WL",                   // type: 웹링크
+                "child voice",          // name
+                childVoice.trim(),      // linkMo
+                childVoice.trim(),      // linkPc
+                null,                   // schemeIos
+                null                    // schemeAndroid
+            ));
+        }
+
+        // 3. 플래시카드 버튼
+        if (flashCard != null && !flashCard.trim().isEmpty()) {
+            buttons.add(new ButtonDto(
+                "3",                            // ordering
                 "WL",                           // type: 웹링크
                 "デジタルフラッシュカード📩",    // name
-                bottomLink.trim(),              // linkMo
-                bottomLink.trim(),              // linkPc
+                flashCard.trim(),               // linkMo
+                flashCard.trim(),               // linkPc
                 null,                           // schemeIos
                 null                            // schemeAndroid
             ));

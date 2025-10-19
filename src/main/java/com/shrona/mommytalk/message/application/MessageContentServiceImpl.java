@@ -3,6 +3,7 @@ package com.shrona.mommytalk.message.application;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_ACCESS_DENIED;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_NOT_FOUND;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_NOT_FOUND;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.NEED_MORE_DATE_FOR_APPROVED;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.elevenlabs.application.ElevenLabsService;
@@ -47,6 +48,12 @@ public class MessageContentServiceImpl implements MessageContentService {
     @Override
     public MessageContent findById(Long id) {
         return messageContentQueryRepository.findById(id);
+    }
+
+    @Override
+    public MessageContent findByTypeAndUserLevel(
+        Long typeId, Integer userLevel, Integer childLevel) {
+        return messageContentQueryRepository.findByTypeAndUserLevel(typeId, userLevel, childLevel);
     }
 
     @Transactional
@@ -165,6 +172,12 @@ public class MessageContentServiceImpl implements MessageContentService {
         // 2. 채널 권한 검증 (content의 messageType의 channel이 요청한 channelId와 일치하는지)
         if (!messageContent.getMessageType().getChannel().getId().equals(channelId)) {
             throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
+        }
+
+        boolean b = messageContent.checkApprovedCondition();
+        // 승인 여부 확인
+        if (!messageContent.checkApprovedCondition()) {
+            throw new MessageException(NEED_MORE_DATE_FOR_APPROVED);
         }
 
         // 3. 승인 처리 (이미 승인된 경우 DB 업데이트 안함)

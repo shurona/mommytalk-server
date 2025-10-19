@@ -88,7 +88,7 @@ public class MessageContent extends BaseEntity {
     }
 
     /**
-     * Mock URL을 포함한 메시지 컨텐츠 생성 (사람이 생성 자동 승인)
+     * Mock URL을 포함한 메시지 컨텐츠 생성
      */
     public static MessageContent ofWithMockUrlsForUpsert(
         MessageType type, String content, String diaryUrl, int childLevel, int userLevel) {
@@ -98,7 +98,7 @@ public class MessageContent extends BaseEntity {
             .userLevel(userLevel)
             .messageType(type)
             .diaryUrl(diaryUrl)
-            .approved(true)
+            .approved(false)
             .build();
     }
 
@@ -108,7 +108,6 @@ public class MessageContent extends BaseEntity {
     public void updateContent(String newContent, String newDiaryUrl) {
         this.content = newContent;
         this.diaryUrl = newDiaryUrl;
-        this.approved = true;
     }
 
     /**
@@ -150,4 +149,13 @@ public class MessageContent extends BaseEntity {
         this.headerTwoLink = media;
     }
 
+    /**
+     * 승인 되는 조건을 확인한다.
+     */
+    public boolean checkApprovedCondition() {
+
+        // 4개의 데이터 중 하나라도 비어있으면 승인 불가
+        return this.content != null && this.getHeaderOneLink() != null
+            && this.getHeaderTwoLink() != null && this.getDiaryUrl() != null;
+    }
 }
