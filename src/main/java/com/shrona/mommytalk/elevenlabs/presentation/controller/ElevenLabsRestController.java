@@ -35,9 +35,9 @@ public class ElevenLabsRestController {
 
         ElevenLabsRequest elevenLabsRequest = requestDto.toElevenLabsRequest();
         String filePath = elevenLabsService.generateAudio(
-            elevenLabsRequest,
+            elevenLabsRequest.text(),
             requestDto.messageContentId()
-        ).getFileUrl();
+        );
 
         GenerateAudioResponseDto response = GenerateAudioResponseDto.of(
             requestDto.messageContentId(),

@@ -24,5 +24,5 @@ public interface ElevenLabsService {
      * @param messageContentId 메시지 콘텐츠 ID (파일명에 사용)
      * @return 저장된 파일 경로
      */
-    ElevenLabsMedia generateAudio(ElevenLabsRequest request, Long messageContentId);
+    ElevenLabsMedia generateAudio(ElevenLabsRequest request, Long messageContentId, String voiceId);
 }

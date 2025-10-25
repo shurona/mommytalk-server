@@ -33,11 +33,12 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
     @Override
     public String generateAudio(String text, Long messageContentId) {
         ElevenLabsRequest request = ElevenLabsRequest.of(text);
-        return generateAudio(request, messageContentId).getFileUrl();
+        return generateAudio(request, messageContentId, elevenlabsConfig.voiceId()).getFileUrl();
     }
 
     @Override
-    public ElevenLabsMedia generateAudio(ElevenLabsRequest request, Long messageContentId) {
+    public ElevenLabsMedia generateAudio(
+        ElevenLabsRequest request, Long messageContentId, String voiceId) {
         try {
             log.info("ElevenLabs TTS 시작 - messageContentId: {}", messageContentId);
 

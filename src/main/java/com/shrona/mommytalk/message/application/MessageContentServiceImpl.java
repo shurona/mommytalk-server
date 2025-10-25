@@ -159,7 +159,7 @@ public class MessageContentServiceImpl implements MessageContentService {
 
         // 3. 새 오디오 생성
         ElevenLabsMedia elevenLabsMedia = elevenLabsService.generateAudio(
-            requestDto.toElevenLabsRequest(), contentId);
+            requestDto.toElevenLabsRequest(), contentId, requestDto.modelId());
 
         // 4. MessageContent 업데이트
         switch (requestDto.audioRole()) {
