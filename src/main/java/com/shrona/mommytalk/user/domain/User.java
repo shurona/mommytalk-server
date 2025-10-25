@@ -52,13 +52,13 @@ public class User extends BaseEntity {
     private String email;
 
     @Column
-    private Integer userLevel;
+    private Integer userLevel = 2;
 
     @Column
     private String childName;
 
     @Column
-    private Integer childLevel;
+    private Integer childLevel = 2;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "add_method")
@@ -158,6 +158,13 @@ public class User extends BaseEntity {
      */
     public String createKeyPropertyForMessageContent() {
         return this.userLevel + "_" + this.childLevel;
+    }
+
+    /**
+     * 유저의 카카오 정보 업데이트
+     */
+    public void updateKakaoUser(KakaoUser kakaoUser) {
+        this.kakaoUser = kakaoUser;
     }
 
 }
