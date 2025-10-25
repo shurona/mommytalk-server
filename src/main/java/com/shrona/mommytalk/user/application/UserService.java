@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.user.application;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
@@ -25,7 +26,7 @@ public interface UserService {
     /**
      * 유저 정보를 id로 조회
      */
-    UserResponseDto findUserInfoById(Long userId);
+    UserResponseDto findUserInfoById(Channel channel, Long userId);
 
     /**
      * 유저 단일 조회
@@ -45,7 +46,8 @@ public interface UserService {
     /**
      * 채널에 속한 유저 목록 갖고 온다.
      */
-    Page<UserListProjection> findUserListByChannelInfoWithPaging(Long channelId, Pageable pageable);
+    Page<UserListProjection> findUserListByChannelInfoWithPaging(
+        Long channelId, Pageable pageable, String searchToken);
 
     /**
      * 휴대전화 번호 입력을 기준으로 없는 유저는 생성 후 조회

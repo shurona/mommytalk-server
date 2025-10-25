@@ -21,17 +21,19 @@ public interface UserQueryRepository {
     /**
      * LINE 채널에 속한 유저 조회 - 페이징 지원
      */
-    Page<UserListProjection> findLineUsersByChannelIdWithPaging(Long channelId, Pageable pageable);
+    Page<UserListProjection> findLineUsersByChannelIdWithPaging(
+        Long channelId, Pageable pageable, String searchToken);
+
+    /**
+     * KAKAO 채널에 속한 유저 조회 - 페이징 지원
+     */
+    Page<UserListProjection> findKakaoUsersByChannelIdWithPaging(
+        Long channelId, Pageable pageable, String searchToken);
 
     /**
      * KAKAO 채널에 속한 유저 조회 (팔로우 상태만)
      */
     List<UserListProjection> findKakaoUsersByChannelId(Long channelId);
-
-    /**
-     * KAKAO 채널에 속한 유저 조회 - 페이징 지원
-     */
-    Page<UserListProjection> findKakaoUsersByChannelIdWithPaging(Long channelId, Pageable pageable);
 
     /**
      * User 아이디를 기준으로 유저 정보 조회

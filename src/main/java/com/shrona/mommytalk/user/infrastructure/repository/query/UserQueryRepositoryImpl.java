@@ -12,6 +12,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
+import io.micrometer.common.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -67,8 +68,11 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     }
 
     @Override
-    public Page<UserListProjection> findLineUsersByChannelIdWithPaging(Long channelId,
-        Pageable pageable) {
+    public Page<UserListProjection> findLineUsersByChannelIdWithPaging(
+        Long channelId, Pageable pageable, String searchToken) {
+
+        BooleanBuilder builder = userQueryCondition(searchToken);
+
         // 데이터 조회
         List<UserListProjection> users = query.select(
                 Projections.constructor(UserListProjection.class,
@@ -93,6 +97,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .where(
                 channelLineUser.channel.id.eq(channelId)
                     .and(channelLineUser.follow.eq(true))
+                    .and(builder)
             )
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -104,6 +109,55 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .where(
                 channelLineUser.channel.id.eq(channelId)
                     .and(channelLineUser.follow.eq(true))
+            )
+            .fetchOne();
+
+        return new PageImpl<>(users, pageable, totalCount != null ? totalCount : 0);
+    }
+
+    @Override
+    public Page<UserListProjection> findKakaoUsersByChannelIdWithPaging(
+        Long channelId, Pageable pageable, String searchToken) {
+
+        BooleanBuilder builder = userQueryCondition(searchToken);
+
+        // 데이터 조회
+        List<UserListProjection> users = query.select(
+                Projections.constructor(UserListProjection.class,
+                    user.id,
+                    user.email,
+                    user.name,
+                    user.phoneNumber,
+                    user.createdAt,
+                    Expressions.constant(LocalDateTime.now()),
+                    Expressions.constant(""),
+                    kakaoUser.kakaoId,
+                    user.userLevel,
+                    user.childLevel,
+                    user.childName,
+                    channelKakaoUser.follow,
+                    Expressions.constant(1)
+                )
+            )
+            .from(channelKakaoUser)
+            .join(channelKakaoUser.kakaoUser, kakaoUser)
+            .join(kakaoUser.user, user)
+            .where(
+                channelKakaoUser.channel.id.eq(channelId)
+//                    .and(channelKakaoUser.follow.eq(true))
+                    .and(builder)
+            )
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        // 전체 카운트 조회
+        Long totalCount = query.select(channelKakaoUser.count())
+            .from(channelKakaoUser)
+            .where(
+                channelKakaoUser.channel.id.eq(channelId)
+//                    .and(channelKakaoUser.follow.eq(true))
+                    .and(builder)
             )
             .fetchOne();
 
@@ -130,57 +184,13 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                 )
             )
             .from(channelKakaoUser)
-            .join(channelKakaoUser.kakaoUser, kakaoUser)
-            .join(kakaoUser.user, user)
+            .join(channelKakaoUser.kakaoUser, kakaoUser).fetchJoin()
+            .join(kakaoUser.user, user).fetchJoin()
             .where(
                 channelKakaoUser.channel.id.eq(channelId)
                     .and(channelKakaoUser.follow.eq(true))
             )
             .fetch();
-    }
-
-    @Override
-    public Page<UserListProjection> findKakaoUsersByChannelIdWithPaging(Long channelId,
-        Pageable pageable) {
-        // 데이터 조회
-        List<UserListProjection> users = query.select(
-                Projections.constructor(UserListProjection.class,
-                    user.id,
-                    user.email,
-                    user.name,
-                    user.phoneNumber,
-                    user.createdAt,
-                    Expressions.constant(LocalDateTime.now()),
-                    Expressions.constant(""),
-                    user.kakaoUser.kakaoId,
-                    user.userLevel,
-                    user.childLevel,
-                    user.childName,
-                    channelKakaoUser.follow,
-                    Expressions.constant(1)
-                )
-            )
-            .from(channelKakaoUser)
-            .join(channelKakaoUser.kakaoUser, kakaoUser)
-            .join(kakaoUser.user, user)
-            .where(
-                channelKakaoUser.channel.id.eq(channelId)
-                    .and(channelKakaoUser.follow.eq(true))
-            )
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        // 전체 카운트 조회
-        Long totalCount = query.select(channelKakaoUser.count())
-            .from(channelKakaoUser)
-            .where(
-                channelKakaoUser.channel.id.eq(channelId)
-                    .and(channelKakaoUser.follow.eq(true))
-            )
-            .fetchOne();
-
-        return new PageImpl<>(users, pageable, totalCount != null ? totalCount : 0);
     }
 
     @Override
@@ -194,5 +204,23 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .where(builder)
             .fetchOne();
 
+    }
+
+    private BooleanBuilder userQueryCondition(String searchToken) {
+
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (StringUtils.isBlank(searchToken)) {
+            return builder;
+        }
+
+        builder.and(
+            user.phoneNumber.phoneNumber.contains(searchToken)
+                .or(user.email.contains(searchToken))
+                .or(user.name.contains(searchToken))
+                .or(user.childName.contains(searchToken))
+        );
+
+        return builder;
     }
 }

@@ -1,5 +1,7 @@
 package com.shrona.mommytalk.group.application;
 
+import com.shrona.mommytalk.channel.common.exception.ChannelErrorCode;
+import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.group.domain.Group;
@@ -9,6 +11,7 @@ import com.shrona.mommytalk.group.infrastructure.dao.GroupUserCount;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.GroupJpaRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.UserGroupJpaRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.query.GroupQueryRepository;
+import com.shrona.mommytalk.kakao.application.KakaoService;
 import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.User;
@@ -40,6 +43,7 @@ public class GroupServiceImpl implements GroupService {
 
     // service
     private final UserService userService;
+    private final KakaoService kakaoService;
 
     // utils
     private final UserUtils userUtils;
@@ -155,8 +159,19 @@ public class GroupServiceImpl implements GroupService {
         if (groupInfo.isEmpty()) {
             return;
         }
+        List<User> usersByPhoneNumber
+            = generateGroupUserInfo(channel, groupInfo.get(), phoneNumberList);
 
-        generateGroupUserInfo(channel, groupInfo.get(), phoneNumberList);
+        switch (channel.getChannelPlatform()) {
+            case LINE -> {
+                return; // 라인은 추가 동작을 하지 않는다.
+            }
+            case KAKAO -> {
+                kakaoService.addKakaoUserFromUserList(channel, usersByPhoneNumber);
+
+            }
+            default -> throw new ChannelException(ChannelErrorCode.CHANNEL_NOT_FOUND);
+        }
     }
 
     @Transactional
@@ -263,19 +278,12 @@ public class GroupServiceImpl implements GroupService {
      * phoneNumber 목록을 조사해서 없는 번호는 입력해준다.
      */
     @Transactional
-    private void generateGroupUserInfo(
+    private List<User> generateGroupUserInfo(
         Channel channel, Group groupInfo, List<String> phoneNumberList) {
 
-        // 입력된 전화번호를 유저 생성 및 라인 유저와 매칭 후 List 반환
+        // 입력된 전화번호를 유저 생성 및 조회
         List<User> userListFromPhoneNumber = userListFromPhoneNumber = userService
             .findOrCreateUsersByPhoneNumbers(phoneNumberList);
-//        switch (channel.getChannelPlatform()) {
-//            case LINE -> userListFromPhoneNumber = userService
-//                .findOrCreateUsersWithLinesByPhoneNumbers(phoneNumberList);
-//            case KAKAO -> userListFromPhoneNumber = userService
-//                .findOrCreateUsersWithLinesByPhoneNumbers(phoneNumberList);
-//            default -> throw new GroupException(GroupErrorCode.BAD_REQUEST);
-//        }
 
         // group에 이미 존재하는 번호들을 추출한다.
         List<User> pList = groupInfo.getUserGroupList().stream()
@@ -290,7 +298,9 @@ public class GroupServiceImpl implements GroupService {
             .map(nu -> UserGroup.createUserGroup(nu, groupInfo)).toList();
         groupInfo.addUserToGroup(list);
 
-        // 단체 저장
+        // 유저 그룹 단체 저장
         userGroupRepository.saveAll(list);
+
+        return userListFromPhoneNumber;
     }
 }

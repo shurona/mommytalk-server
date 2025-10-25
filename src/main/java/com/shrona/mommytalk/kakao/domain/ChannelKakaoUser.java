@@ -38,4 +38,13 @@ public class ChannelKakaoUser extends BaseEntity {
     @Column
     private boolean follow;
 
+    public static ChannelKakaoUser create(Channel channel, KakaoUser kakaoUser) {
+
+        ChannelKakaoUser channelKakaoUser = new ChannelKakaoUser();
+        channelKakaoUser.channel = channel;
+        channelKakaoUser.kakaoUser = kakaoUser;
+        channelKakaoUser.follow = false;
+        return channelKakaoUser;
+    }
+
 }

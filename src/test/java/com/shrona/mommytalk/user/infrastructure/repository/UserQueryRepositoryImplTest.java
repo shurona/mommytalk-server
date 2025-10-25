@@ -121,7 +121,9 @@ class UserQueryRepositoryImplTest {
         // when
         Page<UserListProjection> userPage = userQueryRepository.findLineUsersByChannelIdWithPaging(
             testChannel.getId(),
-            pageable);
+            pageable,
+            null
+        );
 
         // then
         assertThat(userPage.getContent()).hasSize(1);
@@ -143,7 +145,9 @@ class UserQueryRepositoryImplTest {
         // when
         Page<UserListProjection> userPage = userQueryRepository.findLineUsersByChannelIdWithPaging(
             testChannel.getId(),
-            pageable);
+            pageable,
+            null
+        );
 
         // then
         assertThat(userPage.getContent()).hasSize(1);
@@ -197,7 +201,7 @@ class UserQueryRepositoryImplTest {
 
         // when
         Page<UserListProjection> userPage = userQueryRepository.findLineUsersByChannelIdWithPaging(
-            testChannel.getId(), pageable);
+            testChannel.getId(), pageable, null);
 
         // then
         assertThat(userPage.getContent()).hasSize(1);
@@ -229,7 +233,7 @@ class UserQueryRepositoryImplTest {
 
         // when
         Page<UserListProjection> userPage = userQueryRepository.findKakaoUsersByChannelIdWithPaging(
-            testChannel.getId(), pageable);
+            testChannel.getId(), pageable, null);
 
         // then
         assertThat(userPage.getContent()).isEmpty();

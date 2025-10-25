@@ -1,8 +1,10 @@
 package com.shrona.mommytalk.user.application;
 
+import static com.shrona.mommytalk.channel.common.exception.ChannelErrorCode.CHANNEL_NOT_FOUND;
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.DUPLICATE_PHONE_NUMBER;
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.USER_NOT_FOUND;
 
+import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.utils.PhoneProcess;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.UserGroupJpaRepository;
@@ -75,11 +77,19 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id);
     }
 
-    public UserResponseDto findUserInfoById(Long userId) {
+    public UserResponseDto findUserInfoById(Channel channel, Long userId) {
 
         User userInfo = userQueryRepository.findUserByUserId(userId);
 
-        return UserResponseDto.from(userInfo, userInfo.getLineUser().getLineId());
+        switch (channel.getChannelPlatform()) {
+            case LINE -> {
+                return UserResponseDto.from(userInfo, userInfo.getLineUser().getLineId());
+            }
+            case KAKAO -> {
+                return UserResponseDto.from(userInfo, userInfo.getPhoneNumber().getPhoneNumber());
+            }
+            default -> throw new ChannelException(CHANNEL_NOT_FOUND);
+        }
     }
 
     @Override
@@ -101,19 +111,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserListProjection> findUserListByChannelInfoWithPaging(Long channelId,
-        Pageable pageable) {
+    public Page<UserListProjection> findUserListByChannelInfoWithPaging(
+        Long channelId, Pageable pageable, String searchToken) {
 
         Channel channel = channelRepository.findById(channelId)
-            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
 
         // 채널 플랫폼에 맞춰서 페이징 조회
         return switch (channel.getChannelPlatform()) {
             case LINE -> userQueryRepository.findLineUsersByChannelIdWithPaging(
-                channelId, pageable
+                channelId, pageable, searchToken
             );
             case KAKAO -> userQueryRepository.findKakaoUsersByChannelIdWithPaging(
-                channelId, pageable
+                channelId, pageable, searchToken
             );
         };
     }
