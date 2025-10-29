@@ -23,7 +23,7 @@ public class AuthRestController {
     private final LineAuthService lineAuthService;
 
     @PostMapping("/line/callback")
-    public ApiResponse<?> yahoo(
+    public ApiResponse<LineAuthResponseDto> yahoo(
         @RequestBody LineAuthRequestDto requestDto
     ) {
 
@@ -32,8 +32,6 @@ public class AuthRestController {
             requestDto.state(),
             requestDto.redirectUri()
         );
-
-        log.info("LINE 계정 연결 성공: {}", requestDto);
 
         return ApiResponse.success(response);
     }
