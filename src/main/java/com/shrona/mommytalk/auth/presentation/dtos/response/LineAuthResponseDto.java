@@ -5,20 +5,30 @@ import lombok.Builder;
 
 @Builder(access = AccessLevel.PRIVATE)
 public record LineAuthResponseDto(
-    Long id,
-    String lineId,
-    String name,
-    String email
+    String token,
+    LineAuthUser user
 ) {
 
-    public static LineAuthResponseDto of() {
+    public static LineAuthResponseDto of(
+        String token, Long userId, String name, boolean onboardingCompleted) {
         return LineAuthResponseDto
             .builder()
-            .id(1L)
-            .lineId("라인 아이디")
-            .name("이름")
-            .email("abc@abcde.abc")
+            .token(token)
+            .user(LineAuthUser.builder()
+                .id(userId)
+                .name(name)
+                .onboardingCompleted(onboardingCompleted)
+                .build())
             .build();
+    }
+
+    @Builder(access = AccessLevel.PRIVATE)
+    private record LineAuthUser(
+        Long id,
+        String name,
+        boolean onboardingCompleted
+    ) {
+
     }
 
 }

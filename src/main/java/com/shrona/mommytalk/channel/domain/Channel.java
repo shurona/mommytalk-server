@@ -73,4 +73,8 @@ public class Channel extends BaseEntity {
         this.inviteMessage = message;
     }
 
+    public void updateChannelPlatform(ChannelPlatform platform) {
+        this.channelPlatform = platform;
+    }
+
 }

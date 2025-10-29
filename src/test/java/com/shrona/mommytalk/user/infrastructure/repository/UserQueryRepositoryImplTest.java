@@ -127,8 +127,8 @@ class UserQueryRepositoryImplTest {
 
         // then
         assertThat(userPage.getContent()).hasSize(1);
-        assertThat(userPage.getTotalElements()).isEqualTo(2);
-        assertThat(userPage.getTotalPages()).isEqualTo(2);
+        assertThat(userPage.getTotalElements()).isEqualTo(3);
+        assertThat(userPage.getTotalPages()).isEqualTo(3);
         assertThat(userPage.isFirst()).isTrue();
 
         // 첫 번째 페이지의 사용자가 예상한 사용자 중 하나인지 확인
@@ -151,9 +151,9 @@ class UserQueryRepositoryImplTest {
 
         // then
         assertThat(userPage.getContent()).hasSize(1);
-        assertThat(userPage.getTotalElements()).isEqualTo(2);
-        assertThat(userPage.getTotalPages()).isEqualTo(2);
-        assertThat(userPage.isLast()).isTrue();
+        assertThat(userPage.getTotalElements()).isEqualTo(3);
+        assertThat(userPage.getTotalPages()).isEqualTo(3);
+        assertThat(userPage.isLast()).isFalse();
     }
 
     @Test
@@ -205,8 +205,8 @@ class UserQueryRepositoryImplTest {
 
         // then
         assertThat(userPage.getContent()).hasSize(1);
-        assertThat(userPage.getTotalElements()).isEqualTo(2);
-        assertThat(userPage.getTotalPages()).isEqualTo(2);
+        assertThat(userPage.getTotalElements()).isEqualTo(3);
+        assertThat(userPage.getTotalPages()).isEqualTo(3);
         assertThat(userPage.isFirst()).isTrue();
 
         // 첫 번째 페이지의 사용자가 예상한 사용자 중 하나인지 확인

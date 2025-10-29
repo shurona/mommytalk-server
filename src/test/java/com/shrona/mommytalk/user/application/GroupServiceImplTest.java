@@ -3,6 +3,7 @@ package com.shrona.mommytalk.user.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.group.application.GroupServiceImpl;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
@@ -43,6 +44,7 @@ class GroupServiceImplTest {
 
         // 채널 정보 저장
         channel = channelRepository.save(Channel.createChannel("이름", "설명"));
+        channel.updateChannelPlatform(ChannelPlatform.LINE);
 
     }
 

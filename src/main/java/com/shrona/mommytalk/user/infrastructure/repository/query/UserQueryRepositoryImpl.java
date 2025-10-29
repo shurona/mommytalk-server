@@ -82,8 +82,8 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                     user.phoneNumber,
                     user.createdAt,
                     Expressions.constant(LocalDateTime.now()),
-                    Expressions.constant(""),
-                    user.lineUser.lineId,
+                    Expressions.constant(""), // productName
+                    lineUser.lineId,
                     user.userLevel,
                     user.childLevel,
                     user.childName,
@@ -96,7 +96,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .join(lineUser.user, user)
             .where(
                 channelLineUser.channel.id.eq(channelId)
-                    .and(channelLineUser.follow.eq(true))
+//                    .and(channelLineUser.follow.eq(true))
                     .and(builder)
             )
             .offset(pageable.getOffset())
@@ -108,7 +108,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .from(channelLineUser)
             .where(
                 channelLineUser.channel.id.eq(channelId)
-                    .and(channelLineUser.follow.eq(true))
+//                    .and(channelLineUser.follow.eq(true))
             )
             .fetchOne();
 
@@ -175,7 +175,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                     user.createdAt,
                     Expressions.constant(LocalDateTime.now()),
                     Expressions.constant(""),
-                    user.kakaoUser.kakaoId,
+                    kakaoUser.kakaoId,
                     user.userLevel,
                     user.childLevel,
                     user.childName,
@@ -184,8 +184,8 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
                 )
             )
             .from(channelKakaoUser)
-            .join(channelKakaoUser.kakaoUser, kakaoUser).fetchJoin()
-            .join(kakaoUser.user, user).fetchJoin()
+            .join(channelKakaoUser.kakaoUser, kakaoUser)
+            .join(kakaoUser.user, user)
             .where(
                 channelKakaoUser.channel.id.eq(channelId)
                     .and(channelKakaoUser.follow.eq(true))

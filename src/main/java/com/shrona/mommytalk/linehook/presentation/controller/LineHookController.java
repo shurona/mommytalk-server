@@ -1,5 +1,8 @@
 package com.shrona.mommytalk.linehook.presentation.controller;
 
+import static com.shrona.mommytalk.channel.common.variable.CommonChannelVariable.MOMMY_TALK_CHANNEL_ID;
+import static com.shrona.mommytalk.channel.common.variable.CommonChannelVariable.SHRONA_TEST_CHANNEL_ID;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shrona.mommytalk.linehook.application.ChannelHookService;
 import com.shrona.mommytalk.linehook.presentation.dtos.LineEvent;
@@ -21,8 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LineHookController {
 
-    private final static long MOMMY_TALK_CHANNEL_ID = 1L;
-    private final static long SHRONA_TEST_CHANNEL_ID = 2L;
     // service
     private final ChannelHookService channelHookService;
     private final LineValidation lineValidation;
