@@ -7,8 +7,8 @@ import static com.shrona.mommytalk.channel.common.exception.ChannelErrorCode.CHA
 import com.shrona.mommytalk.auth.common.exception.AuthCustomException;
 import com.shrona.mommytalk.auth.infrastructure.sender.LineAuthClient;
 import com.shrona.mommytalk.auth.infrastructure.sender.dto.LineProfileResponse;
-import com.shrona.mommytalk.auth.presentation.dtos.response.LineAuthResponseDto;
 import com.shrona.mommytalk.auth.presentation.dtos.response.LineTokenResponse;
+import com.shrona.mommytalk.auth.presentation.dtos.response.UserAuthResponseDto;
 import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
@@ -18,14 +18,15 @@ import com.shrona.mommytalk.line.domain.ChannelLineUser;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.UserRole;
+import com.shrona.mommytalk.user.domain.type.OnBoardingStatus;
 import com.shrona.mommytalk.user.infrastructure.repository.jpa.UserJpaRepository;
-import jakarta.transaction.Transactional;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -34,7 +35,7 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-@Transactional
+@Transactional(readOnly = true)
 public class LineAuthService {
 
     // restClient
@@ -59,15 +60,17 @@ public class LineAuthService {
     /**
      * LINE OAuth 콜백 처리
      */
-    public LineAuthResponseDto processCallback(
-        String code, String state, String redirectUri) {
+    @Transactional
+    public UserAuthResponseDto processCallback(
+        String code, String channelCode, String redirectUri) {
         // 1. Authorization Code로 Access Token 교환
         LineTokenResponse tokenResponse = exchangeCodeForToken(code, redirectUri);
 
         // 2. Access Token으로 사용자 프로필 조회
         LineProfileResponse lineProfile = getUserProfile(tokenResponse.getAccessToken());
 
-        Channel channel = channelService.findChannelById(1L)
+        // TODO: 채널을 어떻게 좋게 넣을 수 있을까
+        Channel channel = channelService.findChannelByCode(channelCode)
             .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
 
         // socialId 정보를 갖고 온다. 없으면 저장해준다.
@@ -85,7 +88,12 @@ public class LineAuthService {
 
         String token = jwtUtils.createToken(user.getId(), UserRole.USER);
 
-        return LineAuthResponseDto.of(token, user.getId(), user.getName(), false);
+        return UserAuthResponseDto.of(
+            token,
+            user.getId(),
+            1L,
+            user.getName(),
+            user.getOnboardingStatus().equals(OnBoardingStatus.TRUE));
     }
 
     /**

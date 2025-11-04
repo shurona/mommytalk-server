@@ -30,7 +30,6 @@ public class KakaoServiceImpl implements KakaoService {
 
 
     @Transactional
-    @Override
     public void addKakaoUserFromUserList(Channel channel, List<User> userList) {
 
         // 현재 있는 카카오 유저 목록을 갖고 온다.
@@ -61,7 +60,26 @@ public class KakaoServiceImpl implements KakaoService {
         }
 
         channelKakaoJpaRepository.saveAll(channelKakaoUsers);
+    }
 
+    @Transactional
+    public ChannelKakaoUser upsertChannelKakaoUser(Channel channel, User user, String kakaoId) {
+        List<ChannelKakaoUser> channelKakaoUsers = kakaoQueryRepository.findChannelKakaoUserByUserList(
+            List.of(user.getId()));
 
+        if (channelKakaoUsers.isEmpty()) {
+            KakaoUser kakaoUser = user.getKakaoUser();
+            if (kakaoUser == null) {
+
+                kakaoUser = kakaoUserJpaRepository.save(
+                    KakaoUser.createKakaoUser(kakaoId, user));
+                // 유저의 카카오톡 정보도 업데이트
+                user.updateKakaoUser(kakaoUser);
+            }
+
+            return channelKakaoJpaRepository.save(ChannelKakaoUser.create(channel, kakaoUser));
+        }
+
+        return channelKakaoUsers.getFirst();
     }
 }

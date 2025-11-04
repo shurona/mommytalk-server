@@ -154,6 +154,8 @@ public class MessageContent extends BaseEntity {
      */
     public boolean checkApprovedCondition() {
 
+//        return true;
+
         // 4개의 데이터 중 하나라도 비어있으면 승인 불가
         return this.content != null && this.getHeaderOneLink() != null
             && this.getHeaderTwoLink() != null && this.getDiaryUrl() != null;

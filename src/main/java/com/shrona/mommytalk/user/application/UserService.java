@@ -55,9 +55,14 @@ public interface UserService {
     List<User> findOrCreateUsersByPhoneNumbers(List<String> phoneNumberList);
 
     /**
-     * 유저 정보를 업데이트 해준다.
+     * 유저 정보를 업데이트 해준다.(어드민)
      */
-    void updateUserInfoByRequest(Long userId, UpdateUserRequestDto requestDto);
+    void updateUserInfoByAdmin(Long userId, UpdateUserRequestDto requestDto);
+
+    /**
+     * 유저 정보를 업데이트 해준다.(클라이언트)
+     */
+    void updateUserInfoByClient(Long userId, UpdateUserRequestDto requestDto);
 
     /**
      * 라인 유저의 휴대전화를 업데이트 한다. (만약 유저가 없으면 생성)

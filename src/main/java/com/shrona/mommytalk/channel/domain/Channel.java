@@ -40,6 +40,9 @@ public class Channel extends BaseEntity {
     @Column(name = "channel_id", unique = true)
     private String channelId; // 채널 정보
 
+    @Column(name = "channel_code", unique = true)
+    private String channelCode; // 채널 정보
+
     @Column(name = "access_token")
     private String accessToken;
 

@@ -32,6 +32,11 @@ public class ChannelServiceImpl implements ChannelService {
         return channelRepository.findById(id);
     }
 
+    @Override
+    public Optional<Channel> findChannelByCode(String channelCode) {
+        return channelRepository.findByChannelCode(channelCode);
+    }
+
     @Transactional
     public Channel updateInviteMessage(Long channelId, String message) {
         Channel channel = channelRepository.findById(channelId)

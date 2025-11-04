@@ -44,6 +44,9 @@ kakao:
   base-url: https://api-alimtalk.cloud.toast.com
   app-key: "TEST_KAKAO_APP_KEY"
   secret-key: "TEST_KAKAO_SECRET_KEY"
+  oauth:
+    client-id: "client-id"
+    client-secret: "client-secret"
 
 elevenlabs:
   base-url: "base-url"

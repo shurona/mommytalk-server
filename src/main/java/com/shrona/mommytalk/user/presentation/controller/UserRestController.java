@@ -87,7 +87,7 @@ public class UserRestController {
     ) {
 
         // 유저 업데이트
-        userService.updateUserInfoByRequest(userId, requestDto);
+        userService.updateUserInfoByAdmin(userId, requestDto);
 
         return ApiResponse.success("success");
     }

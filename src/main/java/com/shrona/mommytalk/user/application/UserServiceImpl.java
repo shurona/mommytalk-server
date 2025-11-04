@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,13 +44,12 @@ public class UserServiceImpl implements UserService {
 
     // jpa
     private final ChannelJpaRepository channelRepository;
-
     private final LineUserJpaRepository lineUserJpaRepository;
-
     private final UserJpaRepository userRepository;
-    private final UserQueryRepository userQueryRepository;
-
     private final UserGroupJpaRepository userGroupRepository;
+
+    // query
+    private final UserQueryRepository userQueryRepository;
 
     // 휴대폰 관련 process 처리
     private final PhoneProcess phoneProcess;
@@ -155,28 +155,45 @@ public class UserServiceImpl implements UserService {
         return combineUsers(newUsers, existingUsers);
     }
 
+
     @Transactional
-    public void updateUserInfoByRequest(Long userId, UpdateUserRequestDto requestDto) {
+    public void updateUserInfoByAdmin(Long userId, UpdateUserRequestDto requestDto) {
         User userInfo = userRepository.findById(userId)
             .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        if (!requestDto.phoneNumber().equals(userInfo.getPhoneNumber().getPhoneNumber())) {
-            PhoneNumber phoneNumber = new PhoneNumber(requestDto.phoneNumber());
+        // 현재 휴대전화 번호가 있다면 진행한다.
+        if (StringUtils.isNoneBlank(requestDto.phoneNumber())) {
+            if (!requestDto.phoneNumber().equals(userInfo.getPhoneNumber().getPhoneNumber())) {
+                PhoneNumber phoneNumber = new PhoneNumber(requestDto.phoneNumber());
 
-            // 자신을 제외한 중복 체크
-            userRepository.findByPhoneNumber(phoneNumber)
-                .filter(user -> !user.getId().equals(userId))  // 자신 제외
-                .ifPresent(user -> {
-                    throw new UserException(DUPLICATE_PHONE_NUMBER);
-                });
+                // 자신을 제외한 중복 체크
+                userRepository.findByPhoneNumber(phoneNumber)
+                    .filter(user -> !user.getId().equals(userId))  // 자신 제외
+                    .ifPresent(user -> {
+                        throw new UserException(DUPLICATE_PHONE_NUMBER);
+                    });
 
-            userInfo.updatePhoneNumber(phoneNumber);
+                userInfo.updatePhoneNumber(phoneNumber);
+            }
         }
 
         userInfo.updateUserFromRequest(
             requestDto.childName(), requestDto.childLevel(), requestDto.userLevel()
         );
 
+    }
+
+    @Transactional
+    @Override
+    public void updateUserInfoByClient(Long userId, UpdateUserRequestDto requestDto) {
+        User userInfo = userRepository.findById(userId)
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        userInfo.updateUserFromRequest(
+            requestDto.childName(), requestDto.childLevel(), requestDto.userLevel()
+        );
+
+        userInfo.completeOnboarding();
     }
 
     @Transactional

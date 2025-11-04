@@ -6,6 +6,7 @@ import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.kakao.domain.KakaoUser;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.type.AddUserMethod;
+import com.shrona.mommytalk.user.domain.type.OnBoardingStatus;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -20,11 +21,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
@@ -59,6 +62,13 @@ public class User extends BaseEntity {
 
     @Column
     private Integer childLevel = 2;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column
+    private OnBoardingStatus onboardingStatus = OnBoardingStatus.FALSE;
+
+    @Column
+    private LocalDate asdf;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "add_method")
@@ -148,7 +158,10 @@ public class User extends BaseEntity {
     }
 
     public void updateUserFromRequest(String childName, Integer childLevel, Integer userLevel) {
-        this.childName = childName;
+
+        if (StringUtils.isNoneBlank(childName)) {
+            this.childName = childName;
+        }
         this.childLevel = childLevel;
         this.userLevel = userLevel;
     }
@@ -165,6 +178,10 @@ public class User extends BaseEntity {
      */
     public void updateKakaoUser(KakaoUser kakaoUser) {
         this.kakaoUser = kakaoUser;
+    }
+
+    public void completeOnboarding() {
+        this.onboardingStatus = OnBoardingStatus.TRUE;
     }
 
 }

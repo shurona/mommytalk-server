@@ -2,12 +2,15 @@ package com.shrona.mommytalk.common.config;
 
 import com.shrona.mommytalk.common.filter.LineHookFilter;
 import com.shrona.mommytalk.common.interceptor.LoginInterceptor;
+import com.shrona.mommytalk.common.resolver.CurrentUserIdArgumentResolver;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -18,6 +21,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     // interceptor
     private final LoginInterceptor loginInterceptor;
+
+    // argument resolver
+    private final CurrentUserIdArgumentResolver currentUserIdArgumentResolver;
 
     private final Environment environment;
 
@@ -48,8 +54,14 @@ public class WebConfig implements WebMvcConfigurer {
             .excludePathPatterns("/", "/admin", "/admin/", "/admin/v1/login", "/api/v1/admin",
                 "/api/admin/v1/auth/login", // admin login
                 "/logout", "/css/**", "/*.ico", "/error", // static files
-                "/mommy-talk", "/shrona-test" // hook
+                "/mommy-talk", "/shrona-test", // hook
+                "/api/client/v1/line/callback", "/api/client/v1/kakao/callback"// callback
             );
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(currentUserIdArgumentResolver);
     }
 
     @Override

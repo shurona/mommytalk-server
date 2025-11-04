@@ -62,6 +62,12 @@ dependencies {
     // AWS S3 SDK (for Cloudflare R2)
     implementation 'software.amazon.awssdk:s3:2.35.1'
 
+    // 전화 번호 처리
+    implementation "com.googlecode.libphonenumber:libphonenumber:9.0.14"
+
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
+
     // test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
