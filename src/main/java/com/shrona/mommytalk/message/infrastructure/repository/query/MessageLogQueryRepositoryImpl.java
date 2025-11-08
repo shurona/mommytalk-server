@@ -15,12 +15,14 @@ import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.presentation.dtos.response.AvailableDateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageLogResponseDto;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -110,7 +112,21 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
     @Override
     public Page<MessageLogResponseDto> findMessageLogsByChannel(Long channelId, Pageable pageable) {
 
-        // 1. MessageLog와 상태 정보를 함께 조회
+        // 1. DB 레벨 페이징: MessageLog ID만 먼저 조회
+        List<Long> messageLogIds = query
+            .select(messageLog.id)
+            .from(messageLog)
+            .where(messageLog.channel.id.eq(channelId))
+            .orderBy(messageLog.createdAt.desc())
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        if (messageLogIds.isEmpty()) {
+            return new PageImpl<>(new ArrayList<>(), pageable, 0L);
+        }
+
+        // 2. 페이징된 ID에 대해서만 Detail과 함께 조회
         List<Tuple> rawResults = query
             .select(
                 messageLog.id,
@@ -123,49 +139,40 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
             .from(messageLog)
             .leftJoin(messageLog.messageType, messageType)
             .leftJoin(messageLog.messageLogDetailList, messageLogDetail)
-            .where(messageLog.channel.id.eq(channelId))
+            .where(messageLog.id.in(messageLogIds))
             .orderBy(messageLog.createdAt.desc())
             .fetch();
 
-        // 2. 결과를 그룹화하고 상태 계산
-        Map<Long, MessageLogResponseDto> resultMap = new LinkedHashMap<>();
+        // 3. 결과를 그룹화하고 상태별 개수 계산
+        Map<Long, MessageLogData> dataMap = new LinkedHashMap<>();
         Map<Long, Long> messageLogToTypeMap = new HashMap<>();
 
         for (Tuple row : rawResults) {
             Long id = row.get(messageLog.id);
             Long messageTypeId = row.get(messageType.id);
             String theme = row.get(messageType.theme);
-            java.time.LocalDateTime createdAt = row.get(messageLog.createdAt);
-            java.time.LocalDateTime reserveTime = row.get(messageLog.reserveTime);
+            LocalDateTime createdAt = row.get(messageLog.createdAt);
+            LocalDateTime reserveTime = row.get(messageLog.reserveTime);
             ReservationStatus status = row.get(messageLogDetail.status);
 
             // MessageLog ID -> MessageType ID 매핑 저장
             messageLogToTypeMap.put(id, messageTypeId);
 
-            resultMap.computeIfAbsent(id, k -> {
-                return MessageLogResponseDto.of(id, theme, "COMPLETE", createdAt, reserveTime, 0);
-            });
+            // 첫 번째 row일 때 초기 데이터 생성
+            dataMap.computeIfAbsent(id, k -> new MessageLogData(
+                id, theme, createdAt, reserveTime
+            ));
 
-            // 상태 우선순위: PREPARE > FAIL > COMPLETE
-            MessageLogResponseDto existing = resultMap.get(id);
-            String currentStatus = existing.status();
-
-            if (status == ReservationStatus.PREPARE ||
-                (status == ReservationStatus.FAIL && !currentStatus.equals("PREPARE"))) {
-                resultMap.put(id, MessageLogResponseDto.of(
-                    id, theme, status.getStatus(), createdAt, reserveTime, 0));
+            // 상태별 개수 증가
+            MessageLogData data = dataMap.get(id);
+            if (status != null) {
+                data.incrementStatus(status);
             }
         }
 
-        // 3. 페이징 적용
-        List<MessageLogResponseDto> allResults = new ArrayList<>(resultMap.values());
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), allResults.size());
-        List<MessageLogResponseDto> pagedResults = allResults.subList(start, end);
-
         // 4. 페이징된 결과의 MessageType ID 목록 추출
-        List<Long> messageTypeIds = pagedResults.stream()
-            .map(dto -> messageLogToTypeMap.get(dto.id()))
+        List<Long> messageTypeIds = dataMap.values().stream()
+            .map(data -> messageLogToTypeMap.get(data.id))
             .filter(Objects::nonNull)
             .distinct()
             .toList();
@@ -193,23 +200,27 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
             }
         }
 
-        // 6. messageCount 업데이트
-        List<MessageLogResponseDto> content = pagedResults.stream()
-            .map(dto -> {
-                Long messageTypeId = messageLogToTypeMap.get(dto.id());
+        // 6. 최종 DTO 변환
+        List<MessageLogResponseDto> content = dataMap.values().stream()
+            .<MessageLogResponseDto>map(data -> {
+                Long messageTypeId = messageLogToTypeMap.get(data.id);
                 Integer messageCount = contentCountMap.getOrDefault(messageTypeId, 0L).intValue();
+
                 return MessageLogResponseDto.of(
-                    dto.id(),
-                    dto.theme(),
-                    dto.status(),
-                    dto.createdAt(),
-                    dto.deliveryDate(),
-                    messageCount
+                    data.id,
+                    data.theme,
+                    data.calculateOverallStatus(),
+                    data.createdAt,
+                    data.reserveTime,
+                    messageCount,
+                    data.successCount,
+                    data.failCount,
+                    data.getTotalCount()
                 );
             })
-            .toList();
+            .collect(Collectors.toList());
 
-        // 4. 전체 개수 조회
+        // 7. 전체 개수 조회
         Long total = query
             .select(messageLog.countDistinct())
             .from(messageLog)
@@ -238,6 +249,57 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
                 tuple.get(messageLogDetail.count())
             ))
             .toList();
+    }
+
+    /**
+     * MessageLog의 상태별 개수를 추적하는 내부 클래스
+     */
+    private static class MessageLogData {
+
+        final Long id;
+        final String theme;
+        final LocalDateTime createdAt;
+        final LocalDateTime reserveTime;
+
+        int prepareCount = 0;
+        int successCount = 0;
+        int failCount = 0;
+        int cancelCount;
+
+        MessageLogData(Long id, String theme,
+            LocalDateTime createdAt,
+            LocalDateTime reserveTime) {
+            this.id = id;
+            this.theme = theme;
+            this.createdAt = createdAt;
+            this.reserveTime = reserveTime;
+        }
+
+        void incrementStatus(ReservationStatus status) {
+            switch (status) {
+                case PREPARE -> prepareCount++;
+                case COMPLETE -> successCount++;
+                case FAIL -> failCount++;
+                case CANCEL -> cancelCount++;
+            }
+        }
+
+        int getTotalCount() {
+            return prepareCount + successCount + failCount + cancelCount;
+        }
+
+        /**
+         * 전체 상태 계산 (우선순위: PREPARE > FAIL > COMPLETE)
+         */
+        String calculateOverallStatus() {
+            if (prepareCount > 0) {
+                return "PREPARE";
+            } else if (failCount > 0) {
+                return "FAIL";
+            } else {
+                return "COMPLETE";
+            }
+        }
     }
 
 

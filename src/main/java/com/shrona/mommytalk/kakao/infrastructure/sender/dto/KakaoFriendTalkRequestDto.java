@@ -102,7 +102,7 @@ public record KakaoFriendTalkRequestDto(
 
         return new KakaoFriendTalkRequestDto(
             senderKey,
-            null,
+            reserveTime,
             null,
             recipients,
             null,

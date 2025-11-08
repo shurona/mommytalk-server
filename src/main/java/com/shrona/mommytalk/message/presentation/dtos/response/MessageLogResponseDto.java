@@ -10,7 +10,10 @@ public record MessageLogResponseDto(
     String status,
     LocalDateTime createdAt,
     LocalDateTime deliveryDate,
-    Integer messageCount
+    Integer messageCount,
+    Integer successCount,
+    Integer failCount,
+    Integer totalCount
 ) {
 
     public static MessageLogResponseDto of(
@@ -19,15 +22,21 @@ public record MessageLogResponseDto(
         String status,
         LocalDateTime createdAt,
         LocalDateTime deliveryDate,
-        Integer messageCount
+        Integer messageCount,
+        Integer successCount,
+        Integer failCount,
+        Integer totalCount
     ) {
         return MessageLogResponseDto.builder()
             .id(id)
             .theme(theme)
             .status(status)
-            .createdAt(createdAt)
-            .deliveryDate(deliveryDate)
+            .createdAt(createdAt.plusHours(9))
+            .deliveryDate(deliveryDate.plusHours(9))
             .messageCount(messageCount)
+            .successCount(successCount)
+            .failCount(failCount)
+            .totalCount(totalCount)
             .build();
     }
 }

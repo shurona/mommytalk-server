@@ -20,6 +20,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Repository
 public class MessageLogDetailQueryRepositoryImpl implements
@@ -52,7 +53,7 @@ public class MessageLogDetailQueryRepositoryImpl implements
         return PageableExecutionUtils.getPage(fetch, pageable, total::fetchOne);
     }
 
-    @Override
+    @Transactional
     public Long updateStatusByContentId(Long messageContentId, Long messageLogId,
         ReservationStatus status) {
 

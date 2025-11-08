@@ -10,6 +10,8 @@ import com.shrona.mommytalk.openai.infrastructure.repository.jpa.UserSentenceHis
 import com.shrona.mommytalk.openai.infrastructure.sender.OpenAiClient;
 import com.shrona.mommytalk.openai.infrastructure.sender.dto.OpenAiRequest;
 import com.shrona.mommytalk.openai.infrastructure.sender.dto.OpenAiResponse;
+import com.shrona.mommytalk.user.common.exception.UserErrorCode;
+import com.shrona.mommytalk.user.common.exception.UserException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -133,9 +135,9 @@ public class OpenAiServiceImpl implements OpenAiService {
         try {
             // OpenAI API 요청 생성
             OpenAiRequest request = OpenAiRequest.builder()
-                .model("gpt-4o")
+                .model("gpt-5-nano")
                 .maxTokens(1500)
-                .temperature(0.7)
+                .temperature(1.0)
                 .messages(List.of(
                     OpenAiRequest.Message.builder()
                         .role("user")
@@ -156,7 +158,7 @@ public class OpenAiServiceImpl implements OpenAiService {
                 String content = response.getChoices().get(0).getMessage().getContent();
                 UserSentenceHistoryUsageLog usageLog = UserSentenceHistoryUsageLog.of(
                     sentenceHistory, prompt,
-                    "gpt-4o",
+                    "gpt-5-nano",
                     "message_generation",
                     response.getUsage().getPromptTokens(),
                     response.getUsage().getCompletionTokens(),
@@ -174,7 +176,7 @@ public class OpenAiServiceImpl implements OpenAiService {
 
         } catch (Exception e) {
             log.error("OpenAI API 호출 중 오류 발생: {}", e.getMessage(), e);
-            return "오류가 발생했습니다: " + e.getMessage();
+            throw new UserException(UserErrorCode.GENERATE_SENTENCE_ERROR);
         }
     }
 

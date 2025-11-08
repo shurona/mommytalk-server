@@ -64,6 +64,7 @@ public class MessageLogRestController {
         @PathVariable("channelId") Long channelId,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
+//        @RequestParam
     ) {
 
         // 페이징 설정 (기본 20개, createdAt 내림차순은 QueryDSL에서 처리)

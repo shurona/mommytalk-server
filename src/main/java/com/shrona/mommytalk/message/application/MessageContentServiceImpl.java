@@ -163,8 +163,8 @@ public class MessageContentServiceImpl implements MessageContentService {
 
         // 4. MessageContent 업데이트
         switch (requestDto.audioRole()) {
-            case CHILD -> messageContent.updateButtonOne(elevenLabsMedia);
-            case MOMMY -> messageContent.updateButtonTwo(elevenLabsMedia);
+            case MOMMY -> messageContent.updateButtonOne(elevenLabsMedia);
+            case CHILD -> messageContent.updateButtonTwo(elevenLabsMedia);
             default -> {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "지원하지 않는 Audio Role");
@@ -226,7 +226,6 @@ public class MessageContentServiceImpl implements MessageContentService {
             throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
         }
 
-        boolean b = messageContent.checkApprovedCondition();
         // 승인 여부 확인
         if (!messageContent.checkApprovedCondition()) {
             throw new MessageException(NEED_MORE_DATE_FOR_APPROVED);

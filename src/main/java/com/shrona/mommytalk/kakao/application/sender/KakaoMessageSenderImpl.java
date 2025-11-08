@@ -6,6 +6,7 @@ import static com.shrona.mommytalk.message.domain.type.ReservationStatus.FAIL;
 import com.shrona.mommytalk.admin.application.AdminService;
 import com.shrona.mommytalk.admin.presentation.form.TestUserServiceDto;
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.entitlement.domain.EntitlementType;
 import com.shrona.mommytalk.kakao.infrastructure.sender.NhnKakaoMessageClient;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.KakaoFriendTalkRequestDto;
@@ -23,11 +24,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -58,8 +61,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     private String kakaoSecretKey;
 
 
-    @Transactional
-    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendKakaoMessageByReservationByMessageIds(
         List<Long> messageIds, List<ReservationStatus> statusList) {
 
@@ -269,8 +271,12 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             KakaoFriendTalkRequestDto requestBody;
 
             // 3개 버튼: mommy voice, child voice, 플래시카드
-            String mommyVoice = content.getHeaderOneLink().getFileUrl();
-            String childVoice = content.getHeaderTwoLink().getFileUrl();
+            String mommyVoice = Optional.ofNullable(content.getHeaderOneLink())
+                .map(ElevenLabsMedia::getFileUrl)
+                .orElse(null);
+            String childVoice = Optional.ofNullable(content.getHeaderTwoLink())
+                .map(ElevenLabsMedia::getFileUrl)
+                .orElse(null);
             String flashCard = content.getDiaryUrl();
 
             // 버튼 목록 생성
@@ -360,7 +366,9 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
 
                 // 3개 버튼: mommy voice, child voice, 플래시카드
                 String mommyVoice = content.getHeaderOneLink().getFileUrl();
-                String childVoice = content.getHeaderTwoLink().getFileUrl();
+                String childVoice = Optional.ofNullable(content.getHeaderTwoLink())
+                    .map(ElevenLabsMedia::getFileUrl)
+                    .orElse(null);
                 String flashCard = content.getDiaryUrl();
 
                 // 버튼 목록 생성
@@ -385,14 +393,14 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                     );
                 }
 
-                KakaoFriendTalkResponseDto response = nhnKakaoMessageClient.sendMessage(
-                    kakaoSecretKey,
-                    requestBody
-                );
-
-                if (!logResponse(response)) {
-                    return SEND_FAIL;
-                }
+//                KakaoFriendTalkResponseDto response = nhnKakaoMessageClient.sendMessage(
+//                    kakaoSecretKey,
+//                    requestBody
+//                );
+//
+//                if (!logResponse(response)) {
+//                    return SEND_FAIL;
+//                }
             } catch (RestClientResponseException e) {
                 log.error("[전송 중 에러 발생] {} 번째에서 에러 발생 {} 전화번호 목록 \n에러 원인 {}",
                     i, phoneNumberList, e.getMessage());
@@ -428,7 +436,9 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
 
                 // 3개 버튼: mommy voice, child voice, 플래시카드
                 String mommyVoice = content.getHeaderOneLink().getFileUrl();
-                String childVoice = content.getHeaderTwoLink().getFileUrl();
+                String childVoice = Optional.ofNullable(content.getHeaderTwoLink())
+                    .map(ElevenLabsMedia::getFileUrl)
+                    .orElse(null);
                 String flashCard = content.getDiaryUrl();
 
                 // 버튼 목록 생성

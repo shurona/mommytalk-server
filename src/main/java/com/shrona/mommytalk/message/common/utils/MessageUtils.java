@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,6 +40,7 @@ public class MessageUtils {
     /**
      * 여러 전송을 스케쥴로 등록하는 메소드
      */
+    @Transactional
     public void registerTaskSchedule(List<MessageLog> messageLogList, LocalDateTime reserveTime) {
         // 메시지 로그가 비어 있으면 동작하지 않음.
         if (messageLogList.isEmpty()) {

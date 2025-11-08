@@ -1,10 +1,9 @@
 package com.shrona.mommytalk.openai.infrastructure.sender.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @Builder
@@ -14,7 +13,7 @@ public class OpenAiRequest {
 
     private List<Message> messages;
 
-    @JsonProperty("max_tokens")
+    @JsonProperty("max_completion_tokens")
     private Integer maxTokens;
 
     private Double temperature;
@@ -22,6 +21,7 @@ public class OpenAiRequest {
     @Getter
     @Builder
     public static class Message {
+
         private String role;
         private String content;
     }

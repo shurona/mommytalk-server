@@ -40,11 +40,11 @@ public class MessageContent extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "header_one_link")
-    private ElevenLabsMedia headerOneLink;
+    private ElevenLabsMedia headerOneLink; // 엄마 발음
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "header_two_link")
-    private ElevenLabsMedia headerTwoLink;
+    private ElevenLabsMedia headerTwoLink; // 아이 발음
 
     @Column(name = "mommy_voca")
     private String mommyVoca;
@@ -156,8 +156,14 @@ public class MessageContent extends BaseEntity {
 
 //        return true;
 
-        // 4개의 데이터 중 하나라도 비어있으면 승인 불가
-        return this.content != null && this.getHeaderOneLink() != null
-            && this.getHeaderTwoLink() != null && this.getDiaryUrl() != null;
+        if (childLevel == 1) {
+            // 아이 레벨 1이면 아이 링크는 패스
+            return this.content != null && this.getHeaderOneLink() != null
+                && this.getDiaryUrl() != null;
+        } else {
+            // 4개의 데이터 중 하나라도 비어있으면 승인 불가
+            return this.content != null && this.getHeaderOneLink() != null
+                && this.getHeaderTwoLink() != null && this.getDiaryUrl() != null;
+        }
     }
 }

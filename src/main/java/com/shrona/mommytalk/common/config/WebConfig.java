@@ -71,6 +71,7 @@ public class WebConfig implements WebMvcConfigurer {
                 "http://localhost:5173",   // Vite 기본 포트
                 "http://localhost:5174",   // Vite 대체 포트
                 "https://test-mommytalk.shrona.com", // dev
+                "https://test-client.shrona.com", //dev
                 "https://mommytalk-admin-frontend-shuronas-projects.vercel.app" // dev
 
             )

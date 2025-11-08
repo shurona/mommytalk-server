@@ -117,7 +117,7 @@ public class MessageServiceImpl implements MessageService {
         // commit이 된 이후에 실행을 한다.
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {
-                @Override
+
                 public void afterCommit() {
                     messageUtils.registerTaskSchedule(List.of(messageLogInfo), reserveTime);
                 }
@@ -151,7 +151,7 @@ public class MessageServiceImpl implements MessageService {
         // commit이 된 이후에 실행을 한다.
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {
-                @Override
+                
                 public void afterCommit() {
                     messageUtils.registerTaskSchedule(List.of(messageLogInfo), reserveTime);
                 }

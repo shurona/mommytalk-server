@@ -8,9 +8,11 @@ import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.GroupType;
 import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.group.infrastructure.dao.GroupUserCount;
+import com.shrona.mommytalk.group.infrastructure.dao.UserMemberCountByGroupIdsVo;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.GroupJpaRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.UserGroupJpaRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.query.GroupQueryRepository;
+import com.shrona.mommytalk.group.presentation.dtos.response.GroupMemberCountResponseDto;
 import com.shrona.mommytalk.kakao.application.KakaoService;
 import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
@@ -139,6 +141,22 @@ public class GroupServiceImpl implements GroupService {
                 GroupUserCount::groupId,
                 arr -> arr.ct().intValue()
             ));
+    }
+
+    @Override
+    public GroupMemberCountResponseDto findUserCountInGroupAndExGroup(
+        String type, List<Long> includeGroupIds, List<Long> excludeGroupIds
+    ) {
+
+        UserMemberCountByGroupIdsVo userCountInGroupAndExGroup = groupQueryRepository.findUserCountInGroupAndExGroup(
+            includeGroupIds, excludeGroupIds
+        );
+
+        return GroupMemberCountResponseDto.of(
+            userCountInGroupAndExGroup.totalRecipients(),
+            userCountInGroupAndExGroup.includedCount(),
+            userCountInGroupAndExGroup.excludedCount()
+        );
     }
 
     @Transactional

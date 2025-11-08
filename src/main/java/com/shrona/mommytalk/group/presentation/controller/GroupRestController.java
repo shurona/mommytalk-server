@@ -12,8 +12,10 @@ import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.group.presentation.dtos.request.AddUserGroupRequestDto;
 import com.shrona.mommytalk.group.presentation.dtos.request.CreateGroupRequestDto;
+import com.shrona.mommytalk.group.presentation.dtos.request.GroupMemberCountRequestDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.CustomGroupListResponseDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.EntitlementGroupListResponseDto;
+import com.shrona.mommytalk.group.presentation.dtos.response.GroupMemberCountResponseDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.GroupResponseDto;
 import com.shrona.mommytalk.group.presentation.dtos.response.UserGroupMemberResponseDto;
 import java.util.ArrayList;
@@ -58,11 +60,11 @@ public class GroupRestController {
 
         List<Group> groupList = groupService.findEntitlementGroupList(channelInfo);
 
-        // Line 유저가 등록된 모든 유저의 숫자를 구한다.
+        // 유저가 등록된 모든 유저의 숫자를 구한다.
         Map<Long, Integer> groupPlatformUserCount = groupService.findGroupPlatformUserCount(
             groupList.stream().map(Group::getId).toList(), channelInfo.getChannelPlatform());
 
-        // Line이 등록되지 않은 모든 유저의 숫자를 구한다.
+        // 등록되지 않은 모든 유저의 숫자를 구한다.
         Map<Long, Integer> groupAllUserCount = groupService.findGroupAllUserCount(
             groupList.stream().map(Group::getId).toList(), channelInfo.getChannelPlatform());
 
@@ -155,6 +157,21 @@ public class GroupRestController {
         ));
     }
 
+    /**
+     * 포함 및 제외 그룹에 속한 유저 숫자를 조회한다.
+     */
+    @PostMapping("/members/count")
+    public ApiResponse<GroupMemberCountResponseDto> findUserCountInGroup(
+        @RequestBody GroupMemberCountRequestDto requestDto
+    ) {
+        GroupMemberCountResponseDto userCountInGroupAndExGroup = groupService.findUserCountInGroupAndExGroup(
+            requestDto.messageTarget(),
+            requestDto.includeGroupIds(),
+            requestDto.excludeGroupIds()
+        );
+
+        return ApiResponse.success(userCountInGroupAndExGroup);
+    }
 
     /**
      * 커스텀 그룹 생성

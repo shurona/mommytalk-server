@@ -4,6 +4,7 @@ import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.UserGroup;
+import com.shrona.mommytalk.group.presentation.dtos.response.GroupMemberCountResponseDto;
 import com.shrona.mommytalk.user.domain.User;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,13 @@ public interface GroupService {
      * 그룹 별로 전체 유저 숫자 매핑
      */
     Map<Long, Integer> findGroupAllUserCount(List<Long> groupIds, ChannelPlatform type);
+
+    /**
+     * 포함 및 제외 그룹에 속한 유저 숫자를 조회한다.
+     */
+    GroupMemberCountResponseDto findUserCountInGroupAndExGroup(
+        String type, List<Long> includeGroupIds, List<Long> excludeGroupIds
+    );
 
     /**
      * 그룹에 전화번호 추가(구)

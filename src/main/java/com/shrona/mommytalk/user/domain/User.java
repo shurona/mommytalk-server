@@ -21,7 +21,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -66,9 +65,6 @@ public class User extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     @Column
     private OnBoardingStatus onboardingStatus = OnBoardingStatus.FALSE;
-
-    @Column
-    private LocalDate asdf;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "add_method")
