@@ -561,7 +561,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     }
 
     private LocalDateTime getReserveTimeIfPassed(MessageLog messageLog) {
-        return LocalDateTime.now().isAfter(messageLog.getReserveTime().plusHours(9))
+        return LocalDateTime.now().isAfter(messageLog.getReserveTime())
             ? LocalDateTime.now().plusHours(9).plusSeconds(10)// 약간 뒤의 시간으로 예약한다.
             : messageLog.getReserveTime().plusHours(9);
     }
