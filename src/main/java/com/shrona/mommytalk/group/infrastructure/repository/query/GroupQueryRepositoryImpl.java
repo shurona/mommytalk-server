@@ -5,11 +5,14 @@ import static com.shrona.mommytalk.group.domain.QUserGroup.userGroup;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.entitlement.domain.Entitlement;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.GroupType;
 import com.shrona.mommytalk.group.infrastructure.dao.UserMemberCountByGroupIdsVo;
 import com.shrona.mommytalk.user.domain.User;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -83,6 +86,24 @@ public class GroupQueryRepositoryImpl implements GroupQueryRepository {
             totalRecipients,
             includedCount,
             excludedCount
+        );
+    }
+
+    @Override
+    public Optional<Group> findByChannelAndEntitlementAndGroupType(
+        Channel channel,
+        Entitlement entitlement,
+        GroupType groupType
+    ) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(group.channel.eq(channel));
+        builder.and(group.entitlement.eq(entitlement));
+        builder.and(group.groupType.eq(groupType));
+
+        return Optional.ofNullable(
+            query.selectFrom(group)
+                .where(builder)
+                .fetchOne()
         );
     }
 }

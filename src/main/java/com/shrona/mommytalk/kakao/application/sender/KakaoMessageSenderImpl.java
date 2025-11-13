@@ -325,8 +325,9 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             response.failCount()
         );
 
-        if (response.failCount() != null && response.failCount() > 0) {
-            log.warn("[Kakao 발송 실패 상세] {}", response.recipientList());
+        if (!response.isSuccessful()) {
+            log.warn("[Kakao 발송 실패 상세] {}", response);
+
         }
 
         return response.isSuccessful();
@@ -495,7 +496,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             buttons.add(new ButtonDto(
                 "1",                    // ordering
                 "WL",                   // type: 웹링크
-                "mommy voice",          // name
+                "엄마발음\uD83D\uDD08",          // name
                 mommyVoice.trim(),      // linkMo
                 mommyVoice.trim(),      // linkPc
                 null,                   // schemeIos
@@ -508,7 +509,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             buttons.add(new ButtonDto(
                 "2",                    // ordering
                 "WL",                   // type: 웹링크
-                "child voice",          // name
+                "아이발음\uD83D\uDD08",          // name
                 childVoice.trim(),      // linkMo
                 childVoice.trim(),      // linkPc
                 null,                   // schemeIos
@@ -521,7 +522,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             buttons.add(new ButtonDto(
                 "3",                            // ordering
                 "WL",                           // type: 웹링크
-                "デジタルフラッシュカード📩",    // name
+                "오늘의 문장 만들기✏\uFE0F",    // name
                 flashCard.trim(),               // linkMo
                 flashCard.trim(),               // linkPc
                 null,                           // schemeIos
@@ -562,7 +563,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
 
     private LocalDateTime getReserveTimeIfPassed(MessageLog messageLog) {
         return LocalDateTime.now().isAfter(messageLog.getReserveTime())
-            ? LocalDateTime.now().plusHours(9).plusSeconds(10)// 약간 뒤의 시간으로 예약한다.
+            ? LocalDateTime.now().plusHours(9).plusSeconds(20)// 약간 뒤의 시간으로 예약한다.
             : messageLog.getReserveTime().plusHours(9);
     }
 
