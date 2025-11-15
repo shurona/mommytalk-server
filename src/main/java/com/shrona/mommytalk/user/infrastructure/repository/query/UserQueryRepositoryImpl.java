@@ -71,7 +71,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     public Page<UserListProjection> findLineUsersByChannelIdWithPaging(
         Long channelId, Pageable pageable, String searchToken) {
 
-        BooleanBuilder builder = userQueryCondition(searchToken);
+        BooleanBuilder searchCondition = buildLineUserSearchCondition(searchToken);
 
         // 데이터 조회
         List<UserListProjection> users = query.select(
@@ -97,7 +97,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .where(
                 channelLineUser.channel.id.eq(channelId)
 //                    .and(channelLineUser.follow.eq(true))
-                    .and(builder)
+                    .and(searchCondition)
             )
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -119,7 +119,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     public Page<UserListProjection> findKakaoUsersByChannelIdWithPaging(
         Long channelId, Pageable pageable, String searchToken) {
 
-        BooleanBuilder builder = userQueryCondition(searchToken);
+        BooleanBuilder searchCondition = buildKakaoUserSearchCondition(searchToken);
 
         // 데이터 조회
         List<UserListProjection> users = query.select(
@@ -145,7 +145,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .where(
                 channelKakaoUser.channel.id.eq(channelId)
 //                    .and(channelKakaoUser.follow.eq(true))
-                    .and(builder)
+                    .and(searchCondition)
             )
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
@@ -157,7 +157,6 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .where(
                 channelKakaoUser.channel.id.eq(channelId)
 //                    .and(channelKakaoUser.follow.eq(true))
-                    .and(builder)
             )
             .fetchOne();
 
@@ -206,8 +205,10 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
 
     }
 
-    private BooleanBuilder userQueryCondition(String searchToken) {
-
+    /**
+     * LINE 사용자 검색 조건 (lineUser.user 경로 사용)
+     */
+    private BooleanBuilder buildLineUserSearchCondition(String searchToken) {
         BooleanBuilder builder = new BooleanBuilder();
 
         if (StringUtils.isBlank(searchToken)) {
@@ -215,10 +216,30 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
         }
 
         builder.and(
-            user.phoneNumber.phoneNumber.contains(searchToken)
-                .or(user.email.contains(searchToken))
-                .or(user.name.contains(searchToken))
-                .or(user.childName.contains(searchToken))
+            lineUser.user.phoneNumber.phoneNumber.contains(searchToken)
+                .or(lineUser.user.email.contains(searchToken))
+                .or(lineUser.user.name.contains(searchToken))
+                .or(lineUser.user.childName.contains(searchToken))
+        );
+
+        return builder;
+    }
+
+    /**
+     * Kakao 사용자 검색 조건 (kakaoUser.user 경로 사용)
+     */
+    private BooleanBuilder buildKakaoUserSearchCondition(String searchToken) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if (StringUtils.isBlank(searchToken)) {
+            return builder;
+        }
+
+        builder.and(
+            kakaoUser.user.phoneNumber.phoneNumber.contains(searchToken)
+                .or(kakaoUser.user.email.contains(searchToken))
+                .or(kakaoUser.user.name.contains(searchToken))
+                .or(kakaoUser.user.childName.contains(searchToken))
         );
 
         return builder;

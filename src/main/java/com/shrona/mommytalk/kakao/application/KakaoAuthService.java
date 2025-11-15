@@ -24,7 +24,6 @@ import com.shrona.mommytalk.user.domain.type.OnBoardingStatus;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -173,18 +172,13 @@ public class KakaoAuthService {
                 convertPhoneNumber(infoResponse.getPhoneNumber()));
 
             // 현재 휴대폰 유저가 존재하고 해당 카카오에 유저 아이디가 존재하지 않으면 업데이트를 진행한다.
-            if (kakaoUserByPhoneNumber != null &&
-                StringUtils.isEmpty(kakaoUserByPhoneNumber.getKakaoId())) {
+            if (kakaoUserByPhoneNumber != null) {
                 kakaoUserByPhoneNumber.setFirstKakaoId(infoResponse.id().toString());
                 return kakaoUserJpaRepository.save(kakaoUserByPhoneNumber);
-            } else if (kakaoUserByPhoneNumber == null) { // 유저가 아예 없으면 null 반환
+            } else { // 유저가 아예 없으면 null 반환
                 return null;
-            } else {
-                // TODO: 에러 핸들링
-                throw new RuntimeException();
             }
         }
-
         return kakaoUserById;
     }
 }

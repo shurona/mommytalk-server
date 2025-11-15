@@ -26,7 +26,12 @@ public record UserResponseDto(
     List<EntitlementResponseDto> entitlements
 ) {
 
-    public static UserResponseDto from(User user, String socialId) {
+    public static UserResponseDto from(User user, String socialId, List<com.shrona.mommytalk.entitlement.domain.UserEntitlement> userEntitlements) {
+        // UserEntitlement 목록을 EntitlementResponseDto로 변환
+        List<EntitlementResponseDto> entitlementDtos = userEntitlements.stream()
+            .map(EntitlementResponseDto::from)
+            .toList();
+
         return UserResponseDto.builder()
             .userId(user.getId())
             .email(user.getEmail())
@@ -40,7 +45,7 @@ public record UserResponseDto(
             .userLevel(user.getUserLevel())
             .childLevel(user.getChildLevel())
             .childName(user.getChildName())
-            .entitlements(List.of(EntitlementResponseDto.from(), EntitlementResponseDto.from()))
+            .entitlements(entitlementDtos)
             .build();
     }
 

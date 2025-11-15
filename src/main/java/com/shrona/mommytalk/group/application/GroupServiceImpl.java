@@ -1,9 +1,15 @@
 package com.shrona.mommytalk.group.application;
 
+import static com.shrona.mommytalk.group.domain.GroupType.AUTO_ACTIVE;
+
 import com.shrona.mommytalk.channel.common.exception.ChannelErrorCode;
 import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
+import com.shrona.mommytalk.entitlement.domain.Entitlement;
+import com.shrona.mommytalk.entitlement.domain.UserEntitlement;
+import com.shrona.mommytalk.entitlement.infrastructure.jpa.UserEntitlementJpaRepository;
+import com.shrona.mommytalk.entitlement.infrastructure.query.UserEntitlementQueryRepository;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.GroupType;
 import com.shrona.mommytalk.group.domain.UserGroup;
@@ -18,6 +24,7 @@ import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,8 +47,10 @@ public class GroupServiceImpl implements GroupService {
     // jpa
     private final GroupJpaRepository groupRepository;
     private final UserGroupJpaRepository userGroupRepository;
+    private final UserEntitlementJpaRepository userEntitlementJpaRepository;
 
     private final GroupQueryRepository groupQueryRepository;
+    private final UserEntitlementQueryRepository userEntitlementQueryRepository;
 
     // service
     private final UserService userService;
@@ -300,7 +309,7 @@ public class GroupServiceImpl implements GroupService {
         Channel channel, Group groupInfo, List<String> phoneNumberList) {
 
         // 입력된 전화번호를 유저 생성 및 조회
-        List<User> userListFromPhoneNumber = userListFromPhoneNumber = userService
+        List<User> userListFromPhoneNumber = userService
             .findOrCreateUsersByPhoneNumbers(phoneNumberList);
 
         // group에 이미 존재하는 번호들을 추출한다.
@@ -311,14 +320,54 @@ public class GroupServiceImpl implements GroupService {
         Set<PhoneNumber> existPhoneNumbers = userUtils.extractPhoneNumbers(pList);
 
         // 유저 그룹에 없는 유저를 UserGroup에 추가해준다.
-        List<UserGroup> list = userListFromPhoneNumber.stream()
+        List<UserGroup> newUserGroups = userListFromPhoneNumber.stream()
             .filter(u -> !existPhoneNumbers.contains(u.getPhoneNumber()))
             .map(nu -> UserGroup.createUserGroup(nu, groupInfo)).toList();
-        groupInfo.addUserToGroup(list);
+        groupInfo.addUserToGroup(newUserGroups);
 
         // 유저 그룹 단체 저장
-        userGroupRepository.saveAll(list);
+        userGroupRepository.saveAll(newUserGroups);
+
+        // 상품 그룹(AUTO_ACTIVE)이면 UserEntitlement 자동 생성
+        if (groupInfo.getEntitlement() != null && groupInfo.getGroupType() == AUTO_ACTIVE) {
+            createUserEntitlementsForNewUsers(newUserGroups, groupInfo);
+        }
 
         return userListFromPhoneNumber;
+    }
+
+    /**
+     * 새로 추가된 유저들에게 UserEntitlement 자동 생성
+     */
+    private void createUserEntitlementsForNewUsers(List<UserGroup> newUserGroups, Group group) {
+        Entitlement entitlement = group.getEntitlement();
+        LocalDate today = LocalDate.now();
+        LocalDate oneYearLater = today.plusYears(1);
+
+        for (UserGroup userGroup : newUserGroups) {
+            User user = userGroup.getUser();
+
+            // 이미 UserEntitlement가 있는지 확인 (중복 방지)
+            List<UserEntitlement> existing = userEntitlementQueryRepository
+                .findActiveEntitlementsByType(user.getId(), entitlement.getId(), today);
+
+            if (existing.isEmpty()) {
+                // UserEntitlement 생성 (ACTIVE, startDate=오늘, endDate=+1년)
+                UserEntitlement userEntitlement = UserEntitlement.createUserEntitlement(
+                    user,
+                    entitlement,
+                    today,
+                    oneYearLater
+                );
+
+                userEntitlementJpaRepository.save(userEntitlement);
+
+                log.info("[상품 그룹 추가 - UserEntitlement 자동 생성] userId={}, entitlementId={}, startDate={}, endDate={}",
+                    user.getId(), entitlement.getId(), today, oneYearLater);
+            } else {
+                log.info("[상품 그룹 추가 - UserEntitlement 이미 존재] userId={}, entitlementId={}, 생성 스킵",
+                    user.getId(), entitlement.getId());
+            }
+        }
     }
 }

@@ -7,6 +7,8 @@ import static com.shrona.mommytalk.user.common.exception.UserErrorCode.USER_NOT_
 import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.utils.PhoneProcess;
+import com.shrona.mommytalk.entitlement.domain.UserEntitlement;
+import com.shrona.mommytalk.entitlement.infrastructure.query.UserEntitlementQueryRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.UserGroupJpaRepository;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
@@ -50,6 +52,7 @@ public class UserServiceImpl implements UserService {
 
     // query
     private final UserQueryRepository userQueryRepository;
+    private final UserEntitlementQueryRepository userEntitlementQueryRepository;
 
     // 휴대폰 관련 process 처리
     private final PhoneProcess phoneProcess;
@@ -81,12 +84,23 @@ public class UserServiceImpl implements UserService {
 
         User userInfo = userQueryRepository.findUserByUserId(userId);
 
+        // 유저의 UserEntitlement 목록 조회
+        List<UserEntitlement> userEntitlements = userEntitlementQueryRepository.findByUserId(userId);
+
         switch (channel.getChannelPlatform()) {
             case LINE -> {
-                return UserResponseDto.from(userInfo, userInfo.getLineUser().getLineId());
+                return UserResponseDto.from(
+                    userInfo,
+                    userInfo.getLineUser().getLineId(),
+                    userEntitlements
+                );
             }
             case KAKAO -> {
-                return UserResponseDto.from(userInfo, userInfo.getPhoneNumber().getPhoneNumber());
+                return UserResponseDto.from(
+                    userInfo,
+                    userInfo.getPhoneNumber().getPhoneNumber(),
+                    userEntitlements
+                );
             }
             default -> throw new ChannelException(CHANNEL_NOT_FOUND);
         }

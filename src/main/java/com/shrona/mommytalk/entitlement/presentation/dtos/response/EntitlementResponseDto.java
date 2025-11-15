@@ -1,17 +1,25 @@
 package com.shrona.mommytalk.entitlement.presentation.dtos.response;
 
-import java.time.LocalDateTime;
+import com.shrona.mommytalk.entitlement.domain.UserEntitlement;
+import java.time.LocalDate;
 
 public record EntitlementResponseDto(
-    String productName,
-    LocalDateTime serviceStart,
-    LocalDateTime serviceEnd,
+    Long userEntitlementId,
+    Long entitlementId,
+    String entitlementName,
+    LocalDate serviceStart,
+    LocalDate serviceEnd,
     String status
 ) {
 
-    public static EntitlementResponseDto from() {
+    public static EntitlementResponseDto from(UserEntitlement userEntitlement) {
         return new EntitlementResponseDto(
-            "마미톡365", LocalDateTime.now(), LocalDateTime.now(), "active"
+            userEntitlement.getId(),
+            userEntitlement.getEntitlement().getId(),
+            userEntitlement.getEntitlement().getName(),
+            userEntitlement.getStartDate(),
+            userEntitlement.getEndDate(),
+            userEntitlement.getStatus().name().toLowerCase()
         );
     }
 

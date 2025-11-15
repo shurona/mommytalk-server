@@ -66,3 +66,6 @@ cloudflare:
     bucket-name: ${CLOUDFLARE_BUCKET_NAME}
     endpoint: ${CLOUDFLARE_ENDPOINT}  # https://<account-id>.r2.cloudflarestorage.com
     public-url: ${CLOUDFLARE_PUBLIC_URL}  # 공개 URL (optional)
+
+front:
+  base-url: ${FRONT_CLIENT_BASE_URL}

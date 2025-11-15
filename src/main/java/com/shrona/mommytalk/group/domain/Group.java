@@ -68,6 +68,22 @@ public class Group extends BaseEntity {
         return group;
     }
 
+    public static Group createEntitlementGroup(
+        Channel channel,
+        Entitlement entitlement,
+        GroupType groupType,
+        String name,
+        String description
+    ) {
+        Group group = new Group();
+        group.name = name;
+        group.description = description;
+        group.channel = channel;
+        group.entitlement = entitlement;
+        group.groupType = groupType;
+        return group;
+    }
+
     public void addUserToGroup(List<UserGroup> userList) {
         userGroupList.addAll(userList);
     }

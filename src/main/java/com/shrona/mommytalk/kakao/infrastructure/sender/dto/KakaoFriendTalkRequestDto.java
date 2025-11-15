@@ -135,6 +135,25 @@ public record KakaoFriendTalkRequestDto(
     }
 
     /**
+     * 개인화된 메시지 생성 (각 수신자별로 다른 content 전송 가능)
+     * NHN Cloud API는 recipientList 배열의 각 요소마다 개별 content를 지원
+     */
+    public static KakaoFriendTalkRequestDto ofPersonalized(
+        String senderKey,
+        List<RecipientDto> recipientList,
+        String reserveTime
+    ) {
+        return new KakaoFriendTalkRequestDto(
+            senderKey,
+            reserveTime,
+            null,
+            recipientList,
+            null,
+            null
+        );
+    }
+
+    /**
      * 수신자 정보 DTO
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
