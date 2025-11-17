@@ -9,7 +9,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record BrandMessageResponseDto(
     Header header,
-    List<SendResult> sendResultList
+    Message message
 ) {
 
     /**
@@ -28,22 +28,31 @@ public record BrandMessageResponseDto(
     }
 
     /**
+     * 메시지 발송 결과
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record Message(
+        /** 요청 ID */
+        String requestId,
+        /** 개별 발송 결과 목록 */
+        List<SendResult> sendResults
+    ) {
+
+    }
+
+    /**
      * 개별 발송 결과
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record SendResult(
+        /** 수신자 시퀀스 번호 */
+        Integer recipientSeq,
         /** 수신자 번호 */
         String recipientNo,
         /** 결과 코드 */
         Integer resultCode,
         /** 결과 메시지 */
-        String resultMessage,
-        /** 요청 ID */
-        String requestId,
-        /** 수신자 시퀀스 번호 */
-        Integer recipientSeq,
-        /** 수신자 그룹 ID */
-        String recipientGroupingKey
+        String resultMessage
     ) {
 
     }

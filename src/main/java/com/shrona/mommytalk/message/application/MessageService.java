@@ -2,6 +2,7 @@ package com.shrona.mommytalk.message.application;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.message.domain.MessageLog;
+import com.shrona.mommytalk.message.presentation.dtos.response.MessageHistoryResponseDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -60,4 +61,9 @@ public interface MessageService {
      * 재발송 로직
      */
     void resendMessage(Channel channel, Long messageLogId);
+
+    /**
+     * 사용자가 받은 메시지 히스토리 조회 (연월 기준)
+     */
+    List<MessageHistoryResponseDto> findMessageHistory(Long channelId, Long userId, int year, int month);
 }

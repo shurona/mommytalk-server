@@ -10,17 +10,21 @@ import com.shrona.mommytalk.cloudflare.application.CloudflareService;
 import com.shrona.mommytalk.elevenlabs.application.ElevenLabsService;
 import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.elevenlabs.infrastructure.reposiotry.ElevenLabsMediaRepository;
+import com.shrona.mommytalk.entitlement.domain.EntitlementType;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.domain.MessageContent;
+import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.domain.type.AudioRole;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageContentQueryRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
 import com.shrona.mommytalk.openai.application.OpenAiServiceImpl;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
 import com.shrona.mommytalk.openai.domain.type.PromptType;
@@ -46,6 +50,7 @@ public class MessageContentServiceImpl implements MessageContentService {
     private final MessageTypeJpaRepository messageTypeJpaRepository;
     private final MessageContentJpaRepository messageContentJpaRepository;
     private final MessageContentQueryRepository messageContentQueryRepository;
+    private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
 
     private final ElevenLabsService elevenLabsService;
     private final ElevenLabsMediaRepository elevenLabsMediaRepository;
@@ -94,7 +99,7 @@ public class MessageContentServiceImpl implements MessageContentService {
             // regenerate=true이고 기존 컨텐츠가 있으면 업데이트
             MessageContent existingMessageContent = existingContent.get();
             existingMessageContent.updateContent(generatedContent,
-                existingMessageContent.getDiaryUrl());
+                existingMessageContent.getMommyVoca());
             return messageContentJpaRepository.save(existingMessageContent);
         } else {
             // 새 컨텐츠 생성
@@ -128,7 +133,7 @@ public class MessageContentServiceImpl implements MessageContentService {
 
         if (existingContent.isPresent()) {
             MessageContent messageContent = existingContent.get();
-            messageContent.updateContent(requestDto.content(), requestDto.diaryUrl());
+            messageContent.updateContent(requestDto.content(), requestDto.mommyVoca());
             messageContentJpaRepository.save(messageContent);
 
             return existingContent.get().getId();
@@ -137,7 +142,7 @@ public class MessageContentServiceImpl implements MessageContentService {
             MessageContent messageContent = MessageContent.ofWithMockUrlsForUpsert(
                 messageType,
                 requestDto.content(),
-                requestDto.diaryUrl(),
+                requestDto.mommyVoca(),
                 requestDto.childLevel(),
                 requestDto.userLevel()
             );
@@ -287,6 +292,36 @@ public class MessageContentServiceImpl implements MessageContentService {
                 MessageContent::createKeyPropertyForMessageContent, // key: "1_2"
                 MessageContent::getApproved
             ));
+    }
+
+    @Override
+    public MessageContentResponseDto findContentForUser(Long channelId, Long userId,
+        Long messageLogDetailId) {
+
+        // 1. MessageLogDetail 조회 (유저가 받은 메시지인지 확인, Entitlement JOIN 포함)
+        MessageLogDetail messageLogDetail = messageLogDetailQueryRepository
+            .findByChannelAndUserAndContent(channelId, userId, messageLogDetailId);
+
+        // 2. MessageLogDetail이 없으면 404 에러
+        if (messageLogDetail == null) {
+            throw new MessageException(MESSAGE_CONTENT_NOT_FOUND);
+        }
+
+        // 3. MessageContent 조회
+        MessageContent messageContent = messageLogDetail.getMessageContent();
+
+        // 4. MessageLog의 entitlement.type이 MOMMYVOCA인지 확인
+        boolean isMommyVoca = messageLogDetail.getMessageLog().getEntitlement() != null
+            && messageLogDetail.getMessageLog().getEntitlement().getType()
+            == EntitlementType.MOMMYVOCA;
+
+        // 5. MOMMYVOCA가 아니면 mommyVoca를 null로 설정한 DTO 반환
+        if (!isMommyVoca) {
+            return MessageContentResponseDto.ofWithoutMommyVoca(messageContent);
+        }
+
+        // 6. MOMMYVOCA면 전체 데이터 반환
+        return MessageContentResponseDto.of(messageContent);
     }
 
 }

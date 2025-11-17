@@ -3,6 +3,7 @@ package com.shrona.mommytalk.message.infrastructure.repository.query;
 import static com.shrona.mommytalk.kakao.domain.QKakaoUser.kakaoUser;
 import static com.shrona.mommytalk.line.domain.QLineUser.lineUser;
 import static com.shrona.mommytalk.message.domain.QMessageContent.messageContent;
+import static com.shrona.mommytalk.message.domain.QMessageLog.messageLog;
 import static com.shrona.mommytalk.message.domain.QMessageLogDetail.messageLogDetail;
 import static com.shrona.mommytalk.user.domain.QUser.user;
 
@@ -136,5 +137,61 @@ public class MessageLogDetailQueryRepositoryImpl implements
             .set(messageLogDetail.status, ReservationStatus.CANCEL)
             .where(builder)
             .execute();
+    }
+
+    @Override
+    public List<MessageLogDetail> findMessageHistoryByUserAndYearMonth(Long channelId, Long userId,
+        int year, int month) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // channelId 필터링 (MessageLog의 channel)
+        builder.and(messageLogDetail.messageLog.channel.id.eq(channelId));
+
+        // userId 필터링
+        builder.and(messageLogDetail.user.id.eq(userId));
+
+        // 연월 필터링 (deliveryTime이 해당 연월에 속하는지)
+        builder.and(messageLogDetail.messageContent.messageType.deliveryTime.year().eq(year));
+        builder.and(messageLogDetail.messageContent.messageType.deliveryTime.month().eq(month));
+        builder.and(messageLogDetail.status.eq(ReservationStatus.COMPLETE));
+
+        // MessageType과 MessageContent JOIN FETCH로 N+1 방지
+        return query.select(messageLogDetail)
+            .from(messageLogDetail)
+            .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
+            .leftJoin(messageContent.messageType).fetchJoin()
+            .where(builder)
+            .orderBy(messageContent.messageType.deliveryTime.desc())
+            .fetch();
+    }
+
+    @Override
+    public MessageLogDetail findByChannelAndUserAndContent(
+        Long channelId, Long userId, Long messageLogDetailId) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // channelId 필터링 (MessageLog의 channel)
+        builder.and(messageLogDetail.messageLog.channel.id.eq(channelId));
+
+        // userId 필터링
+        builder.and(messageLogDetail.user.id.eq(userId));
+
+        // messageLogDetailId 필터링
+        builder.and(messageLogDetail.id.eq(messageLogDetailId));
+
+        // COMPLETE 상태만 조회
+        builder.and(messageLogDetail.status.eq(ReservationStatus.COMPLETE));
+
+        // MessageLog, Entitlement, MessageContent, MessageType JOIN FETCH로 N+1 방지
+        return query.select(messageLogDetail)
+            .from(messageLogDetail)
+            .leftJoin(messageLogDetail.messageLog, messageLog).fetchJoin()
+            .leftJoin(messageLog.entitlement).fetchJoin()
+            .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
+            .leftJoin(messageContent.messageType).fetchJoin()
+            .leftJoin(messageContent.headerOneLink).fetchJoin()
+            .leftJoin(messageContent.headerTwoLink).fetchJoin()
+            .where(builder)
+            .fetchOne();
     }
 }

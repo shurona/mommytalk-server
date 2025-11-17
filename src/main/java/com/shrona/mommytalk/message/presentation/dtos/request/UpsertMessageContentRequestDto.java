@@ -5,7 +5,7 @@ public record UpsertMessageContentRequestDto(
     Integer userLevel,
     Integer childLevel,
     String content,
-    String diaryUrl
+    String mommyVoca
 ) {
 
 }

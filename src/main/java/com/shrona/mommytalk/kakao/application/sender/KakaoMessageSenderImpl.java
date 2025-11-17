@@ -316,8 +316,8 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         int successCount = 0;
         int failCount = 0;
 
-        if (response.sendResultList() != null) {
-            for (BrandMessageResponseDto.SendResult result : response.sendResultList()) {
+        if (response.message() != null && response.message().sendResults() != null) {
+            for (BrandMessageResponseDto.SendResult result : response.message().sendResults()) {
                 if (result.resultCode() != null && result.resultCode() == 0) {
                     successCount++;
                 } else {
@@ -355,7 +355,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     /**
      * MOMMYTALK 메시지를 카카오에 전달한다. (개인화 지원)
      * {아이이름} 템플릿 변수 치환 + 가로 배치 버튼 (발음듣기, 나만의 문장 만들기)
-     *
+     * <p>
      * 브랜드 메시지 API는 개인화를 지원하지 않으므로 수신자별로 개별 API 호출
      */
     private int sendMessageToKakao(
@@ -388,7 +388,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             String personalizedContent = content.getContent().replace("{아이이름}", childName);
 
             // MOMMYTALK 버튼 생성 (가로 배치)
-            List<ButtonDto> buttons = createButtonsForMommyTalk(voiceUrl, content.getId());
+            List<ButtonDto> buttons = createButtonsForMommyTalk(voiceUrl, mld.getId());
 
             try {
                 BrandMessageRequestDto request = BrandMessageRequestDto.ofSingle(
@@ -426,7 +426,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     /**
      * MOMMYVOCA 메시지를 카카오에 전달한다. (개인화 지원)
      * {아이이름} 템플릿 변수 치환 + 세로 배치 버튼 (발음듣기, 마미보카, 나만의 문장 만들기)
-     *
+     * <p>
      * 브랜드 메시지 API는 개인화를 지원하지 않으므로 수신자별로 개별 API 호출
      */
     private int sendMessageToKakaoWithDiary(
@@ -460,7 +460,8 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             String personalizedContent = content.getContent().replace("{아이이름}", childName);
 
             // MOMMYVOCA 버튼 생성 (세로 배치)
-            List<ButtonDto> buttons = createButtonsForMommyVoca(voiceUrl, mommyVocaUrl, content.getId());
+            List<ButtonDto> buttons = createButtonsForMommyVoca(voiceUrl, mommyVocaUrl,
+                mld.getId());
 
             try {
                 BrandMessageRequestDto request = BrandMessageRequestDto.ofSingle(
@@ -537,7 +538,8 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
      * 2. 마미보카 💌
      * 3. ➕ 나만의 문장 만들기
      */
-    private List<ButtonDto> createButtonsForMommyVoca(String voiceUrl, String mommyVocaUrl, Long messageContentId) {
+    private List<ButtonDto> createButtonsForMommyVoca(String voiceUrl, String mommyVocaUrl,
+        Long messageContentId) {
         List<ButtonDto> buttons = new java.util.ArrayList<>();
 
         // 1. 발음듣기 버튼
@@ -567,7 +569,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         }
 
         // 3. 나만의 문장 만들기 버튼
-        String customSentenceUrl = frontBaseUrl + "/mommytalk365/" + messageContentId;
+        String customSentenceUrl = frontBaseUrl + "mommytalk365/" + messageContentId;
         buttons.add(new ButtonDto(
             "3",
             "WL",
@@ -581,6 +583,9 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         return buttons;
     }
 
+    /**
+     * 현재보다 과거이면 1분 뒤로 전송한다.
+     */
     private LocalDateTime getReserveTimeIfPassed(MessageLog messageLog) {
         return LocalDateTime.now().isAfter(messageLog.getReserveTime())
             ? LocalDateTime.now().plusHours(9).plusMinutes(1)// 약간 뒤의 시간으로 예약한다.

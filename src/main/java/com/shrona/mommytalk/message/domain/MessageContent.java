@@ -91,13 +91,13 @@ public class MessageContent extends BaseEntity {
      * Mock URL을 포함한 메시지 컨텐츠 생성
      */
     public static MessageContent ofWithMockUrlsForUpsert(
-        MessageType type, String content, String diaryUrl, int childLevel, int userLevel) {
+        MessageType type, String content, String mommyVoca, int childLevel, int userLevel) {
         return MessageContent.builder()
             .content(content)
             .childLevel(childLevel)
             .userLevel(userLevel)
             .messageType(type)
-            .diaryUrl(diaryUrl)
+            .mommyVoca(mommyVoca)
             .approved(false)
             .build();
     }
@@ -105,9 +105,9 @@ public class MessageContent extends BaseEntity {
     /**
      * 컨텐츠 업데이트 및 승인
      */
-    public void updateContent(String newContent, String newDiaryUrl) {
+    public void updateContent(String newContent, String newMommyVoca) {
         this.content = newContent;
-        this.diaryUrl = newDiaryUrl;
+        this.mommyVoca = newMommyVoca;
     }
 
     /**
@@ -159,11 +159,11 @@ public class MessageContent extends BaseEntity {
         if (childLevel == 1) {
             // 아이 레벨 1이면 아이 링크는 패스
             return this.content != null && this.getHeaderOneLink() != null
-                && this.getDiaryUrl() != null;
+                && this.getMommyVoca() != null;
         } else {
             // 4개의 데이터 중 하나라도 비어있으면 승인 불가
             return this.content != null && this.getHeaderOneLink() != null
-                && this.getHeaderTwoLink() != null && this.getDiaryUrl() != null;
+                && this.getHeaderTwoLink() != null && this.getMommyVoca() != null;
         }
     }
 }

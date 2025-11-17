@@ -8,6 +8,7 @@ import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestD
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
 import java.time.LocalDate;
 import java.util.Map;
 
@@ -66,4 +67,10 @@ public interface MessageContentService {
      * userLevel_childLevel : approved(Boolean) 형식으로 변환해준다.
      */
     Map<String, Boolean> groupMessageApprovedByLevel(MessageType messageType);
+
+    /**
+     * 사용자가 받은 메시지 컨텐츠 조회 (MOMMYVOCA 권한 확인 포함)
+     */
+    MessageContentResponseDto findContentForUser(
+        Long channelId, Long userId, Long messageLogDetailId);
 }

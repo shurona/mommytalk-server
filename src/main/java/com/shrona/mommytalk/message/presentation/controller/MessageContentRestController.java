@@ -63,7 +63,7 @@ public class MessageContentRestController {
             return ApiResponse.success(null);
         }
 
-        return ApiResponse.success(MessageContentResponseDto.of(content, ""));
+        return ApiResponse.success(MessageContentResponseDto.of(content));
     }
 
     @GetMapping("/{contentId}")
@@ -77,7 +77,7 @@ public class MessageContentRestController {
 
         MessageContent content = messageContentService.findById(contentId);
 
-        return ApiResponse.success(MessageContentResponseDto.of(content, ""));
+        return ApiResponse.success(MessageContentResponseDto.of(content));
     }
 
     @PostMapping("/generate")
@@ -95,8 +95,7 @@ public class MessageContentRestController {
             requestDto);
 
         // Response DTO 생성
-        MessageContentResponseDto contentDto = MessageContentResponseDto.of(generatedContent,
-            requestDto.language());
+        MessageContentResponseDto contentDto = MessageContentResponseDto.of(generatedContent);
 
         return ApiResponse.success(contentDto.id());
     }

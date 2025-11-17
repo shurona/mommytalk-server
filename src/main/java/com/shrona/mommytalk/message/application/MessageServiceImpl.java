@@ -28,6 +28,7 @@ import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaR
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogQueryRepository;
+import com.shrona.mommytalk.message.presentation.dtos.response.MessageHistoryResponseDto;
 import com.shrona.mommytalk.user.domain.User;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -151,7 +152,7 @@ public class MessageServiceImpl implements MessageService {
         // commit이 된 이후에 실행을 한다.
         TransactionSynchronizationManager.registerSynchronization(
             new TransactionSynchronization() {
-                
+
                 public void afterCommit() {
                     messageUtils.registerTaskSchedule(List.of(messageLogInfo), reserveTime);
                 }
@@ -282,6 +283,22 @@ public class MessageServiceImpl implements MessageService {
             exceptUserIds = new HashSet<>();
         }
         return exceptUserIds;
+    }
+
+    @Override
+    public List<MessageHistoryResponseDto> findMessageHistory(Long channelId, Long userId, int year,
+        int month) {
+        // 1. channelId, userId와 연월로 MessageLogDetail 조회 (날짜 내림차순)
+        List<MessageLogDetail> messageLogDetails = messageLogDetailQueryRepository
+            .findMessageHistoryByUserAndYearMonth(channelId, userId, year, month);
+
+        // 2. MessageLogDetail → MessageHistoryResponseDto 변환
+        return messageLogDetails.stream()
+            .map(mld -> MessageHistoryResponseDto.of(
+                mld.getMessageContent().getMessageType(),
+                mld.getMessageContent(), mld
+            ))
+            .toList();
     }
 
 }

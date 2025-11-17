@@ -36,4 +36,16 @@ public interface MessageLogDetailQueryRepository {
      */
     void cancelDetailByLogId(Long messageLogId);
 
+    /**
+     * 사용자가 받은 메시지 히스토리 조회 (채널 및 연월 필터링, 날짜 내림차순)
+     */
+    List<MessageLogDetail> findMessageHistoryByUserAndYearMonth(Long channelId, Long userId,
+        int year, int month);
+
+    /**
+     * 사용자가 받은 특정 메시지 컨텐츠 조회 (Entitlement JOIN 포함)
+     */
+    MessageLogDetail findByChannelAndUserAndContent(
+        Long channelId, Long userId, Long messageLogDetailId);
+
 }
