@@ -184,8 +184,8 @@ public class MessageContentServiceImpl implements MessageContentService {
      */
     private void deleteOldAudioIfExists(MessageContent messageContent, AudioRole audioRole) {
         ElevenLabsMedia oldMedia = switch (audioRole) {
-            case CHILD -> messageContent.getHeaderOneLink();
-            case MOMMY -> messageContent.getHeaderTwoLink();
+            case MOMMY -> messageContent.getHeaderOneLink();
+            case CHILD -> messageContent.getHeaderTwoLink();
         };
 
         if (oldMedia == null) {

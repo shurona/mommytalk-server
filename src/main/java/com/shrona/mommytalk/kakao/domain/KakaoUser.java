@@ -42,7 +42,7 @@ public class KakaoUser extends BaseEntity {
      * 처음으로 카카오 아이디를 지정해준다.
      */
     public void setFirstKakaoId(String kakaoId) {
-        if (StringUtils.isEmpty(this.kakaoId)) {
+        if (StringUtils.isEmpty(this.kakaoId) || this.kakaoId.startsWith("temp")) {
             this.kakaoId = kakaoId;
         }
     }
