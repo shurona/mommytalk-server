@@ -124,79 +124,6 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     }
 
     @Override
-    public void sendSingleMessage(Channel channel, User user, String content) {
-        String senderKey = channel.getKakaoSenderKey();
-        String recipientNo = user.getPhoneNumber().getPhoneNumber();
-
-        try {
-            BrandMessageRequestDto request = BrandMessageRequestDto.ofSingle(
-                senderKey,
-                recipientNo,
-                content,
-                null,  // 버튼 없음
-                null   // 즉시 전송
-            );
-
-            BrandMessageResponseDto response = nhnBrandMessageClient.sendMessage(
-                kakaoSecretKey,
-                request
-            );
-
-            if (!logResponse(response)) {
-                throw new RuntimeException();
-            }
-        } catch (RestClientResponseException e) {
-            log.error("[Kakao 단일 전송 에러] 수신자: {}, 에러: {}", recipientNo, e.getMessage());
-            throw e;
-        }
-
-        sleepForRateLimit();
-    }
-
-    @Override
-    public void sendMultiMessage(Channel channel, List<User> users, String content) {
-        String senderKey = channel.getKakaoSenderKey();
-        List<String> recipientNos = users.stream()
-            .map(user -> user.getPhoneNumber().getPhoneNumber())
-            .toList();
-
-        if (recipientNos.isEmpty()) {
-            log.warn("[Kakao 다중 전송] 수신자 목록이 비어있습니다.");
-            return;
-        }
-
-        // 1000명씩 chunk로 나누어 전송 (동일 content)
-        for (int i = 0; i < recipientNos.size(); i += CHUNK_SIZE) {
-            List<String> chunk = recipientNos.subList(
-                i,
-                Math.min(i + CHUNK_SIZE, recipientNos.size())
-            );
-
-            try {
-                BrandMessageRequestDto request = BrandMessageRequestDto.ofMulti(
-                    senderKey,
-                    chunk,
-                    content,
-                    null,  // 버튼 없음
-                    null   // 즉시 전송
-                );
-
-                BrandMessageResponseDto response = nhnBrandMessageClient.sendMessage(
-                    kakaoSecretKey,
-                    request
-                );
-
-                logResponse(response);
-            } catch (RestClientResponseException e) {
-                log.error("[Kakao 다중 전송 에러] chunk 번호: {}, 에러: {}", i / CHUNK_SIZE, e.getMessage());
-                throw e;
-            }
-
-            sleepForRateLimit();
-        }
-    }
-
-    @Override
     public void sendScheduledMessage(
         Channel channel,
         List<User> users,
@@ -501,26 +428,25 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
      * 1. 발음듣기 🔈
      * 2. ➕ 나만의 문장 만들기
      */
-    private List<ButtonDto> createButtonsForMommyTalk(String voiceUrl, Long messageContentId) {
+    private List<ButtonDto> createButtonsForMommyTalk(String voiceUrl, Long messageLogDetailId) {
         List<ButtonDto> buttons = new java.util.ArrayList<>();
 
         // 1. 발음듣기 버튼
+        String voiceLink = frontBaseUrl + "mommytalk365/" + messageLogDetailId;
         if (voiceUrl != null && !voiceUrl.trim().isEmpty()) {
             buttons.add(new ButtonDto(
-                "1",
                 "WL",
                 "발음듣기 🔈",
-                voiceUrl.trim(),
-                voiceUrl.trim(),
+                voiceLink,
+                voiceLink,
                 null,
                 null
             ));
         }
 
         // 2. 나만의 문장 만들기 버튼
-        String customSentenceUrl = frontBaseUrl + "/mommytalk365/" + messageContentId;
+        String customSentenceUrl = frontBaseUrl + "dashboard";
         buttons.add(new ButtonDto(
-            "2",
             "WL",
             "➕ 나만의 문장 만들기",
             customSentenceUrl,
@@ -538,18 +464,18 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
      * 2. 마미보카 💌
      * 3. ➕ 나만의 문장 만들기
      */
-    private List<ButtonDto> createButtonsForMommyVoca(String voiceUrl, String mommyVocaUrl,
-        Long messageContentId) {
+    private List<ButtonDto> createButtonsForMommyVoca(
+        String voiceUrl, String mommyVocaUrl, Long messageLogDetailId) {
         List<ButtonDto> buttons = new java.util.ArrayList<>();
 
         // 1. 발음듣기 버튼
+        String voiceLink = frontBaseUrl + "mommytalk365/" + messageLogDetailId;
         if (voiceUrl != null && !voiceUrl.trim().isEmpty()) {
             buttons.add(new ButtonDto(
-                "1",
                 "WL",
                 "발음듣기 🔈",
-                voiceUrl.trim(),
-                voiceUrl.trim(),
+                voiceLink,
+                voiceLink,
                 null,
                 null
             ));
@@ -558,7 +484,6 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         // 2. 마미보카 버튼
         if (mommyVocaUrl != null && !mommyVocaUrl.trim().isEmpty()) {
             buttons.add(new ButtonDto(
-                "2",
                 "WL",
                 "마미보카 💌",
                 mommyVocaUrl.trim(),
@@ -569,9 +494,8 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         }
 
         // 3. 나만의 문장 만들기 버튼
-        String customSentenceUrl = frontBaseUrl + "mommytalk365/" + messageContentId;
+        String customSentenceUrl = frontBaseUrl + "dashboard";
         buttons.add(new ButtonDto(
-            "3",
             "WL",
             "➕ 나만의 문장 만들기",
             customSentenceUrl,

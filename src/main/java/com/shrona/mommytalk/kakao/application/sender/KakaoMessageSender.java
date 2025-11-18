@@ -15,16 +15,6 @@ public interface KakaoMessageSender {
         List<Long> messageIds, List<ReservationStatus> statusList);
 
     /**
-     * 단일 사용자에게 메시지 전송
-     */
-    void sendSingleMessage(Channel channel, User user, String content);
-
-    /**
-     * 여러 사용자에게 메시지 전송
-     */
-    void sendMultiMessage(Channel channel, List<User> users, String content);
-
-    /**
      * 예약 메시지 전송 (API 레벨 예약)
      */
     void sendScheduledMessage(

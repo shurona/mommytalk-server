@@ -62,3 +62,6 @@ cloudflare:
     bucket-name: "bucket-name"
     endpoint: "https://www.endpoint.com"
     public-url: "https://www.public-url.com"
+
+front:
+  base-url: http://localhost:5174/

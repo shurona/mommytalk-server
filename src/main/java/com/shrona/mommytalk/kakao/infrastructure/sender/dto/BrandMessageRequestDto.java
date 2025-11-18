@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * NHN Cloud Brand Message API 요청 DTO
  * Endpoint: POST /brand-message/v1.0/appkeys/{appkey}/freestyle-messages
- *
+ * <p>
  * 브랜드 메시지 API 특징:
  * - content와 buttons는 최상위 레벨에 위치
  * - recipientList는 전화번호(recipientNo)만 포함
@@ -106,8 +106,6 @@ public record BrandMessageRequestDto(
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record ButtonDto(
-        /** 버튼 순서 */
-        String ordering,
         /** 버튼 타입 (WL: 웹링크, AL: 앱링크, BK: 봇키워드, MD: 메시지전달, BC: 봇채팅, BT: 봇전환, BF: 비즈니스폼) */
         String type,
         /** 버튼 이름 */
