@@ -27,8 +27,8 @@ public record MessageLogDetailResponseDto(
             .builder()
             .id(logDetail.getId())
             .snsId(snsId)
-            .childLevel(logDetail.getUser().getChildLevel())
-            .userLevel(logDetail.getUser().getUserLevel())
+            .childLevel(logDetail.getMessageContent().getChildLevel())
+            .userLevel(logDetail.getMessageContent().getUserLevel())
             .sendStatus(logDetail.getStatus().getStatus())
             .sentAt(logDetail.getSentTime())
             .build();

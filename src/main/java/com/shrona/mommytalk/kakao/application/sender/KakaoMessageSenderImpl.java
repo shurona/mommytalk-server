@@ -205,10 +205,10 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             List<ButtonDto> buttons;
             if (mommyVocaUrl != null && !mommyVocaUrl.trim().isEmpty()) {
                 // MOMMYVOCA: 세로 배치 (발음듣기, 마미보카, 나만의 문장 만들기)
-                buttons = createButtonsForMommyVoca(voiceUrl, mommyVocaUrl, content.getId());
+                buttons = createButtonsForMommyVoca(voiceUrl, mommyVocaUrl, 152L);
             } else {
                 // MOMMYTALK: 가로 배치 (발음듣기, 나만의 문장 만들기)
-                buttons = createButtonsForMommyTalk(voiceUrl, content.getId());
+                buttons = createButtonsForMommyTalk(voiceUrl, 152L);
             }
 
             // 브랜드 메시지는 개인화 미지원이므로 ofMulti 사용 (모든 테스트 유저에게 동일 메시지)
@@ -231,39 +231,6 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             log.error("[Kakao 테스트 메시지 에러] 에러: {}", e.getMessage());
             return false;
         }
-    }
-
-    /**
-     * 응답 로깅 (Brand Message API)
-     */
-    private Boolean logResponse(BrandMessageResponseDto response) {
-        boolean isSuccessful = response.header() != null &&
-            Boolean.TRUE.equals(response.header().isSuccessful());
-
-        int successCount = 0;
-        int failCount = 0;
-
-        if (response.message() != null && response.message().sendResults() != null) {
-            for (BrandMessageResponseDto.SendResult result : response.message().sendResults()) {
-                if (result.resultCode() != null && result.resultCode() == 0) {
-                    successCount++;
-                } else {
-                    failCount++;
-                }
-            }
-        }
-
-        log.info("[Kakao 발송 응답] 성공: {}, 성공 수: {}, 실패 수: {}",
-            isSuccessful,
-            successCount,
-            failCount
-        );
-
-        if (!isSuccessful) {
-            log.warn("[Kakao 발송 실패 상세] {}", response);
-        }
-
-        return isSuccessful;
     }
 
     /**
@@ -422,6 +389,40 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         log.info("[MOMMYVOCA 개인화 전송 완료] 성공: {}, 실패: {}", successCount, failCount);
         return failCount == 0 ? SEND_SUCCESS : SEND_FAIL;
     }
+
+    /**
+     * 응답 로깅 (Brand Message API)
+     */
+    private Boolean logResponse(BrandMessageResponseDto response) {
+        boolean isSuccessful = response.header() != null &&
+            Boolean.TRUE.equals(response.header().isSuccessful());
+
+        int successCount = 0;
+        int failCount = 0;
+
+        if (response.message() != null && response.message().sendResults() != null) {
+            for (BrandMessageResponseDto.SendResult result : response.message().sendResults()) {
+                if (result.resultCode() != null && result.resultCode() == 0) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            }
+        }
+
+        log.info("[Kakao 발송 응답] 성공: {}, 성공 수: {}, 실패 수: {}",
+            isSuccessful,
+            successCount,
+            failCount
+        );
+
+        if (!isSuccessful) {
+            log.warn("[Kakao 발송 실패 상세] {}", response);
+        }
+
+        return isSuccessful;
+    }
+
 
     /**
      * MOMMYTALK용 버튼 생성 (가로 배치)

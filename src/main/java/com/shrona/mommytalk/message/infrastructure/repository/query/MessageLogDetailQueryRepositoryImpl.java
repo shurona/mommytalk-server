@@ -37,8 +37,8 @@ public class MessageLogDetailQueryRepositoryImpl implements
 
         builder.and(messageLogDetail.messageLog.id.eq(messageLogId));
 
-        // 가져온 ID 목록으로 실제 데이터를 로드한다.
         List<MessageLogDetail> fetch = query.selectFrom(messageLogDetail)
+            .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
             .leftJoin(messageLogDetail.user, user)
             .leftJoin(user.lineUser, lineUser)
             .where(builder)

@@ -158,12 +158,10 @@ public class MessageContent extends BaseEntity {
 
         if (childLevel == 1) {
             // 아이 레벨 1이면 아이 링크는 패스
-            return this.content != null && this.getHeaderOneLink() != null
-                && this.getMommyVoca() != null;
+            return this.content != null;
         } else {
             // 4개의 데이터 중 하나라도 비어있으면 승인 불가
-            return this.content != null && this.getHeaderOneLink() != null
-                && this.getHeaderTwoLink() != null && this.getMommyVoca() != null;
+            return this.content != null;
         }
     }
 }
