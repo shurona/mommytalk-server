@@ -48,4 +48,9 @@ public interface MessageLogDetailQueryRepository {
     MessageLogDetail findByChannelAndUserAndContent(
         Long channelId, Long userId, Long messageLogDetailId);
 
+    /**
+     * MessageLogDetail ID 목록으로 상태 일괄 업데이트 (Batch UPDATE)
+     */
+    void updateStatusByIds(List<Long> messageLogDetailIds, ReservationStatus status);
+
 }

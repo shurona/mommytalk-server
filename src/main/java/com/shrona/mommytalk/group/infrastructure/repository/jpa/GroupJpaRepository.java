@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.group.infrastructure.repository.jpa;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.entitlement.domain.Entitlement;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.group.domain.GroupType;
 import java.util.List;
@@ -37,5 +38,14 @@ public interface GroupJpaRepository extends JpaRepository<Group, Long> {
      * 채널에 속한 그룹 목록 조회
      */
     Page<Group> findAllByChannelAndGroupType(Channel channel, GroupType type, Pageable pageable);
+
+    /**
+     * 특정 채널, Entitlement, GroupType으로 그룹 조회
+     */
+    List<Group> findByChannelAndEntitlementAndGroupType(
+        Channel channel,
+        Entitlement entitlement,
+        GroupType groupType
+    );
 
 }

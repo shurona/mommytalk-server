@@ -22,7 +22,7 @@ public class ElevenLabsMedia extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column
+    @Column(length = 1000)
     private String text;
 
     @Column(name = "file_url")

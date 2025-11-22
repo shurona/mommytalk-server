@@ -337,7 +337,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     /**
-     * 새로 추가된 유저들에게 UserEntitlement 자동 생성
+     * 새로 추가된 유저들에게 UserEntitlement 자동 생성 또는 재활성화
      */
     private void createUserEntitlementsForNewUsers(List<UserGroup> newUserGroups, Group group) {
         Entitlement entitlement = group.getEntitlement();
@@ -347,27 +347,70 @@ public class GroupServiceImpl implements GroupService {
         for (UserGroup userGroup : newUserGroups) {
             User user = userGroup.getUser();
 
-            // 이미 UserEntitlement가 있는지 확인 (중복 방지)
-            List<UserEntitlement> existing = userEntitlementQueryRepository
-                .findActiveEntitlementsByType(user.getId(), entitlement.getId(), today);
+            // 해당 유저의 이 Entitlement에 대한 모든 이용권 조회 (상태 무관)
+            List<UserEntitlement> existingList = userEntitlementQueryRepository
+                .findByUserIdAndEntitlementId(user.getId(), entitlement.getId());
 
-            if (existing.isEmpty()) {
-                // UserEntitlement 생성 (ACTIVE, startDate=오늘, endDate=+1년)
+            if (existingList.isEmpty()) {
+                // 1. 이용권이 없으면 새로 생성
                 UserEntitlement userEntitlement = UserEntitlement.createUserEntitlement(
                     user,
                     entitlement,
+                    group.getChannel(),
                     today,
                     oneYearLater
                 );
 
                 userEntitlementJpaRepository.save(userEntitlement);
 
-                log.info("[상품 그룹 추가 - UserEntitlement 자동 생성] userId={}, entitlementId={}, startDate={}, endDate={}",
+                log.info(
+                    "[상품 그룹 추가 - UserEntitlement 자동 생성] userId={}, entitlementId={}, startDate={}, endDate={}",
                     user.getId(), entitlement.getId(), today, oneYearLater);
+
             } else {
-                log.info("[상품 그룹 추가 - UserEntitlement 이미 존재] userId={}, entitlementId={}, 생성 스킵",
-                    user.getId(), entitlement.getId());
+                // 2. 이용권이 있으면 상태 확인
+                UserEntitlement existingEntitlement = existingList.get(0); // 하나만 존재한다고 가정
+
+                if (existingEntitlement.isValid(today)) {
+                    // 활성 상태이고 유효 기간 내 → 스킵
+                    log.info("[상품 그룹 추가 - UserEntitlement 이미 활성] userId={}, entitlementId={}, 스킵",
+                        user.getId(), entitlement.getId());
+                } else {
+                    // 만료되었거나 비활성 → 재활성화
+                    existingEntitlement.reactivate(today, oneYearLater);
+                    userEntitlementJpaRepository.save(existingEntitlement);
+
+                    // 비활성화 그룹(AUTO_ENDED)에서 제거
+                    removeUserFromAutoEndedGroups(group.getChannel(), entitlement, user);
+
+                    log.info(
+                        "[상품 그룹 추가 - UserEntitlement 재활성화] userId={}, entitlementId={}, status={}, startDate={}, endDate={}",
+                        user.getId(), entitlement.getId(), existingEntitlement.getStatus(), today,
+                        oneYearLater);
+                }
             }
+        }
+    }
+
+    /**
+     * AUTO_ENDED 그룹에서 유저 제거 (hard delete)
+     */
+    private void removeUserFromAutoEndedGroups(Channel channel, Entitlement entitlement,
+        User user) {
+        // 같은 채널, 같은 Entitlement의 AUTO_ENDED 그룹 조회
+        List<Group> autoEndedGroups = groupRepository.findByChannelAndEntitlementAndGroupType(
+            channel,
+            entitlement,
+            GroupType.AUTO_ENDED
+        );
+
+        // AUTO_ENDED 그룹에서 해당 유저 hard delete
+        for (Group endedGroup : autoEndedGroups) {
+            userGroupRepository.deleteByUserIdAndGroupId(user.getId(), endedGroup.getId());
+            log.info(
+                "[AUTO_ENDED 그룹 제거] userId={}, groupId={}, groupName={}",
+                user.getId(), endedGroup.getId(), endedGroup.getName()
+            );
         }
     }
 }

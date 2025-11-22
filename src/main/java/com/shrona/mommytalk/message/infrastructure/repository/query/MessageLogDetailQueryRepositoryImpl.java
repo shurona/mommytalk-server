@@ -194,4 +194,17 @@ public class MessageLogDetailQueryRepositoryImpl implements
             .where(builder)
             .fetchOne();
     }
+
+    @Override
+    @Transactional
+    public void updateStatusByIds(List<Long> messageLogDetailIds, ReservationStatus status) {
+        if (messageLogDetailIds == null || messageLogDetailIds.isEmpty()) {
+            return;
+        }
+
+        query.update(messageLogDetail)
+            .set(messageLogDetail.status, status)
+            .where(messageLogDetail.id.in(messageLogDetailIds))
+            .execute();
+    }
 }

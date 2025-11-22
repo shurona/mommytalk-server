@@ -22,6 +22,7 @@ import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQuery
 import com.shrona.mommytalk.user.domain.User;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -82,16 +83,14 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                 .collect(Collectors.groupingBy(mld -> mld.getMessageContent().getId()));
 
             for (Map.Entry<Long, List<MessageLogDetail>> entry : mldListByContentId.entrySet()) {
-                Long messageContentId = entry.getKey();
                 List<MessageLogDetail> contentMldList = entry.getValue();
 
                 // 메시지 로그의 상품 정보가 있는 경우 그에 맞춰서 로직을 수행되게 한다.
-                int sendStatus;
                 switch (messageLog.getEntitlement().getType()) {
                     // 일반 유저
                     case EntitlementType.MOMMYTALK -> {
-                        // 메시지 전송
-                        sendStatus = sendMessageToKakao(
+                        // 메시지 전송 (내부에서 상태 업데이트 완료)
+                        sendMessageToKakao(
                             messageLog.getChannel(),
                             contentMldList,
                             getReserveTimeIfPassed(messageLog)
@@ -99,25 +98,13 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                     }
                     // 마미 보카
                     case EntitlementType.MOMMYVOCA -> {
-                        sendStatus = sendMessageToKakaoWithDiary(
+                        // 메시지 전송 (내부에서 상태 업데이트 완료)
+                        sendMessageToKakaoWithDiary(
                             messageLog.getChannel(),
                             contentMldList,
                             getReserveTimeIfPassed(messageLog)
                         );
                     }
-                    default -> {
-                        sendStatus = -1;
-                    }
-                }
-
-                // 전송 성공 시 메시지 상태 변경 및 sender time 설정
-                if (sendStatus == SEND_SUCCESS) {
-                    // smtId인 MessageLogDetailInfo를 업데이트 해준다.
-                    messageLogDetailQueryRepository.updateStatusByContentId(
-                        messageContentId, messageLog.getId(), COMPLETE);
-                } else if (sendStatus == SEND_FAIL) {
-                    messageLogDetailQueryRepository.updateStatusByContentId(
-                        messageContentId, messageLog.getId(), FAIL);
                 }
             }
         }
@@ -269,8 +256,10 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             .orElse(null);
 
         String requestDate = reserveTime.format(DATE_FORMATTER);
-        int successCount = 0;
-        int failCount = 0;
+
+        // 성공/실패 ID 수집용 리스트
+        List<Long> successIds = new ArrayList<>();
+        List<Long> failIds = new ArrayList<>();
 
         // 브랜드 메시지는 개인화 미지원 -> 수신자별로 개별 API 호출
         for (MessageLogDetail mld : mldList) {
@@ -278,7 +267,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             MessageContent content = mld.getMessageContent();
 
             // {아이이름} 템플릿 변수 치환
-            String childName = user.getChildName() != null ? user.getChildName() : "아이이름";
+            String childName = user.getChildName() != null ? user.getChildName() : "아이는";
             String personalizedContent = content.getContent().replace("{아이이름}", childName);
 
             // MOMMYTALK 버튼 생성 (가로 배치)
@@ -299,22 +288,30 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                 );
 
                 if (logResponse(response)) {
-                    successCount++;
+                    successIds.add(mld.getId());
                 } else {
-                    failCount++;
+                    failIds.add(mld.getId());
                 }
             } catch (RestClientResponseException e) {
                 log.error("[MOMMYTALK 개별 전송 에러] 수신자: {}, 에러: {}",
                     user.getPhoneNumber().getPhoneNumber(), e.getMessage());
-                failCount++;
+                failIds.add(mld.getId());
             }
 
             // Rate limit 방지
             sleepForRateLimit();
         }
 
-        log.info("[MOMMYTALK 개인화 전송 완료] 성공: {}, 실패: {}", successCount, failCount);
-        return failCount == 0 ? SEND_SUCCESS : SEND_FAIL;
+        // Batch 업데이트: 성공/실패 ID 목록으로 상태 변경
+        if (!successIds.isEmpty()) {
+            messageLogDetailQueryRepository.updateStatusByIds(successIds, COMPLETE);
+        }
+        if (!failIds.isEmpty()) {
+            messageLogDetailQueryRepository.updateStatusByIds(failIds, FAIL);
+        }
+
+        log.info("[MOMMYTALK 개인화 전송 완료] 성공: {}, 실패: {}", successIds.size(), failIds.size());
+        return failIds.isEmpty() ? SEND_SUCCESS : SEND_FAIL;
     }
 
     /**
@@ -341,8 +338,10 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         String mommyVocaUrl = firstContent.getMommyVoca();
 
         String requestDate = reserveTime.format(DATE_FORMATTER);
-        int successCount = 0;
-        int failCount = 0;
+
+        // 성공/실패 ID 수집용 리스트
+        List<Long> successIds = new ArrayList<>();
+        List<Long> failIds = new ArrayList<>();
 
         // 브랜드 메시지는 개인화 미지원 -> 수신자별로 개별 API 호출
         for (MessageLogDetail mld : mldList) {
@@ -372,22 +371,30 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                 );
 
                 if (logResponse(response)) {
-                    successCount++;
+                    successIds.add(mld.getId());
                 } else {
-                    failCount++;
+                    failIds.add(mld.getId());
                 }
             } catch (RestClientResponseException e) {
                 log.error("[MOMMYVOCA 개별 전송 에러] 수신자: {}, 에러: {}",
                     user.getPhoneNumber().getPhoneNumber(), e.getMessage());
-                failCount++;
+                failIds.add(mld.getId());
             }
 
             // Rate limit 방지
             sleepForRateLimit();
         }
 
-        log.info("[MOMMYVOCA 개인화 전송 완료] 성공: {}, 실패: {}", successCount, failCount);
-        return failCount == 0 ? SEND_SUCCESS : SEND_FAIL;
+        // Batch 업데이트: 성공/실패 ID 목록으로 상태 변경
+        if (!successIds.isEmpty()) {
+            messageLogDetailQueryRepository.updateStatusByIds(successIds, COMPLETE);
+        }
+        if (!failIds.isEmpty()) {
+            messageLogDetailQueryRepository.updateStatusByIds(failIds, FAIL);
+        }
+
+        log.info("[MOMMYVOCA 개인화 전송 완료] 성공: {}, 실패: {}", successIds.size(), failIds.size());
+        return failIds.isEmpty() ? SEND_SUCCESS : SEND_FAIL;
     }
 
     /**

@@ -54,22 +54,22 @@ public class MessageUtils {
 
         switch (platform) {
             case ChannelPlatform.KAKAO -> {
-                // 메시지 Sender를 Runner로 처리
-                kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
+                // 카카오: 10초 후 비동기 실행
+                Runnable task = () -> kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
                     messageLogList.stream().map(MessageLog::getId).toList(), List.of(PREPARE)
                 );
+                registerSchedule(task, 5L);
+                log.info("[10]초 이후로 [KAKAO] 플랫폼 그룹 전송 실행이 등록되었습니다.");
             }
             case ChannelPlatform.LINE -> {
-                // 메시지 Sender를 Runner로 처리
+                // 라인: 예약 시간 기준 비동기 실행
                 Runnable task = () -> lineMessageSender.sendLineMessageByReservationByMessageIds(
                     messageLogList.stream().map(MessageLog::getId).toList(), List.of(PREPARE)
                 );
                 registerSchedule(task, delaySeconds);
+                log.info("[{}]초 이후로 [LINE] 플랫폼 그룹 전송 실행이 등록되었습니다.", delaySeconds);
             }
-
         }
-
-        log.info("[{}]초 이후로 [{}] 플랫폼 그룹 전송 실행이 등록되었습니다. ", delaySeconds, platform);
     }
 
     /**

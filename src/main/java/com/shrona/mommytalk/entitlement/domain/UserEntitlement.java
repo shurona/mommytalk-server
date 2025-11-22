@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.entitlement.domain;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.Column;
@@ -13,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,7 +29,15 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SQLRestriction(BaseEntity.DEFAULT_CONDITION)
-@Table(name = "user_entitlement")
+@Table(
+    name = "user_entitlement",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_user_entitlement_channel_entitlement_user",
+            columnNames = {"channel_id", "entitlement_id", "user_id"}
+        )
+    }
+)
 public class UserEntitlement extends BaseEntity {
 
     @Id
@@ -41,6 +51,10 @@ public class UserEntitlement extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "entitlement_id", nullable = false)
     private Entitlement entitlement;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "channel_id", nullable = false)
+    private Channel channel;
 
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
@@ -58,12 +72,14 @@ public class UserEntitlement extends BaseEntity {
     public static UserEntitlement createUserEntitlement(
         User user,
         Entitlement entitlement,
+        Channel channel,
         LocalDate startDate,
         LocalDate endDate
     ) {
         UserEntitlement userEntitlement = new UserEntitlement();
         userEntitlement.user = user;
         userEntitlement.entitlement = entitlement;
+        userEntitlement.channel = channel;
         userEntitlement.startDate = startDate;
         userEntitlement.endDate = endDate;
         userEntitlement.status = EntitlementStatus.ACTIVE;
@@ -115,6 +131,15 @@ public class UserEntitlement extends BaseEntity {
         if (newEndDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("종료일은 과거 날짜로 설정할 수 없습니다.");
         }
+        this.endDate = newEndDate;
+    }
+
+    /**
+     * 상품권 재활성화 (만료/비활성 → 활성, 날짜 재설정)
+     */
+    public void reactivate(LocalDate newStartDate, LocalDate newEndDate) {
+        this.status = EntitlementStatus.ACTIVE;
+        this.startDate = newStartDate;
         this.endDate = newEndDate;
     }
 }

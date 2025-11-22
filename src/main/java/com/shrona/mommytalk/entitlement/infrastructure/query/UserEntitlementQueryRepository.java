@@ -35,4 +35,9 @@ public interface UserEntitlementQueryRepository {
         Long entitlementId,
         LocalDate today
     );
+
+    /**
+     * 유저의 특정 Entitlement 타입 이용권 조회 (상태 무관)
+     */
+    List<UserEntitlement> findByUserIdAndEntitlementId(Long userId, Long entitlementId);
 }

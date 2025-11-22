@@ -52,6 +52,12 @@ public class UserSentenceServiceImpl implements UserSentenceService {
         UserSentenceHistory recentHistory = userSentenceHistoryQueryRepository.findRecentHistory(
             userId);
 
+        // 일부 유저의 경우 패스
+        List<Long> passUser = List.of(52L, 152L);
+        if (passUser.contains(userId)) {
+            recentHistory = null;
+        }
+
         // 날짜 기준 하루에 하나만 생성 가능합니다.
         if (recentHistory != null && recentHistory.isPast()) {
             throw new UserException(DAILY_LIMIT_EXCEEDED);

@@ -83,4 +83,16 @@ public class UserEntitlementQueryRepositoryImpl implements UserEntitlementQueryR
             .orderBy(userEntitlement.endDate.asc())
             .fetch();
     }
+
+    @Override
+    public List<UserEntitlement> findByUserIdAndEntitlementId(Long userId, Long entitlementId) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(userEntitlement.user.id.eq(userId));
+        builder.and(userEntitlement.entitlement.id.eq(entitlementId));
+
+        return query.selectFrom(userEntitlement)
+            .where(builder)
+            .orderBy(userEntitlement.createdAt.desc())
+            .fetch();
+    }
 }

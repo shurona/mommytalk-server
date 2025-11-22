@@ -75,6 +75,7 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
         UserEntitlement userEntitlement = UserEntitlement.createUserEntitlement(
             user,
             entitlement,
+            channel,
             requestDto.startDate(),
             requestDto.endDate()
         );

@@ -59,4 +59,11 @@ public interface UserGroupJpaRepository extends JpaRepository<UserGroup, Long> {
     @Modifying
     @Query(value = "DELETE FROM user_group WHERE user_id IN :userIds and group_id = :groupId", nativeQuery = true)
     void deleteAllByUserIdAndGroupId(List<Long> userIds, Long groupId);
+
+    /**
+     * 특정 유저와 그룹 ID로 UserGroup hard delete
+     */
+    @Modifying
+    @Query(value = "DELETE FROM user_group WHERE user_id = :userId AND group_id = :groupId", nativeQuery = true)
+    void deleteByUserIdAndGroupId(Long userId, Long groupId);
 }

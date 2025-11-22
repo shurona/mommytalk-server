@@ -30,11 +30,13 @@ import com.shrona.mommytalk.openai.domain.MessagePrompt;
 import com.shrona.mommytalk.openai.domain.type.PromptType;
 import com.shrona.mommytalk.openai.infrastructure.repository.query.MessagePromptQueryRepository;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +58,7 @@ public class MessageContentServiceImpl implements MessageContentService {
     private final ElevenLabsMediaRepository elevenLabsMediaRepository;
     private final CloudflareService cloudflareService;
     private final OpenAiServiceImpl openAiService;
+    private final Environment environment;
 
     @Override
     public MessageContent findById(Long id) {
@@ -297,6 +300,13 @@ public class MessageContentServiceImpl implements MessageContentService {
     @Override
     public MessageContentResponseDto findContentForUser(Long channelId, Long userId,
         Long messageLogDetailId) {
+
+        // local 환경에서는 userId를 152L로 고정
+        if (Arrays.asList(environment.getActiveProfiles()).contains("local")
+            && messageLogDetailId.equals(152L)) {
+            log.info("테스트 시 강제 조회 설정");
+            userId = 102L;
+        }
 
         // 1. MessageLogDetail 조회 (유저가 받은 메시지인지 확인, Entitlement JOIN 포함)
         MessageLogDetail messageLogDetail = messageLogDetailQueryRepository

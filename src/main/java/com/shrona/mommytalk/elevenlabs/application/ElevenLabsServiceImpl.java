@@ -57,6 +57,8 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
             // R2에 업로드 (파일명: messageContent_{id}_{timestamp}.mp3)
             String fileName = String.format("messageContent_%d_%d.mp3", messageContentId,
                 System.currentTimeMillis());
+
+            generateAudioInLocal(fileName, audioData);
             String publicUrl = cloudflareService.uploadAudioBytes(audioData, fileName);
 
             // 미디어 정보 저장
@@ -75,7 +77,7 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
     /**
      * 로컬 테스트용 저장 로직
      */
-    public void generateAudioInLocal(Long messageContentId, byte[] audioData) {
+    public void generateAudioInLocal(String fileNameInput, byte[] audioData) {
 
         try {
             Path dirPath = Paths.get(elevenlabsConfig.outputDir());
@@ -86,7 +88,7 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
             }
 
             // 파일 저장
-            String fileName = String.format("audio_%d.mp3", messageContentId);
+            String fileName = String.format("audio_%s.mp3", fileNameInput);
             Path filePath = dirPath.resolve(fileName);
             Files.write(filePath, audioData);
 
