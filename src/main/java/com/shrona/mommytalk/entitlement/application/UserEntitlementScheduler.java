@@ -16,13 +16,13 @@ public class UserEntitlementScheduler {
     private final UserEntitlementService userEntitlementService;
 
     /**
-     * 매일 20:00에 만료된 상품권 자동 처리
+     * 매일 자정(00:00 KST)에 만료된 상품권 자동 처리
      * - 만료된 상품권 상태를 EXPIRED로 변경
      * - AUTO_ACTIVE → AUTO_ENDED 그룹 이동
      */
-    @Scheduled(cron = "0 0 20 * * *", zone = "UTC")
+    @Scheduled(cron = "0 0 15 * * *", zone = "UTC")
     public void processExpiredEntitlements() {
-        log.info("=== [스케줄러 시작] 만료된 상품권 자동 처리 (UTC 20:00) ===");
+        log.info("=== [스케줄러 시작] 만료된 상품권 자동 처리 (UTC 15:00 / KST 00:00) ===");
 
         try {
             userEntitlementService.processExpiredEntitlements();

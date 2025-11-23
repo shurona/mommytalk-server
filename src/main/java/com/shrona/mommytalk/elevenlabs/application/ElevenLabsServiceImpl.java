@@ -44,7 +44,7 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
 
             // API 호출
             ResponseEntity<byte[]> response = elevenLabsClient.textToSpeech(
-                elevenlabsConfig.voiceId(),
+                voiceId,
                 request,
                 elevenlabsConfig.apiKey()
             );
