@@ -52,7 +52,7 @@ public record BrandMessageRequestDto(
             buttons,
             true,
             requestDate,
-            List.of(new RecipientDto(recipientNo, null)),
+            List.of(new RecipientDto(recipientNo, "I")),
             null,
             null
         );

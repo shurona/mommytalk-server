@@ -15,6 +15,7 @@ public record UserClientResponseDto(
     String name,
     String childName,
     Boolean onboardingCompleted,
+    String phoneNumber,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -28,6 +29,7 @@ public record UserClientResponseDto(
             .name(user.getName())
             .childName(user.getChildName())
             .onboardingCompleted(OnBoardingStatus.isOnboarding(user.getOnboardingStatus()))
+            .phoneNumber(user.getPhoneNumber().getPhoneNumber())
             .createdAt(user.getCreatedAt())
             .updatedAt(user.getUpdatedAt())
             .build();
