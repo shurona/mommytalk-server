@@ -15,4 +15,9 @@ public interface UserSentenceHistoryQueryRepository {
      */
     List<UserSentenceHistory> findSentenceListByUser(Long userId, Integer year, Integer month);
 
+    /**
+     * 오늘(KST 기준) 생성한 문장 개수 조회
+     */
+    int countTodaySentences(Long userId);
+
 }

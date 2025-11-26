@@ -40,4 +40,9 @@ public interface UserEntitlementQueryRepository {
      * 유저의 특정 Entitlement 타입 이용권 조회 (상태 무관)
      */
     List<UserEntitlement> findByUserIdAndEntitlementId(Long userId, Long entitlementId);
+
+    /**
+     * 특정 채널과 유저에 활성 이용권이 하나라도 있는지 확인
+     */
+    boolean hasActiveEntitlement(Long channelId, Long userId);
 }

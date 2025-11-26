@@ -1,9 +1,11 @@
 package com.shrona.mommytalk.user.application;
 
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.DAILY_LIMIT_EXCEEDED;
+import static com.shrona.mommytalk.user.common.exception.UserErrorCode.NO_ACTIVE_ENTITLEMENT;
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.USER_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.entitlement.infrastructure.query.UserEntitlementQueryRepository;
 import com.shrona.mommytalk.openai.application.OpenAiService;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
 import com.shrona.mommytalk.openai.domain.UserSentenceHistory;
@@ -24,7 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserSentenceServiceImpl implements UserSentenceService {
 
+    private static final int DAILY_SENTENCE_LIMIT = 1;
+
     private final UserJpaRepository userRepository;
+    private final UserEntitlementQueryRepository userEntitlementQueryRepository;
 
     private final UserSentenceHistoryJpaRepository userSentenceHistoryJpaRepository;
     private final UserSentenceHistoryQueryRepository userSentenceHistoryQueryRepository;
@@ -49,17 +54,19 @@ public class UserSentenceServiceImpl implements UserSentenceService {
         User userInfo = userRepository.findById(userId)
             .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        UserSentenceHistory recentHistory = userSentenceHistoryQueryRepository.findRecentHistory(
-            userId);
+        // 이용권 체크: 채널과 유저 기준으로 활성 이용권이 하나라도 있는지 확인
+        boolean hasEntitlement = userEntitlementQueryRepository.hasActiveEntitlement(
+            channel.getId(), userId);
 
-        // 일부 유저의 경우 패스
-        List<Long> passUser = List.of(52L, 152L);
-        if (passUser.contains(userId)) {
-            recentHistory = null;
+        if (!hasEntitlement) {
+            throw new UserException(NO_ACTIVE_ENTITLEMENT);
         }
 
-        // 날짜 기준 하루에 하나만 생성 가능합니다.
-        if (recentHistory != null && recentHistory.isPast()) {
+        // 일일 생성 제한 체크
+        int todayCount = userSentenceHistoryQueryRepository.countTodaySentences(userId);
+        int limit = "SPC".equals(userInfo.getDescription()) ? 30 : DAILY_SENTENCE_LIMIT;
+
+        if (todayCount >= limit) {
             throw new UserException(DAILY_LIMIT_EXCEEDED);
         }
 

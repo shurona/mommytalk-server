@@ -12,6 +12,7 @@ public enum UserErrorCode {
     JWT_TOKEN_INVALID(HttpStatus.BAD_REQUEST, "잘못된 JWT 토큰 정보입니다."),
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "유저 정보가 없습니다."),
     DAILY_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "오늘은 이미 문장을 생성하셨습니다. 내일 다시 시도해주세요"),
+    NO_ACTIVE_ENTITLEMENT(HttpStatus.FORBIDDEN, "마미톡잉글리시 프로그램 구매 시 사용이 가능해요. 마미톡잉글리시 홈페이지에서 프로그램을 구매해 주세요"),
     GENERATE_SENTENCE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "문장 생성 중 오류가 발생하였습니다."),
 
     DUPLICATE_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "중복 휴대전화 번호 입력입니다."),

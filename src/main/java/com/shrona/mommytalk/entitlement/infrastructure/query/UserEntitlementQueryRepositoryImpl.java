@@ -95,4 +95,19 @@ public class UserEntitlementQueryRepositoryImpl implements UserEntitlementQueryR
             .orderBy(userEntitlement.createdAt.desc())
             .fetch();
     }
+
+    @Override
+    public boolean hasActiveEntitlement(Long channelId, Long userId) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(userEntitlement.channel.id.eq(channelId));
+        builder.and(userEntitlement.user.id.eq(userId));
+        builder.and(userEntitlement.status.eq(EntitlementStatus.ACTIVE));
+
+        Integer count = query.selectOne()
+            .from(userEntitlement)
+            .where(builder)
+            .fetchFirst();
+
+        return count != null;
+    }
 }
