@@ -58,7 +58,7 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
             String fileName = String.format("messageContent_%d_%d.mp3", messageContentId,
                 System.currentTimeMillis());
 
-            generateAudioInLocal(fileName, audioData);
+//            generateAudioInLocal(fileName, audioData);
             String publicUrl = cloudflareService.uploadAudioBytes(audioData, fileName);
 
             // 미디어 정보 저장
