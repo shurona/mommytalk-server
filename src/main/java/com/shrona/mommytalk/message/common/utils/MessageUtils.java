@@ -38,6 +38,25 @@ public class MessageUtils {
     }
 
     /**
+     * 예약 시간 기준 N분 전 스케줄 실행 시간을 계산한다.
+     * 만약 N분 전 시간이 현재보다 이전이면 최소 1초 후 실행하도록 반환한다.
+     *
+     * @param reserveTime 원래 예약 시간 (UTC)
+     * @param minutesBefore 몇 분 전에 실행할지 (예: 30)
+     * @return 스케줄 실행까지 대기할 초 (최소 1초)
+     */
+    public long calculateScheduleDelayBeforeReserve(LocalDateTime reserveTime, int minutesBefore) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime scheduleTime = reserveTime.minusMinutes(minutesBefore);
+
+        Duration duration = Duration.between(now, scheduleTime);
+        long delaySeconds = duration.getSeconds();
+
+        // 이미 스케줄 시간이 지났으면 최소 1초 후 실행
+        return Math.max(1L, delaySeconds);
+    }
+
+    /**
      * 여러 전송을 스케쥴로 등록하는 메소드
      */
     @Transactional
@@ -49,20 +68,21 @@ public class MessageUtils {
 
         ChannelPlatform platform = messageLogList.getFirst().getChannel().getChannelPlatform();
 
-        // 예약 시간 계산
-        long delaySeconds = calculateDelaySeconds(LocalDateTime.now(), reserveTime);
-
         switch (platform) {
             case ChannelPlatform.KAKAO -> {
-                // 카카오: 10초 후 비동기 실행
+                // 카카오: 예약 시간 30분 전에 실행 (이미 지났으면 1초 후)
+                long delaySeconds = calculateScheduleDelayBeforeReserve(reserveTime, 30);
+
                 Runnable task = () -> kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
                     messageLogList.stream().map(MessageLog::getId).toList(), List.of(PREPARE)
                 );
-                registerSchedule(task, 5L);
-                log.info("[10]초 이후로 [KAKAO] 플랫폼 그룹 전송 실행이 등록되었습니다.");
+                registerSchedule(task, delaySeconds);
+                log.info("[{}]초 이후로 [KAKAO] 플랫폼 그룹 전송 실행이 등록되었습니다. (예약시간 30분 전)", delaySeconds);
             }
             case ChannelPlatform.LINE -> {
                 // 라인: 예약 시간 기준 비동기 실행
+                long delaySeconds = calculateDelaySeconds(LocalDateTime.now(), reserveTime);
+
                 Runnable task = () -> lineMessageSender.sendLineMessageByReservationByMessageIds(
                     messageLogList.stream().map(MessageLog::getId).toList(), List.of(PREPARE)
                 );
