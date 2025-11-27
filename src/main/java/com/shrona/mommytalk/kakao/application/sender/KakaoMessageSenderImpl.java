@@ -198,11 +198,13 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
                 buttons = createButtonsForMommyTalk(voiceUrl, 152L);
             }
 
+            String personalizedContent = content.getContent().replace("{아이이름}", "아이는");
+
             // 브랜드 메시지는 개인화 미지원이므로 ofMulti 사용 (모든 테스트 유저에게 동일 메시지)
             BrandMessageRequestDto requestBody = BrandMessageRequestDto.ofMulti(
                 senderKey,
                 testPhoneNumbers,
-                content.getContent(),
+                personalizedContent,
                 buttons,
                 null  // 즉시 전송
             );
@@ -349,7 +351,7 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             MessageContent content = mld.getMessageContent();
 
             // {아이이름} 템플릿 변수 치환
-            String childName = user.getChildName() != null ? user.getChildName() : "아이이름";
+            String childName = user.getChildName() != null ? user.getChildName() : "아이는";
             String personalizedContent = content.getContent().replace("{아이이름}", childName);
 
             // MOMMYVOCA 버튼 생성 (세로 배치)
