@@ -21,6 +21,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -69,6 +70,9 @@ public class User extends BaseEntity {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "add_method")
     private AddUserMethod addMethod;
+
+    @Column(name = "last_login_date")
+    private LocalDateTime lastLoginDate;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "line_user_id")
@@ -178,6 +182,13 @@ public class User extends BaseEntity {
 
     public void completeOnboarding() {
         this.onboardingStatus = OnBoardingStatus.TRUE;
+    }
+
+    /**
+     * 마지막 로그인 시간을 현재 시간(UTC)으로 업데이트
+     */
+    public void updateLastLoginDate() {
+        this.lastLoginDate = LocalDateTime.now();
     }
 
 }

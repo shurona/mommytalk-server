@@ -92,6 +92,9 @@ public class KakaoAuthService {
             kakaoUserInfo = channelKakaoUser.getKakaoUser();
         }
 
+        // 로그인 시간 업데이트
+        kakaoUserInfo.getUser().updateLastLoginDate();
+
         String token = jwtUtils.createToken(kakaoUserInfo.getUser().getId(), UserRole.USER);
 
         // 3. 유저 조회 및 생성 로직은 호출하는 쪽에서 처리
