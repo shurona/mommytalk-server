@@ -86,6 +86,9 @@ public class LineAuthService {
             return userRepository.save(newUser);
         });
 
+        // 로그인 시간 업데이트
+        user.updateLastLoginDate();
+
         String token = jwtUtils.createToken(user.getId(), UserRole.USER);
 
         return UserAuthResponseDto.of(

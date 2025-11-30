@@ -128,13 +128,14 @@ public class GroupRestController {
      * 그룹에 속한 유저 멤버 목록 조회
      */
     @GetMapping("/{groupId}/members")
-    public ApiResponse<PageResponseDto<?>> findUserGroupList(
+    public ApiResponse<PageResponseDto<?>> findUserGroupMemberList(
         @PathVariable("channelId") Long channelId,
         @PathVariable("groupId") Long groupId,
         @RequestParam(required = false, defaultValue = "10") Integer size,
         @RequestParam(required = false, defaultValue = "0") Integer page,
         @RequestParam(defaultValue = "DATE") String sort,
-        @RequestParam(defaultValue = "ASC") String direction
+        @RequestParam(defaultValue = "ASC") String direction,
+        @RequestParam(value = "search", required = false) String searchToken
     ) {
         Sort sortInfo =
             direction.equalsIgnoreCase("DESC") ?
@@ -144,14 +145,15 @@ public class GroupRestController {
 
         Group groupInfo = groupService.findGroupById(groupId, false);
         Page<UserGroup> userGroupWithPage = groupService.findUserGroupByGroupId(groupInfo,
-            pageRequest);
+            pageRequest, searchToken);
 
         List<UserGroupMemberResponseDto> list = userGroupWithPage.stream()
             .map((ug) -> UserGroupMemberResponseDto.of(ug.getUser(), ug)).toList();
 
         return ApiResponse.success(PageResponseDto.from(
-            list, userGroupWithPage.getTotalPages(),
+            list,
             userGroupWithPage.getNumber(),
+            userGroupWithPage.getSize(),
             userGroupWithPage.getTotalElements(),
             userGroupWithPage.getTotalPages()
         ));

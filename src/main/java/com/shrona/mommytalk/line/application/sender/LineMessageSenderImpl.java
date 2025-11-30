@@ -18,6 +18,7 @@ import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.ButtonTypeDto;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.ContentType;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.LineFlexMessageRequestDto;
 import com.shrona.mommytalk.line.infrastructure.sender.dto.flex.TextContentDto;
+import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
@@ -28,6 +29,7 @@ import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQuery
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -146,8 +148,12 @@ public class LineMessageSenderImpl implements LineMessageSender {
             LineMessageMulticastRequestBody requestBody;
 
             // 헤더링크나 푸터링크가 있으면 Flex 메시지로 전송
-            String headerOne = content.getHeaderOneLink().getFileUrl();
-            String headerTwo = content.getHeaderTwoLink().getFileUrl();
+            String headerOne = Optional.ofNullable(content.getHeaderOneLink())
+                .map(ElevenLabsMedia::getFileUrl)
+                .orElse(null);
+            String headerTwo = Optional.ofNullable(content.getHeaderTwoLink())
+                .map(ElevenLabsMedia::getFileUrl)
+                .orElse(null);
             String diaryUrl = content.getDiaryUrl();
 
             requestBody = LineMessageMulticastRequestBody.ofFlex(lineIdList,
@@ -202,8 +208,12 @@ public class LineMessageSenderImpl implements LineMessageSender {
                 LineMessageMulticastRequestBody requestBody;
 
                 // 헤더링크나 푸터링크가 있으면 Flex 메시지로 전송
-                String headerOne = content.getHeaderOneLink().getFileUrl();
-                String headerTwo = content.getHeaderTwoLink().getFileUrl();
+                String headerOne = Optional.ofNullable(content.getHeaderOneLink())
+                    .map(ElevenLabsMedia::getFileUrl)
+                    .orElse(null);
+                String headerTwo = Optional.ofNullable(content.getHeaderTwoLink())
+                    .map(ElevenLabsMedia::getFileUrl)
+                    .orElse(null);
 
                 requestBody = LineMessageMulticastRequestBody.ofFlex(subList,
                     createBubbleObj(content.getContent(), headerOne, headerTwo, null));
@@ -249,8 +259,12 @@ public class LineMessageSenderImpl implements LineMessageSender {
                 LineMessageMulticastRequestBody requestBody;
 
                 // 헤더링크나 푸터링크가 있으면 Flex 메시지로 전송
-                String headerOne = content.getHeaderOneLink().getFileUrl();
-                String headerTwo = content.getHeaderTwoLink().getFileUrl();
+                String headerOne = Optional.ofNullable(content.getHeaderOneLink())
+                    .map(ElevenLabsMedia::getFileUrl)
+                    .orElse(null);
+                String headerTwo = Optional.ofNullable(content.getHeaderTwoLink())
+                    .map(ElevenLabsMedia::getFileUrl)
+                    .orElse(null);
                 String bottomLink = content.getDiaryUrl();
 
                 requestBody = LineMessageMulticastRequestBody.ofFlex(subList,

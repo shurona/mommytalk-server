@@ -1,10 +1,12 @@
 package com.shrona.mommytalk.openai.application;
 
-import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_PROMPT_NOT_EXIST;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.REGISTERED_MESSAGE_PROMPT;
+import static com.shrona.mommytalk.openai.common.exception.PromptErrorCode.MESSAGE_PROMPT_NOT_FOUND;
+import static com.shrona.mommytalk.openai.common.exception.PromptErrorCode.PROMPT_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.message.common.exception.MessageException;
+import com.shrona.mommytalk.openai.common.exception.PromptException;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
 import com.shrona.mommytalk.openai.domain.type.PromptType;
 import com.shrona.mommytalk.openai.infrastructure.repository.jpa.MessagePromptJpaRepository;
@@ -28,12 +30,13 @@ public class PromptServiceImpl implements PromptService {
     public MessagePrompt findMessagePromptList(Channel channel) {
 
         return messagePromptRepository.findByChannel(channel)
-            .orElseThrow(() -> new MessageException(MESSAGE_PROMPT_NOT_EXIST));
+            .orElseThrow(() -> new PromptException(MESSAGE_PROMPT_NOT_FOUND));
     }
 
     @Override
     public MessagePrompt findById(Long promptId) {
-        return messagePromptRepository.findById(promptId).orElseThrow();
+        return messagePromptRepository.findById(promptId)
+            .orElseThrow(() -> new PromptException(PROMPT_NOT_FOUND));
     }
 
     @Transactional
@@ -56,7 +59,8 @@ public class PromptServiceImpl implements PromptService {
     @Transactional
     public Long updatePromptInfo(Channel channel, Long promptId, String label, String prompt) {
 
-        MessagePrompt messagePrompt = messagePromptRepository.findById(promptId).orElseThrow();
+        MessagePrompt messagePrompt = messagePromptRepository.findById(promptId)
+            .orElseThrow(() -> new PromptException(PROMPT_NOT_FOUND));
         messagePrompt.updateWhenRegister(
             prompt, label
         );
@@ -67,7 +71,8 @@ public class PromptServiceImpl implements PromptService {
     @Transactional
     public Long registerPromptInfo(Channel channel, Long promptId) {
 
-        MessagePrompt messagePrompt = messagePromptRepository.findById(promptId).orElseThrow();
+        MessagePrompt messagePrompt = messagePromptRepository.findById(promptId)
+            .orElseThrow(() -> new PromptException(PROMPT_NOT_FOUND));
 
         // 만약 현재 수정되는 것이 선택된 것이 아니면 기존 프롬프트를 비활성화 한다.
         if (!messagePrompt.getSelected()) {
@@ -81,7 +86,8 @@ public class PromptServiceImpl implements PromptService {
     @Transactional
     public Long deletePrompt(Long promptId) {
 
-        MessagePrompt messagePrompt = messagePromptRepository.findById(promptId).orElseThrow();
+        MessagePrompt messagePrompt = messagePromptRepository.findById(promptId)
+            .orElseThrow(() -> new PromptException(PROMPT_NOT_FOUND));
 
         if (messagePrompt.getIsDeleted()) {
             throw new MessageException(REGISTERED_MESSAGE_PROMPT);

@@ -264,7 +264,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
         int prepareCount = 0;
         int successCount = 0;
         int failCount = 0;
-        int cancelCount;
+        int cancelCount = 0;
 
         MessageLogData(Long id, String theme,
             LocalDateTime createdAt,
@@ -289,10 +289,12 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
         }
 
         /**
-         * 전체 상태 계산 (우선순위: PREPARE > FAIL > COMPLETE)
+         * 전체 상태 계산 (우선순위: CANCEL > PREPARE > FAIL > COMPLETE)
          */
         String calculateOverallStatus() {
-            if (prepareCount > 0) {
+            if (cancelCount > 0) {
+                return "CANCEL";
+            } else if (prepareCount > 0) {
                 return "PREPARE";
             } else if (failCount > 0) {
                 return "FAIL";
