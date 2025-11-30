@@ -142,7 +142,7 @@ public class GroupMvcController {
             List.of(groupInfo.getId()), ChannelPlatform.LINE);
 
         Page<UserGroup> userGroupPage = groupService.findUserGroupByGroupId(groupInfo,
-            PageRequest.of(pageNumber, 10, Sort.by(Order.asc("id"))));
+            PageRequest.of(pageNumber, 10, Sort.by(Order.asc("id"))), null);
 
         // groupInfo
         model.addAttribute("group", GroupForm.of(groupInfo,

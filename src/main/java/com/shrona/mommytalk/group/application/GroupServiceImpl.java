@@ -51,6 +51,7 @@ public class GroupServiceImpl implements GroupService {
 
     private final GroupQueryRepository groupQueryRepository;
     private final UserEntitlementQueryRepository userEntitlementQueryRepository;
+    private final com.shrona.mommytalk.group.infrastructure.repository.query.UserGroupQueryRepository userGroupQueryRepository;
 
     // service
     private final UserService userService;
@@ -93,8 +94,8 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable) {
-        return userGroupRepository.findAllByGroupId(group, pageable);
+    public Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable, String searchToken) {
+        return userGroupQueryRepository.findByGroupIdWithPaging(group, pageable, searchToken);
     }
 
     @Override

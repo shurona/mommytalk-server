@@ -37,7 +37,7 @@ public interface GroupService {
     /**
      * 그룹에 해당하는 유저 그룹 목록 조회(페이징 정보 추가)
      */
-    Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable);
+    Page<UserGroup> findUserGroupByGroupId(Group group, Pageable pageable, String searchToken);
 
     /**
      * 그룹 아이디에 해당하는 라인 유저 아이디 목록 조회
