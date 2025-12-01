@@ -45,4 +45,14 @@ public interface UserEntitlementQueryRepository {
      * 특정 채널과 유저에 활성 이용권이 하나라도 있는지 확인
      */
     boolean hasActiveEntitlement(Long channelId, Long userId);
+
+    /**
+     * 휴대전화 번호와 EntitlementId로 UserEntitlement 날짜 대량 업데이트
+     */
+    int bulkUpdateDatesByPhoneNumberAndEntitlement(
+        String phoneNumber,
+        Long entitlementId,
+        LocalDate startDate,
+        LocalDate endDate
+    );
 }

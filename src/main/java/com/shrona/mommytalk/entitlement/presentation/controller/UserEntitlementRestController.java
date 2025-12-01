@@ -4,6 +4,7 @@ import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.entitlement.application.UserEntitlementService;
 import com.shrona.mommytalk.entitlement.domain.UserEntitlement;
 import com.shrona.mommytalk.entitlement.presentation.dtos.request.AddUserEntitlementRequestDto;
+import com.shrona.mommytalk.entitlement.presentation.dtos.request.BulkUpdateUserEntitlementRequestDto;
 import com.shrona.mommytalk.entitlement.presentation.dtos.request.UpdateUserEntitlementRequestDto;
 import com.shrona.mommytalk.entitlement.presentation.dtos.response.UserEntitlementResponseDto;
 import jakarta.validation.Valid;
@@ -73,5 +74,22 @@ public class UserEntitlementRestController {
             userEntitlementService.getUserEntitlements(channelId, userId);
 
         return ApiResponse.success(entitlements);
+    }
+
+    /**
+     * 휴대전화 번호로 UserEntitlement 날짜 대량 업데이트
+     */
+    @PatchMapping("/entitlements/{entitlementId}/users/bulk-update")
+    public ApiResponse<String> bulkUpdateUserEntitlementDates(
+        @PathVariable Long channelId,
+        @PathVariable Long entitlementId,
+        @Valid @RequestBody List<BulkUpdateUserEntitlementRequestDto> requests
+    ) {
+        log.info("[UserEntitlement 대량 업데이트 요청] channelId={}, entitlementId={}, count={}",
+            channelId, entitlementId, requests.size());
+
+        userEntitlementService.bulkUpdateUserEntitlementDates(entitlementId, requests);
+
+        return ApiResponse.success("success");
     }
 }

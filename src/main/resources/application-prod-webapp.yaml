@@ -9,3 +9,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+  task:
+    scheduling:
+      enabled: false  # webapp에서는 스케줄러 비활성화
