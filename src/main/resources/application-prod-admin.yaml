@@ -1,0 +1,14 @@
+# production은 다른 포트 사용
+server:
+  port: 19100
+  servlet:
+    session:
+      tracking-modes: cookie
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+  task:
+    scheduling:
+      enabled: true  # admin에서는 스케줄러 활성화

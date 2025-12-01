@@ -16,6 +16,7 @@ import com.shrona.mommytalk.entitlement.infrastructure.jpa.EntitlementJpaReposit
 import com.shrona.mommytalk.entitlement.infrastructure.jpa.UserEntitlementJpaRepository;
 import com.shrona.mommytalk.entitlement.infrastructure.query.UserEntitlementQueryRepository;
 import com.shrona.mommytalk.entitlement.presentation.dtos.request.AddUserEntitlementRequestDto;
+import com.shrona.mommytalk.entitlement.presentation.dtos.request.BulkUpdateUserEntitlementRequestDto;
 import com.shrona.mommytalk.entitlement.presentation.dtos.request.UpdateUserEntitlementRequestDto;
 import com.shrona.mommytalk.entitlement.presentation.dtos.response.UserEntitlementResponseDto;
 import com.shrona.mommytalk.group.domain.Group;
@@ -340,5 +341,31 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
 
         UserGroup newUserGroup = UserGroup.createUserGroup(user, autoActiveGroup);
         userGroupJpaRepository.save(newUserGroup);
+    }
+
+    @Override
+    @Transactional
+    public void bulkUpdateUserEntitlementDates(Long entitlementId, List<BulkUpdateUserEntitlementRequestDto> requests) {
+        int totalUpdated = 0;
+        int totalSkipped = 0;
+
+        for (BulkUpdateUserEntitlementRequestDto request : requests) {
+            int updated = userEntitlementQueryRepository.bulkUpdateDatesByPhoneNumberAndEntitlement(
+                request.phoneNumber(),
+                entitlementId,
+                request.startDate(),
+                request.endDate()
+            );
+
+            if (updated > 0) {
+                totalUpdated += updated;
+            } else {
+                totalSkipped++;
+                log.warn("[UserEntitlement 대량 업데이트 스킵] 휴대전화={}, entitlementId={}",
+                    request.phoneNumber(), entitlementId);
+            }
+        }
+
+        log.info("[UserEntitlement 대량 업데이트 완료] 업데이트={}, 스킵={}", totalUpdated, totalSkipped);
     }
 }

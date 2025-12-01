@@ -2,6 +2,7 @@ package com.shrona.mommytalk.entitlement.application;
 
 import com.shrona.mommytalk.entitlement.domain.UserEntitlement;
 import com.shrona.mommytalk.entitlement.presentation.dtos.request.AddUserEntitlementRequestDto;
+import com.shrona.mommytalk.entitlement.presentation.dtos.request.BulkUpdateUserEntitlementRequestDto;
 import com.shrona.mommytalk.entitlement.presentation.dtos.request.UpdateUserEntitlementRequestDto;
 import com.shrona.mommytalk.entitlement.presentation.dtos.response.UserEntitlementResponseDto;
 import java.util.List;
@@ -27,4 +28,9 @@ public interface UserEntitlementService {
      * 만료된 상품권 처리 (스케줄러용)
      */
     void processExpiredEntitlements();
+
+    /**
+     * 휴대전화 번호로 UserEntitlement 날짜 대량 업데이트
+     */
+    void bulkUpdateUserEntitlementDates(Long entitlementId, List<BulkUpdateUserEntitlementRequestDto> requests);
 }

@@ -110,4 +110,23 @@ public class UserEntitlementQueryRepositoryImpl implements UserEntitlementQueryR
 
         return count != null;
     }
+
+    @Override
+    public int bulkUpdateDatesByPhoneNumberAndEntitlement(
+        String phoneNumber,
+        Long entitlementId,
+        LocalDate startDate,
+        LocalDate endDate
+    ) {
+        long updatedCount = query.update(userEntitlement)
+            .set(userEntitlement.startDate, startDate)
+            .set(userEntitlement.endDate, endDate)
+            .where(
+                userEntitlement.user.phoneNumber.phoneNumber.eq(phoneNumber)
+                    .and(userEntitlement.entitlement.id.eq(entitlementId))
+            )
+            .execute();
+
+        return (int) updatedCount;
+    }
 }
