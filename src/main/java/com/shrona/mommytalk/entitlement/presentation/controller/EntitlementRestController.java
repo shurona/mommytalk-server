@@ -33,7 +33,6 @@ public class EntitlementRestController {
         @PathVariable("channelId") Long channelId,
         @Valid @RequestBody CreateEntitlementRequestDto requestDto
     ) {
-        log.info("[상품 생성 요청] name={}, type={}", requestDto.name(), requestDto.type());
 
         Entitlement entitlement = entitlementService.createEntitlement(requestDto);
 
@@ -47,7 +46,7 @@ public class EntitlementRestController {
     public ApiResponse<List<EntitlementListResponseDto>> findEntitlementList(
         @PathVariable("channelId") Long channelId
     ) {
-        
+
         List<Entitlement> entitlements = entitlementService.findAllEntitlements();
 
         List<EntitlementListResponseDto> result = entitlements.stream()
