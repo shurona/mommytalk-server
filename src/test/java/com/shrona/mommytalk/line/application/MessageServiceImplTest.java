@@ -73,10 +73,12 @@ class MessageServiceImplTest {
     private Group groupInfo;
     private MessageType mt;
     private Entitlement entitlement;
-    private LocalDate currentDate = LocalDate.now();
+    private LocalDate currentDate;
 
     @BeforeEach
     public void beforeEach() {
+        // 테스트마다 현재 날짜를 새로 설정
+        currentDate = LocalDate.now();
 
         entitlement = entitlementJpaRepository.save(
             Entitlement.createEntitlement("마미톡", EntitlementType.MOMMYTALK));
@@ -84,8 +86,12 @@ class MessageServiceImplTest {
         channel = channelRepository.save(Channel.createChannel("이름", "설명"));
         channel2 = channelRepository.save(Channel.createChannel("이름2", "설명"));
         mt = messageTypeService.createMessageType("타이틀", "예시 포맷", currentDate, channel);
+        // 전날 날짜로도 MessageType 생성 (reserveTime.minusHours(3) 대응)
+        messageTypeService.createMessageType("전날 타이틀", "예시 포맷", currentDate.minusDays(1), channel);
 
         MessageType mt2 = messageTypeService.createMessageType("두번째", "예시", currentDate, channel2);
+        // channel2 전날 날짜용 MessageType
+        messageTypeService.createMessageType("두번째 전날", "예시", currentDate.minusDays(1), channel2);
 
         Group beforeSave = Group.createGroup(channel, "name", "description");
         beforeSave.updateGroupEntitlement(entitlement);
@@ -213,7 +219,7 @@ class MessageServiceImplTest {
         // message 전달은 mocking
         doNothing().when(messageUtils).registerTaskSchedule(anyList(), any(LocalDateTime.class));
 
-        LocalDateTime reserveTime = LocalDateTime.now();
+        LocalDateTime reserveTime = currentDate.atStartOfDay();
         String content = "content";
 
         List<User> userList = saveUserAndGetUsers("1234", 1, 1);
