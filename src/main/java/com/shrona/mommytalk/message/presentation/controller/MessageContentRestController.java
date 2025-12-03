@@ -13,13 +13,16 @@ import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.message.application.MessageContentService;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentAudioResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.UpdateContentResponseDto;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -163,5 +166,24 @@ public class MessageContentRestController {
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         return messageContentService.getContentStatus(channelId, date);
+    }
+
+    /**
+     * 레거시 데이터 벌크 임포트 (userLevel=2, childLevel=2 고정)
+     */
+    @PostMapping("/bulk-import")
+    public ApiResponse<String> bulkImportLegacyData(
+        @PathVariable Long channelId,
+        @Valid @RequestBody List<BulkImportMessageRequestDto> requests
+    ) {
+        log.info("[레거시 데이터 임포트 API 호출] channelId={}, 데이터 개수={}",
+            channelId, requests.size());
+
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
+
+        messageContentService.bulkImportLegacyData(channelInfo, requests);
+
+        return ApiResponse.success("총 " + requests.size() + "건의 데이터가 임포트되었습니다.");
     }
 }
