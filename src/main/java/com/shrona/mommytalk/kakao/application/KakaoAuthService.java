@@ -18,6 +18,8 @@ import com.shrona.mommytalk.kakao.infrastructure.sender.KakaoAuthClient;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.KakaoTokenResponse;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.KakaoUserInfoResponse;
 import com.shrona.mommytalk.user.application.UserService;
+import com.shrona.mommytalk.user.common.exception.UserErrorCode;
+import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.UserRole;
 import com.shrona.mommytalk.user.domain.type.OnBoardingStatus;
@@ -78,18 +80,25 @@ public class KakaoAuthService {
 
         KakaoUser kakaoUserInfo = checkExistUser(userInfo);
 
-        // 카카오 유저가 없으면 새로 생성해준다
-        if (kakaoUserInfo == null) {
+        try {
+            // 카카오 유저가 없으면 새로 생성해준다
+            if (kakaoUserInfo == null) {
 
-            List<User> userList = userService.findOrCreateUsersByPhoneNumbers(
-                List.of(convertPhoneNumber(userInfo.getPhoneNumber())));
+                List<User> userList = userService.findOrCreateUsersByPhoneNumbers(
+                    List.of(convertPhoneNumber(userInfo.getPhoneNumber())));
 
-            ChannelKakaoUser channelKakaoUser = kakaoService.upsertChannelKakaoUser(
-                channel,
-                userList.getFirst(),
-                userInfo.id().toString());
+                ChannelKakaoUser channelKakaoUser = kakaoService.upsertChannelKakaoUser(
+                    channel,
+                    userList.getFirst(),
+                    userInfo.id().toString());
 
-            kakaoUserInfo = channelKakaoUser.getKakaoUser();
+                kakaoUserInfo = channelKakaoUser.getKakaoUser();
+            }
+        } catch (Exception e) {
+            log.error("카카오 유저 생성 중 오류 발생\n카카오 유저 아이디 : {}, 카카오 아이디 : {}, 휴대 전화: {}, 변환 번호 : {}",
+                userInfo.id(), userInfo.getKakaoId(), userInfo.getPhoneNumber(),
+                convertPhoneNumber(userInfo.getPhoneNumber()));
+            throw new UserException(UserErrorCode.INTERNAL_SERVER_EXCEPTION);
         }
 
         // 로그인 시간 업데이트

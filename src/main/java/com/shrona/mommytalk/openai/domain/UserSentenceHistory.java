@@ -11,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,7 +45,7 @@ public class UserSentenceHistory extends BaseEntity {
 
         userSentenceHistory.user = user;
         userSentenceHistory.sentence = sentence;
-        userSentenceHistory.generateDate = LocalDate.now();
+        userSentenceHistory.generateDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         return userSentenceHistory;
     }

@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,7 +65,6 @@ public class MessageLogRestController {
         @PathVariable("channelId") Long channelId,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size
-//        @RequestParam
     ) {
 
         // 페이징 설정 (기본 20개, createdAt 내림차순은 QueryDSL에서 처리)
@@ -219,6 +219,56 @@ public class MessageLogRestController {
         messageService.cancelMessage(messageId);
 
         return ApiResponse.success(true);
+    }
+
+    /**
+     * MessageLog 대량 생성 (레거시 데이터용, MessageLogDetail 없이)
+     */
+    @PostMapping("/legacy")
+    public ApiResponse<List<Long>> createLegacyMessageLogs(
+        @PathVariable("channelId") Long channelId,
+        @RequestBody List<ReserveMessageRequestDto> requests
+    ) {
+        log.info("[레거시 MessageLog 대량 생성 API 호출] channelId={}, 요청 개수={}",
+            channelId, requests.size());
+
+        // 1. 채널 정보 조회
+        Channel channel = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(ChannelErrorCode.CHANNEL_NOT_FOUND));
+
+        List<Long> messageLogIds = new ArrayList<>();
+
+        for (ReserveMessageRequestDto requestDto : requests) {
+            // 2. ZonedDateTime → LocalDateTime 변환
+            ZonedDateTime serverDateTime = requestDto.deliveryTime()
+                .withZoneSameInstant(ZoneId.systemDefault());
+            LocalDateTime localDateTime = serverDateTime.toLocalDateTime();
+
+            // 3. includeGroupId 검증
+            if (requestDto.includeGroupId() == null) {
+                log.warn("[includeGroupId 누락] deliveryDate={}", requestDto.deliveryDate());
+                continue;
+            }
+
+            // 4. MessageLog만 생성 (MessageLogDetail 없이)
+            try {
+                MessageLog messageLog = messageService.createMessageLogOnly(
+                    channel,
+                    requestDto.includeGroupId(),
+                    localDateTime
+                );
+                messageLogIds.add(messageLog.getId());
+                log.info("[MessageLog 생성 완료] messageLogId={}, deliveryDate={}",
+                    messageLog.getId(), requestDto.deliveryDate());
+            } catch (Exception e) {
+                log.error("[MessageLog 생성 실패] deliveryDate={}, error={}",
+                    requestDto.deliveryDate(), e.getMessage(), e);
+            }
+        }
+
+        log.info("[레거시 MessageLog 대량 생성 완료] 총 {}건 생성", messageLogIds.size());
+
+        return ApiResponse.success(messageLogIds);
     }
 
 }

@@ -66,4 +66,10 @@ public interface MessageService {
      * 사용자가 받은 메시지 히스토리 조회 (연월 기준)
      */
     List<MessageHistoryResponseDto> findMessageHistory(Long channelId, Long userId, int year, int month);
+
+    /**
+     * MessageLog만 생성 (MessageLogDetail 없이, 스케줄 등록 없이)
+     */
+    MessageLog createMessageLogOnly(Channel channel, Long entitlementGroupId,
+        LocalDateTime reserveTime);
 }

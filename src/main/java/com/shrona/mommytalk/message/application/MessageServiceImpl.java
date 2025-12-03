@@ -301,4 +301,44 @@ public class MessageServiceImpl implements MessageService {
             .toList();
     }
 
+    @Override
+    @Transactional
+    public MessageLog createMessageLogOnly(Channel channel, Long entitlementGroupId,
+        LocalDateTime reserveTime) {
+
+        log.info("[MessageLog만 생성] channelId={}, entitlementGroupId={}, reserveTime={}",
+            channel.getId(), entitlementGroupId, reserveTime);
+
+        // 1. MessageType 조회
+        MessageType messageType = messageTypeRepository.findByDeliveryTime(
+                reserveTime.toLocalDate(), channel)
+            .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
+
+        // 2. Entitlement 그룹 조회
+        Group entitlementGroup = groupJpaRepository.findById(entitlementGroupId)
+            .orElseThrow(() -> new GroupException(GROUP_NOT_FOUND));
+
+        if (entitlementGroup.getEntitlement() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 정보가 없습니다.");
+        }
+
+        // 3. MessageLog 생성 (MessageLogDetail 없이)
+        MessageLog messageLog = MessageLog.messageLog(
+            channel,
+            messageType,
+            reserveTime,
+            "legacy"  // groupInfo 고정
+        );
+
+        // 4. Entitlement 설정
+        messageLog.updateMessageEntitlement(entitlementGroup.getEntitlement());
+
+        // 5. MessageLog 저장 (MessageLogDetail 없이)
+        MessageLog savedMessageLog = messageLogRepository.save(messageLog);
+
+        log.info("[MessageLog 생성 완료] messageLogId={}", savedMessageLog.getId());
+
+        return savedMessageLog;
+    }
+
 }

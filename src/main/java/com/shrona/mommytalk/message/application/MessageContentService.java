@@ -5,11 +5,13 @@ import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 public interface MessageContentService {
@@ -73,4 +75,9 @@ public interface MessageContentService {
      */
     MessageContentResponseDto findContentForUser(
         Long channelId, Long userId, Long messageLogDetailId);
+
+    /**
+     * 레거시 데이터 벌크 임포트 (userLevel=2, childLevel=2 고정)
+     */
+    void bulkImportLegacyData(Channel channel, List<BulkImportMessageRequestDto> requests);
 }

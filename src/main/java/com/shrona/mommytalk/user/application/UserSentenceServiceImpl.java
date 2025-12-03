@@ -64,7 +64,7 @@ public class UserSentenceServiceImpl implements UserSentenceService {
 
         // 일일 생성 제한 체크
         int todayCount = userSentenceHistoryQueryRepository.countTodaySentences(userId);
-        int limit = "SPC".equals(userInfo.getDescription()) ? 30 : DAILY_SENTENCE_LIMIT;
+        int limit = "SPC".equals(userInfo.getDescription()) ? 100 : DAILY_SENTENCE_LIMIT;
 
         if (todayCount >= limit) {
             throw new UserException(DAILY_LIMIT_EXCEEDED);

@@ -6,7 +6,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shrona.mommytalk.openai.domain.UserSentenceHistory;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -54,25 +53,13 @@ public class UserSentenceHistoryQueryRepositoryImpl implements UserSentenceHisto
 
     @Override
     public int countTodaySentences(Long userId) {
-        // KST 기준 오늘 날짜 계산 (서버는 UTC)
+        // KST 기준 오늘 날짜 계산
         ZoneId kstZone = ZoneId.of("Asia/Seoul");
         LocalDate todayKst = LocalDate.now(kstZone);
 
-        // KST 기준 오늘 00:00:00 ~ 23:59:59를 UTC로 변환
-        LocalDateTime startOfDayKst = todayKst.atStartOfDay();
-        LocalDateTime endOfDayKst = todayKst.atTime(23, 59, 59);
-
-        LocalDateTime startOfDayUtc = startOfDayKst.atZone(kstZone)
-            .withZoneSameInstant(ZoneId.of("UTC"))
-            .toLocalDateTime();
-
-        LocalDateTime endOfDayUtc = endOfDayKst.atZone(kstZone)
-            .withZoneSameInstant(ZoneId.of("UTC"))
-            .toLocalDateTime();
-
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(userSentenceHistory.user.id.eq(userId));
-        builder.and(userSentenceHistory.createdAt.between(startOfDayUtc, endOfDayUtc));
+        builder.and(userSentenceHistory.generateDate.eq(todayKst));
 
         Long count = query.select(userSentenceHistory.count())
             .from(userSentenceHistory)

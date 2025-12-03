@@ -21,6 +21,7 @@ import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpa
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageContentQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
@@ -31,11 +32,13 @@ import com.shrona.mommytalk.openai.domain.type.PromptType;
 import com.shrona.mommytalk.openai.infrastructure.repository.query.MessagePromptQueryRepository;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -59,6 +62,7 @@ public class MessageContentServiceImpl implements MessageContentService {
     private final CloudflareService cloudflareService;
     private final OpenAiServiceImpl openAiService;
     private final Environment environment;
+    private final MessageTypeService messageTypeService;
 
     @Override
     public MessageContent findById(Long id) {
@@ -332,6 +336,77 @@ public class MessageContentServiceImpl implements MessageContentService {
 
         // 6. MOMMYVOCA면 전체 데이터 반환
         return MessageContentResponseDto.of(messageContent);
+    }
+
+    @Override
+    @Transactional
+    public void bulkImportLegacyData(Channel channel, List<BulkImportMessageRequestDto> requests) {
+        log.info("[레거시 데이터 임포트 시작] channelId={}, 데이터 개수={}", channel.getId(),
+            requests.size());
+
+        for (BulkImportMessageRequestDto request : requests) {
+            if (StringUtils.isBlank(request.contents())) {
+                continue;
+            }
+            try {
+                // 1. MessageType 생성 또는 조회
+                Optional<MessageType> existingType = messageTypeJpaRepository
+                    .findByChannelAndDeliveryTime(channel, request.date());
+
+                MessageType messageType;
+                if (existingType.isPresent()) {
+                    messageType = existingType.get();
+                    log.info("기존 MessageType 사용 - date={}, theme={}", request.date(),
+                        request.title());
+                } else {
+                    messageType = messageTypeService.createMessageType(
+                        request.title(),  // theme
+                        "",              // context (빈값)
+                        request.date(),
+                        channel
+                    );
+                    log.info("새 MessageType 생성 - date={}, theme={}", request.date(),
+                        request.title());
+                }
+
+                // 2. MessageContent 생성 (userLevel=2, childLevel=2 고정)
+                Optional<MessageContent> existingContent = messageContentJpaRepository
+                    .findByMessageTypeAndChildLevelAndUserLevel(messageType, 2, 2);
+
+                MessageContent messageContent;
+                if (existingContent.isPresent()) {
+                    messageContent = existingContent.get();
+                    // 기존 컨텐츠 업데이트
+                    messageContent.updateContent(request.contents(), request.link());
+                    log.info("기존 MessageContent 업데이트 - contentId={}", messageContent.getId());
+                } else {
+                    // 새 컨텐츠 생성
+                    messageContent = MessageContent.ofWithMockUrlsForUpsert(
+                        messageType,
+                        request.contents(),
+                        request.link(),  // mommyVoca
+                        2,  // childLevel
+                        2   // userLevel
+                    );
+                    messageContentJpaRepository.save(messageContent);
+                    log.info("새 MessageContent 생성 - contentId={}", messageContent.getId());
+                }
+
+                // 3. 승인 처리
+                boolean approved = messageContent.approve();
+                if (approved) {
+                    log.info("MessageContent 승인 완료 - contentId={}", messageContent.getId());
+                }
+
+            } catch (Exception e) {
+                log.error("[레거시 데이터 임포트 실패] date={}, title={}, error={}",
+                    request.date(), request.title(), e.getMessage(), e);
+                throw new MessageException(
+                    com.shrona.mommytalk.message.common.exception.MessageErrorCode.BAD_REQUEST);
+            }
+        }
+
+        log.info("[레거시 데이터 임포트 완료] 총 {}건 처리", requests.size());
     }
 
 }
