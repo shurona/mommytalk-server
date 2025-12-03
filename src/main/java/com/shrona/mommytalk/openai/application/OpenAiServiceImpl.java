@@ -136,7 +136,7 @@ public class OpenAiServiceImpl implements OpenAiService {
             // OpenAI API 요청 생성
             OpenAiRequest request = OpenAiRequest.builder()
                 .model("gpt-5-nano")
-                .maxTokens(1500)
+                .maxTokens(20000)
                 .temperature(1.0)
                 .messages(List.of(
                     OpenAiRequest.Message.builder()
