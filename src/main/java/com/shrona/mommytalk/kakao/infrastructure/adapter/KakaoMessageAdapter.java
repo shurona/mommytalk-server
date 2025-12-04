@@ -2,7 +2,6 @@ package com.shrona.mommytalk.kakao.infrastructure.adapter;
 
 import com.shrona.mommytalk.kakao.infrastructure.sender.NhnBrandMessageClient;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,9 +58,9 @@ public class KakaoMessageAdapter {
                 byte[] body,
                 ClientHttpRequestExecution execution
             ) throws IOException {
-                log.info("Request URL: {}", request.getURI());
-                log.info("Request Headers: {}", request.getHeaders());
-                log.info("Request Body: {}", new String(body, StandardCharsets.UTF_8));
+//                log.info("Request URL: {}", request.getURI());
+//                log.info("Request Headers: {}", request.getHeaders());
+//                log.info("Request Body: {}", new String(body, StandardCharsets.UTF_8));
                 return execution.execute(request, body);
             }
         };

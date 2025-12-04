@@ -187,7 +187,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
             .join(kakaoUser.user, user)
             .where(
                 channelKakaoUser.channel.id.eq(channelId)
-                    .and(channelKakaoUser.follow.eq(true))
+//                    .and(channelKakaoUser.follow.eq(true))
             )
             .fetch();
     }

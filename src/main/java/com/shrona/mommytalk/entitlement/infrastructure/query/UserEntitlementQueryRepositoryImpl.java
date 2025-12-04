@@ -74,7 +74,6 @@ public class UserEntitlementQueryRepositoryImpl implements UserEntitlementQueryR
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(userEntitlement.user.id.eq(userId));
         builder.and(userEntitlement.entitlement.id.eq(entitlementId));
-        builder.and(userEntitlement.status.eq(EntitlementStatus.ACTIVE));
         builder.and(userEntitlement.startDate.loe(today));
         builder.and(userEntitlement.endDate.goe(today));
 

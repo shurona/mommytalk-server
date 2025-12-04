@@ -60,8 +60,8 @@ public class UserRestController {
         return ApiResponse.success(
             PageResponseDto.from(
                 userLists.stream().map(UserListResponseDto::from).toList(),
-                userLists.getTotalPages(),
                 userLists.getNumber(),
+                userLists.getSize(),
                 userLists.getTotalElements(),
                 userLists.getTotalPages())
         );
