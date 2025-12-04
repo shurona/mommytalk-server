@@ -55,4 +55,13 @@ public interface UserEntitlementQueryRepository {
         LocalDate startDate,
         LocalDate endDate
     );
+
+    /**
+     * 채널과 상품 타입으로 특정 날짜에 유효한 UserEntitlement 목록 조회 (User JOIN FETCH)
+     */
+    List<UserEntitlement> findActiveEntitlementsByChannelAndType(
+        Long channelId,
+        Long entitlementId,
+        LocalDate deliveryDate
+    );
 }

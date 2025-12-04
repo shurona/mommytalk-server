@@ -84,7 +84,7 @@ public class OpenAiServiceImpl implements OpenAiService {
             // OpenAI API 요청 생성
             OpenAiRequest request = OpenAiRequest.builder()
                 .model("gpt-4o")
-                .maxTokens(20000)
+                .maxTokens(5000)
                 .temperature(0.7)
                 .messages(List.of(
                     OpenAiRequest.Message.builder()
@@ -136,7 +136,7 @@ public class OpenAiServiceImpl implements OpenAiService {
             // OpenAI API 요청 생성
             OpenAiRequest request = OpenAiRequest.builder()
                 .model("gpt-5-nano")
-                .maxTokens(20000)
+                .maxTokens(5000)
                 .temperature(1.0)
                 .messages(List.of(
                     OpenAiRequest.Message.builder()

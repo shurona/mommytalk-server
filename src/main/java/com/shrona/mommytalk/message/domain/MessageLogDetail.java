@@ -58,6 +58,16 @@ public class MessageLogDetail extends BaseEntity {
         return messageLogDetail;
     }
 
+    public static MessageLogDetail createLogDetailForLegacy(
+        MessageLog messageLog, User user, MessageContent messageContent) {
+        MessageLogDetail messageLogDetail = new MessageLogDetail();
+        messageLogDetail.status = ReservationStatus.COMPLETE;
+        messageLogDetail.messageLog = messageLog;
+        messageLogDetail.user = user;
+        messageLogDetail.messageContent = messageContent;
+        return messageLogDetail;
+    }
+
     /**
      * 전송 후 메시지 성공 상태로 변경
      */

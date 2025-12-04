@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.entitlement.infrastructure.query;
 
 import static com.shrona.mommytalk.entitlement.domain.QUserEntitlement.userEntitlement;
+import static com.shrona.mommytalk.user.domain.QUser.user;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -74,7 +75,6 @@ public class UserEntitlementQueryRepositoryImpl implements UserEntitlementQueryR
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(userEntitlement.user.id.eq(userId));
         builder.and(userEntitlement.entitlement.id.eq(entitlementId));
-        builder.and(userEntitlement.status.eq(EntitlementStatus.ACTIVE));
         builder.and(userEntitlement.startDate.loe(today));
         builder.and(userEntitlement.endDate.goe(today));
 
@@ -128,5 +128,26 @@ public class UserEntitlementQueryRepositoryImpl implements UserEntitlementQueryR
             .execute();
 
         return (int) updatedCount;
+    }
+
+    @Override
+    public List<UserEntitlement> findActiveEntitlementsByChannelAndType(
+        Long channelId,
+        Long entitlementId,
+        LocalDate deliveryDate
+    ) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(userEntitlement.channel.id.eq(channelId));
+        builder.and(userEntitlement.entitlement.id.eq(entitlementId));
+        builder.and(userEntitlement.startDate.loe(deliveryDate));  // startDate <= deliveryDate
+        builder.and(userEntitlement.endDate.goe(deliveryDate));    // endDate >= deliveryDate
+        builder.and(user.kakaoUser.isNotNull());                   // kakaoUser가 있는 유저만
+
+        return query.select(userEntitlement)
+            .from(userEntitlement)
+            .leftJoin(userEntitlement.user, user).fetchJoin()  // User JOIN FETCH
+            .leftJoin(user.kakaoUser).fetchJoin()              // KakaoUser JOIN FETCH
+            .where(builder)
+            .fetch();
     }
 }

@@ -17,6 +17,7 @@ import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogQueryRepository;
+import com.shrona.mommytalk.message.presentation.dtos.request.CreateLegacyDetailsRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ReserveMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.AvailableDateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageLogDetailResponseDto;
@@ -269,6 +270,30 @@ public class MessageLogRestController {
         log.info("[레거시 MessageLog 대량 생성 완료] 총 {}건 생성", messageLogIds.size());
 
         return ApiResponse.success(messageLogIds);
+    }
+
+    /**
+     * 레거시 MessageLog에 대한 MessageLogDetail 생성
+     */
+    @PostMapping("/legacy/details")
+    public ApiResponse<Integer> createLegacyMessageLogDetails(
+        @PathVariable("channelId") Long channelId,
+        @RequestBody CreateLegacyDetailsRequestDto requestDto
+    ) {
+        log.info("[레거시 MessageLogDetail 생성 API 호출] channelId={}, entitlementId={}",
+            channelId, requestDto.entitlementId());
+
+        // 1. 채널 정보 조회
+        Channel channel = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(ChannelErrorCode.CHANNEL_NOT_FOUND));
+
+        // 2. 레거시 MessageLogDetail 생성
+        int createdCount = messageLogDetailService.createLegacyDetails(
+            channel, requestDto.entitlementId());
+
+        log.info("[레거시 MessageLogDetail 생성 완료] 생성 개수={}", createdCount);
+
+        return ApiResponse.success(createdCount);
     }
 
 }
