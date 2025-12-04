@@ -10,8 +10,6 @@ import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContent
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.user.domain.User;
-import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
-import com.shrona.mommytalk.user.infrastructure.repository.query.UserQueryRepository;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +30,6 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
     private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
     private final MessageLogJpaRepository messageLogJpaRepository;
     private final MessageContentJpaRepository messageContentJpaRepository;
-    private final UserQueryRepository userQueryRepository;
     private final UserEntitlementQueryRepository userEntitlementQueryRepository;
 
     @Override
@@ -95,13 +92,7 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
 
         MessageContent messageContent = messageContentOpt.get();
 
-        // 3. Channel의 모든 User 중 kakaoUser != null인 유저 조회
-        List<UserListProjection> kakaoUserProjections = userQueryRepository
-            .findKakaoUsersByChannelId(channel.getId());
-
-        log.info("[카카오 유저 조회 완료] 카카오 유저={}", kakaoUserProjections.size());
-
-        // 4. 이미 MessageLogDetail이 있는 유저 ID 조회 (중복 제외용)
+        // 3. 이미 MessageLogDetail이 있는 유저 ID 조회 (중복 제외용)
         Set<Long> existingUserIds = new HashSet<>();
         List<MessageLogDetail> existingDetails = messageLogDetailQueryRepository
             .findMldListByStatusWithKakao(messageLog.getId(), null);
@@ -110,34 +101,38 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
         log.info("[기존 MessageLogDetail 조회] messageLogId={}, 기존 유저 수={}",
             messageLog.getId(), existingUserIds.size());
 
-        // 5. 유효한 UserEntitlement 필터링 및 MessageLogDetail 생성
+        // 4. UserEntitlement를 먼저 조회 (채널, 상품, 날짜, kakaoUser 필터링)
+        List<UserEntitlement> activeEntitlements = userEntitlementQueryRepository
+            .findActiveEntitlementsByChannelAndType(channel.getId(), entitlementId, deliveryDate);
+
+        log.info("[유효한 UserEntitlement 조회 완료] 조회된 개수={}", activeEntitlements.size());
+
+        // 5. 배치 처리 (500명씩)
+        int batchSize = 200;
         int createdCount = 0;
 
-        for (UserListProjection userProjection : kakaoUserProjections) {
-            // 중복 체크
-            if (existingUserIds.contains(userProjection.userId())) {
-                continue;
+        for (int i = 0; i < activeEntitlements.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, activeEntitlements.size());
+            List<UserEntitlement> batch = activeEntitlements.subList(i, end);
+
+            log.info("[배치 처리 시작] batch={}/{}, size={}",
+                (i / batchSize) + 1, (activeEntitlements.size() + batchSize - 1) / batchSize,
+                batch.size());
+
+            for (UserEntitlement entitlement : batch) {
+                User user = entitlement.getUser();  // 이미 JOIN FETCH로 조회됨
+
+                // 중복 체크
+                if (existingUserIds.contains(user.getId())) {
+                    continue;
+                }
+
+                // MessageLogDetail 생성
+                MessageLogDetail detail = MessageLogDetail.createLogDetailForLegacy(
+                    messageLog, user, messageContent);
+                messageLog.addMessageLogDetailInfo(detail);
+                createdCount++;
             }
-
-            // 해당 날짜에 유효한 UserEntitlement 확인
-            List<UserEntitlement> activeEntitlements = userEntitlementQueryRepository
-                .findActiveEntitlementsByType(userProjection.userId(), entitlementId, deliveryDate);
-
-            if (activeEntitlements.isEmpty()) {
-                continue;
-            }
-
-            // User 엔티티 조회 (MessageLogDetail 생성용)
-            User user = userQueryRepository.findUserByUserId(userProjection.userId());
-            if (user == null) {
-                continue;
-            }
-
-            // MessageLogDetail 생성
-            MessageLogDetail detail = MessageLogDetail.createLogDetailForLegacy(
-                messageLog, user, messageContent);
-            messageLog.addMessageLogDetailInfo(detail);
-            createdCount++;
         }
 
         log.info("[MessageLogDetail 생성 완료] messageLogId={}, 생성 개수={}",
