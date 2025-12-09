@@ -419,11 +419,11 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
             }
         }
 
-        log.info("[Kakao 발송 응답] 성공: {}, 성공 수: {}, 실패 수: {}",
-            isSuccessful,
-            successCount,
-            failCount
-        );
+//        log.info("[Kakao 발송 응답] 성공: {}, 성공 수: {}, 실패 수: {}",
+//            isSuccessful,
+//            successCount,
+//            failCount
+//        );
 
         if (!isSuccessful) {
             log.warn("[Kakao 발송 실패 상세] {}", response);

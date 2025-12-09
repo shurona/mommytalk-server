@@ -7,8 +7,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -25,7 +23,7 @@ public class ScheduledMessageService {
     /**
      * 서버가 시작될 때 메소드 실행
      */
-    @EventListener(ApplicationReadyEvent.class)
+//    @EventListener(ApplicationReadyEvent.class)
     public void initScheduledMessage() {
 
         // 서버 시작할 때 쓰레드 확인

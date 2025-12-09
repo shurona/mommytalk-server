@@ -40,7 +40,7 @@ public class MessageTypeServiceImpl implements MessageTypeService {
     @Transactional
     public MessageType createMessageType(
         String theme, String text, LocalDate localDate, Channel channel) {
-        Optional<MessageType> mt = messageTypeRepository.findByTheme(theme);
+        Optional<MessageType> mt = messageTypeRepository.findByChannelAndDeliveryTime(channel, localDate);
         MessageType messageType = MessageType.of(theme, text, localDate, channel);
         return mt.orElseGet(() -> messageTypeRepository.save(messageType));
     }

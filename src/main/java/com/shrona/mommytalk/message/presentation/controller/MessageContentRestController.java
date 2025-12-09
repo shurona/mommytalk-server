@@ -15,6 +15,7 @@ import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UploadLegacyAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentAudioResponseDto;
@@ -185,5 +186,28 @@ public class MessageContentRestController {
         messageContentService.bulkImportLegacyData(channelInfo, requests);
 
         return ApiResponse.success("총 " + requests.size() + "건의 데이터가 임포트되었습니다.");
+    }
+
+    /**
+     * 레거시 MP3 파일을 R2에 업로드하고 MessageContent에 연결
+     * (CSV 기반, userLevel=2/childLevel=2 고정)
+     */
+    @PostMapping("/upload-legacy-audio")
+    public ApiResponse<String> uploadLegacyAudio(
+        @PathVariable Long channelId,
+        @Valid @RequestBody UploadLegacyAudioRequestDto requestDto
+    ) {
+        log.info("[레거시 MP3 업로드 API 호출] channelId={}, year={}, month={}",
+            channelId, requestDto.year(), requestDto.month());
+
+        Channel channelInfo = channelService.findChannelById(channelId)
+            .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
+
+        int uploadedCount = messageContentService.uploadLegacyAudio(
+            channelInfo, requestDto.year(), requestDto.month());
+
+        return ApiResponse.success(String.format(
+            "%d년 %d월 레거시 MP3 업로드 완료: 총 %d개 파일 업로드",
+            requestDto.year(), requestDto.month(), uploadedCount));
     }
 }

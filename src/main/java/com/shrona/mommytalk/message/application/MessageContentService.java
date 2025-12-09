@@ -80,4 +80,10 @@ public interface MessageContentService {
      * 레거시 데이터 벌크 임포트 (userLevel=2, childLevel=2 고정)
      */
     void bulkImportLegacyData(Channel channel, List<BulkImportMessageRequestDto> requests);
+
+    /**
+     * 레거시 MP3 파일을 R2에 업로드하고 MessageContent에 연결
+     * (CSV 기반, userLevel=2/childLevel=2 고정)
+     */
+    int uploadLegacyAudio(Channel channel, int year, int month);
 }

@@ -409,4 +409,195 @@ public class MessageContentServiceImpl implements MessageContentService {
         log.info("[레거시 데이터 임포트 완료] 총 {}건 처리", requests.size());
     }
 
+    @Override
+    @Transactional
+    public int uploadLegacyAudio(Channel channel, int year, int month) {
+        log.info("[레거시 MP3 업로드 시작] channelId={}, year={}, month={}",
+            channel.getId(), year, month);
+
+        // 1. CSV 파일 읽기
+        String csvPath = "elevenlabs/mp3-mapping.csv";
+        List<CsvRow> csvRows = parseCsv(csvPath, year, month);
+
+        log.info("[CSV 파싱 완료] 필터링된 행 개수={}", csvRows.size());
+
+        int totalUploaded = 0;
+        int headerOneCount = 0;
+        int headerTwoCount = 0;
+
+        // 2. 각 CSV 행 처리
+        for (CsvRow row : csvRows) {
+            try {
+                int uploaded = processLegacyAudioRow(row, channel);
+                totalUploaded += uploaded;
+
+                if (uploaded == 2) {
+                    headerOneCount++;
+                    headerTwoCount++;
+                } else if (uploaded == 1) {
+                    headerOneCount++;
+                }
+            } catch (Exception e) {
+                log.error("[레거시 MP3 업로드 실패] 번호={}, 날짜={}, error={}",
+                    row.number(), row.date(), e.getMessage(), e);
+            }
+        }
+
+        log.info("[레거시 MP3 업로드 완료] 총 업로드={}, headerOne={}, headerTwo={}",
+            totalUploaded, headerOneCount, headerTwoCount);
+
+        return totalUploaded;
+    }
+
+    /**
+     * CSV 파일 파싱 (년월 필터링)
+     */
+    private List<CsvRow> parseCsv(String csvPath, int year, int month) {
+        try {
+            java.nio.file.Path path = java.nio.file.Paths.get(csvPath);
+            List<String> lines = java.nio.file.Files.readAllLines(path);
+
+            return lines.stream()
+                .skip(1) // 헤더 제외
+                .map(line -> {
+                    String[] parts = line.split(",");
+                    if (parts.length < 2) {
+                        return null;
+                    }
+
+                    try {
+                        int number = Integer.parseInt(parts[0].trim());
+                        String dateStr = parts[1].trim(); // "2025.2.19" 형식
+                        LocalDate date = parseDate(dateStr);
+
+                        return new CsvRow(number, date);
+                    } catch (Exception e) {
+                        log.warn("[CSV 파싱 실패] line={}", line);
+                        return null;
+                    }
+                })
+                .filter(row -> row != null)
+                .filter(row -> row.date().getYear() == year && row.date().getMonthValue() == month)
+                .toList();
+
+        } catch (Exception e) {
+            log.error("[CSV 파일 읽기 실패] path={}, error={}", csvPath, e.getMessage(), e);
+            throw new RuntimeException("CSV 파일 읽기 실패: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 날짜 문자열 파싱 ("2025.2.19" → LocalDate)
+     */
+    private LocalDate parseDate(String dateStr) {
+        String[] parts = dateStr.split("\\.");
+        int year = Integer.parseInt(parts[0].trim());
+        int month = Integer.parseInt(parts[1].trim());
+        int day = Integer.parseInt(parts[2].trim());
+        return LocalDate.of(year, month, day);
+    }
+
+    /**
+     * 각 CSV 행 처리 (MP3 업로드 및 MessageContent 업데이트)
+     */
+    private int processLegacyAudioRow(CsvRow row, Channel channel) {
+        log.info("[레거시 MP3 처리 시작] 번호={}, 날짜={}", row.number(), row.date());
+
+        // 1. MessageType 조회
+        Optional<MessageType> messageTypeOpt = messageTypeJpaRepository
+            .findByChannelAndDeliveryTime(channel, row.date());
+
+        if (messageTypeOpt.isEmpty()) {
+            log.warn("[MessageType 없음 - 스킵] 날짜={}", row.date());
+            return 0;
+        }
+
+        MessageType messageType = messageTypeOpt.get();
+
+        // 2. MessageContent 조회 (level 2-2)
+        Optional<MessageContent> contentOpt = messageContentJpaRepository
+            .findByMessageTypeAndChildLevelAndUserLevel(messageType, 2, 2);
+
+        if (contentOpt.isEmpty()) {
+            log.warn("[MessageContent 없음 - 스킵] 날짜={}, messageTypeId={}",
+                row.date(), messageType.getId());
+            return 0;
+        }
+
+        MessageContent messageContent = contentOpt.get();
+        int uploadCount = 0;
+
+        // 3. {번호}.mp3 파일 처리 (headerOneLink)
+        String mainMp3Path = String.format("elevenlabs/mp3/%d.mp3", row.number());
+        java.io.File mainMp3File = new java.io.File(mainMp3Path);
+
+        if (mainMp3File.exists()) {
+            try {
+                ElevenLabsMedia media = uploadMp3ToR2(mainMp3File, messageContent.getId());
+                messageContent.updateButtonOne(media);
+                uploadCount++;
+                log.info("[headerOneLink 업데이트 완료] 번호={}, mediaId={}",
+                    row.number(), media.getId());
+            } catch (Exception e) {
+                log.error("[headerOneLink 업로드 실패] 번호={}, error={}",
+                    row.number(), e.getMessage(), e);
+            }
+        } else {
+            log.debug("[{}.mp3 파일 없음] 번호={}", row.number());
+        }
+
+        // 4. {번호}-1.mp3 파일 처리 (headerTwoLink)
+        String subMp3Path = String.format("elevenlabs/mp3/%d-1.mp3", row.number());
+        java.io.File subMp3File = new java.io.File(subMp3Path);
+
+        if (subMp3File.exists()) {
+            try {
+                ElevenLabsMedia media = uploadMp3ToR2(subMp3File, messageContent.getId());
+                messageContent.updateButtonTwo(media);
+                uploadCount++;
+                log.info("[headerTwoLink 업데이트 완료] 번호={}, mediaId={}",
+                    row.number(), media.getId());
+            } catch (Exception e) {
+                log.error("[headerTwoLink 업로드 실패] 번호={}, error={}",
+                    row.number(), e.getMessage(), e);
+            }
+        } else {
+            log.debug("[{}-1.mp3 파일 없음] 번호={}", row.number());
+        }
+
+        return uploadCount;
+    }
+
+    /**
+     * MP3 파일을 R2에 업로드하고 ElevenLabsMedia 생성
+     */
+    private ElevenLabsMedia uploadMp3ToR2(java.io.File mp3File, Long messageContentId)
+        throws java.io.IOException {
+        // 1. 파일을 byte[]로 읽기
+        byte[] audioBytes = java.nio.file.Files.readAllBytes(mp3File.toPath());
+
+        // 2. 파일명 생성 (messageContent_{id}_{timestamp}.mp3)
+        String fileName = String.format("messageContent_%d_%d.mp3",
+            messageContentId, System.currentTimeMillis());
+
+        // 3. R2 업로드
+        String publicUrl = cloudflareService.uploadAudioBytes(audioBytes, fileName);
+
+        // 4. ElevenLabsMedia 생성 (text=null)
+        ElevenLabsMedia media = ElevenLabsMedia.of(null, publicUrl, fileName, audioBytes.length);
+        elevenLabsMediaRepository.save(media);
+
+        log.info("[R2 업로드 완료] fileName={}, url={}, size={}",
+            fileName, publicUrl, audioBytes.length);
+
+        return media;
+    }
+
+    /**
+     * CSV 행 데이터 record
+     */
+    private record CsvRow(int number, LocalDate date) {
+
+    }
+
 }

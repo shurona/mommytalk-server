@@ -44,12 +44,15 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
         log.info("[레거시 MessageLogDetail 생성 시작] channelId={}, entitlementId={}",
             channel.getId(), entitlementId);
 
+        LocalDate afterDate = LocalDate.of(2025, 11, 30); // 예시
+
         // 1. groupInfo='legacy' + entitlement_id 조건으로 MessageLog 조회
         List<MessageLog> legacyLogs = messageLogJpaRepository.findAll().stream()
             .filter(log -> "legacy".equals(log.getGroupInfo()))
             .filter(log -> log.getEntitlement() != null
                 && log.getEntitlement().getId().equals(entitlementId))
             .filter(log -> log.getChannel().getId().equals(channel.getId()))
+            .filter(log -> !log.getMessageType().getDeliveryTime().isBefore(afterDate))
             .toList();
 
         log.info("[레거시 MessageLog 조회 완료] 조회된 MessageLog 개수={}", legacyLogs.size());

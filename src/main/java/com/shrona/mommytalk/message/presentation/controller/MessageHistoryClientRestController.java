@@ -40,9 +40,6 @@ public class MessageHistoryClientRestController {
         @RequestParam int year,
         @RequestParam int month
     ) {
-        log.info("[메시지 히스토리 조회] channelId: {}, userId: {}, year: {}, month: {}",
-            channelId, userId, year, month);
-
         List<MessageHistoryResponseDto> history = messageService.findMessageHistory(
             channelId, userId, year, month);
 
@@ -63,8 +60,6 @@ public class MessageHistoryClientRestController {
         @CurrentUserId Long userId,
         @PathVariable Long messageLogDetailId
     ) {
-        log.info("[메시지 컨텐츠 조회] channelId: {}, userId: {}, messageLogDetailId: {}",
-            channelId, userId, messageLogDetailId);
 
         MessageContentResponseDto content = messageContentService.findContentForUser(
             channelId, userId, messageLogDetailId);
