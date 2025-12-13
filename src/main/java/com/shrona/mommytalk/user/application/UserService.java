@@ -5,6 +5,8 @@ import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
+import com.shrona.mommytalk.user.presentation.dtos.response.SentenceHistoryResponseDto;
+import com.shrona.mommytalk.user.presentation.dtos.response.TokenUsageResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
 import java.util.List;
 import java.util.Optional;
@@ -78,4 +80,32 @@ public interface UserService {
      * 휴대전화 번호를 기준으로 UserGroup과 User 정보 삭제
      */
     void deleteUserGroupAndUserInfo(String phoneNumber);
+
+    /**
+     * 채널별 유저 문장 이력 조회 (관리자용)
+     * - 선택적 날짜 필터링 (year, month, day)
+     * - 선택적 유저 필터링 (userId)
+     * - 페이징 지원
+     */
+    Page<SentenceHistoryResponseDto> findSentenceHistoryByChannel(
+        Long channelId,
+        Integer year,
+        Integer month,
+        Integer day,
+        Long userId,
+        Pageable pageable
+    );
+
+    /**
+     * 채널별 토큰 사용량 합계 조회 (관리자용)
+     * - 선택적 날짜 필터링 (year, month, day)
+     * - 선택적 유저 필터링 (userId)
+     */
+    TokenUsageResponseDto getTokenUsageSumByChannel(
+        Long channelId,
+        Integer year,
+        Integer month,
+        Integer day,
+        Long userId
+    );
 }

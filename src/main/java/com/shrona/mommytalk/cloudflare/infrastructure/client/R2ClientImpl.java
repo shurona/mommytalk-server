@@ -74,7 +74,6 @@ public class R2ClientImpl implements R2Client {
 
             // 공개 URL 생성
             String publicUrl = buildPublicUrl(key);
-            log.info("Bytes uploaded successfully to R2: {} ({} bytes)", publicUrl, bytes.length);
 
             return publicUrl;
 

@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.openai.domain;
 
+import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.user.domain.User;
 import jakarta.persistence.Column;
@@ -30,6 +31,10 @@ public class UserSentenceHistory extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "channel_id")
+    private Channel channel;
+
     @Column
     private String sentence;
 
@@ -39,11 +44,12 @@ public class UserSentenceHistory extends BaseEntity {
     @Column(name = "generate_date")
     private LocalDate generateDate;
 
-    public static UserSentenceHistory of(User user, String sentence) {
+    public static UserSentenceHistory of(User user, Channel channel, String sentence) {
 
         UserSentenceHistory userSentenceHistory = new UserSentenceHistory();
 
         userSentenceHistory.user = user;
+        userSentenceHistory.channel = channel;
         userSentenceHistory.sentence = sentence;
         userSentenceHistory.generateDate = LocalDate.now(ZoneId.of("Asia/Seoul"));
 

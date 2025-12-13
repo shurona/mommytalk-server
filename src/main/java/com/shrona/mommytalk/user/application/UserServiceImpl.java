@@ -23,7 +23,10 @@ import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjectio
 import com.shrona.mommytalk.user.infrastructure.repository.jpa.UserJpaRepository;
 import com.shrona.mommytalk.user.infrastructure.repository.query.UserQueryRepository;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
+import com.shrona.mommytalk.user.presentation.dtos.response.SentenceHistoryResponseDto;
+import com.shrona.mommytalk.user.presentation.dtos.response.TokenUsageResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
+import com.shrona.mommytalk.openai.infrastructure.repository.query.UserSentenceHistoryQueryRepository;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +56,7 @@ public class UserServiceImpl implements UserService {
     // query
     private final UserQueryRepository userQueryRepository;
     private final UserEntitlementQueryRepository userEntitlementQueryRepository;
+    private final UserSentenceHistoryQueryRepository userSentenceHistoryQueryRepository;
 
     // 휴대폰 관련 process 처리
     private final PhoneProcess phoneProcess;
@@ -285,5 +289,43 @@ public class UserServiceImpl implements UserService {
             });
 
         return phone;
+    }
+
+    /**
+     * 채널별 유저 문장 이력 조회 (관리자용)
+     * - 선택적 날짜 필터링 (year, month, day)
+     * - 선택적 유저 필터링 (userId)
+     * - 페이징 지원
+     */
+    @Override
+    public Page<SentenceHistoryResponseDto> findSentenceHistoryByChannel(
+        Long channelId,
+        Integer year,
+        Integer month,
+        Integer day,
+        Long userId,
+        Pageable pageable
+    ) {
+        return userSentenceHistoryQueryRepository.findSentenceHistoryByChannel(
+            channelId, year, month, day, userId, pageable
+        );
+    }
+
+    /**
+     * 채널별 토큰 사용량 합계 조회 (관리자용)
+     * - 선택적 날짜 필터링 (year, month, day)
+     * - 선택적 유저 필터링 (userId)
+     */
+    @Override
+    public TokenUsageResponseDto getTokenUsageSumByChannel(
+        Long channelId,
+        Integer year,
+        Integer month,
+        Integer day,
+        Long userId
+    ) {
+        return userSentenceHistoryQueryRepository.getTokenUsageSumByChannel(
+            channelId, year, month, day, userId
+        );
     }
 }
