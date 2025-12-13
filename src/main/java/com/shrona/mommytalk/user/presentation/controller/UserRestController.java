@@ -10,6 +10,8 @@ import com.shrona.mommytalk.common.dto.PageResponseDto;
 import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
+import com.shrona.mommytalk.user.presentation.dtos.response.SentenceHistoryResponseDto;
+import com.shrona.mommytalk.user.presentation.dtos.response.TokenUsageResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserListResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -89,5 +91,58 @@ public class UserRestController {
         userService.updateUserInfoByAdmin(userId, requestDto);
 
         return ApiResponse.success("success");
+    }
+
+    /**
+     * 채널별 유저 문장 이력 조회 (관리자용)
+     * - 선택적 날짜 필터링 (year, month, day)
+     * - 선택적 유저 필터링 (userId)
+     * - 페이징 지원
+     */
+    @GetMapping("/sentence-history")
+    public ApiResponse<PageResponseDto<SentenceHistoryResponseDto>> findSentenceHistory(
+        @PathVariable Long channelId,
+        @RequestParam(required = false) Integer year,
+        @RequestParam(required = false) Integer month,
+        @RequestParam(required = false) Integer day,
+        @RequestParam(required = false) Long userId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+
+        Page<SentenceHistoryResponseDto> result = userService.findSentenceHistoryByChannel(
+            channelId, year, month, day, userId, pageRequest
+        );
+
+        return ApiResponse.success(
+            PageResponseDto.from(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages()
+            )
+        );
+    }
+
+    /**
+     * 채널별 토큰 사용량 합계 조회 (관리자용)
+     * - 선택적 날짜 필터링 (year, month, day)
+     * - 선택적 유저 필터링 (userId)
+     */
+    @GetMapping("/sentence-history/token-usage")
+    public ApiResponse<TokenUsageResponseDto> getTokenUsageSum(
+        @PathVariable Long channelId,
+        @RequestParam(required = false) Integer year,
+        @RequestParam(required = false) Integer month,
+        @RequestParam(required = false) Integer day,
+        @RequestParam(required = false) Long userId
+    ) {
+        TokenUsageResponseDto result = userService.getTokenUsageSumByChannel(
+            channelId, year, month, day, userId
+        );
+
+        return ApiResponse.success(result);
     }
 }

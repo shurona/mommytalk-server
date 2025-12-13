@@ -63,7 +63,7 @@ public class UserSentenceServiceImpl implements UserSentenceService {
         }
 
         // 일일 생성 제한 체크
-        int todayCount = userSentenceHistoryQueryRepository.countTodaySentences(userId);
+        int todayCount = userSentenceHistoryQueryRepository.countTodaySentences(userId, channel);
         int limit = "SPC".equals(userInfo.getDescription()) ? 100 : DAILY_SENTENCE_LIMIT;
 
         if (todayCount >= limit) {
@@ -74,7 +74,7 @@ public class UserSentenceServiceImpl implements UserSentenceService {
             channel, PromptType.ADVANCE);
 
         UserSentenceHistory userSentenceHistory = userSentenceHistoryJpaRepository.save(
-            UserSentenceHistory.of(userInfo, sentence));
+            UserSentenceHistory.of(userInfo, channel, sentence));
 
         String output = openAiService.generateDataByUser(messagePrompt, userSentenceHistory);
 
