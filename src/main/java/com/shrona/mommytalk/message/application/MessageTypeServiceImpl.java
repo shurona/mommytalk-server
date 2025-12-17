@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.message.application;
 
 import static com.shrona.mommytalk.channel.common.exception.ChannelErrorCode.CHANNEL_NOT_FOUND;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_ALREADY_EXISTS;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.application.ChannelService;
@@ -70,11 +71,16 @@ public class MessageTypeServiceImpl implements MessageTypeService {
     }
 
     @Transactional
-    public MessageTypeResponseDto createMessageType(Long channelId,
-        MessageTypeRequestDto requestDto) {
+    public MessageTypeResponseDto createMessageType(Long channelId, MessageTypeRequestDto requestDto) {
         // 채널 권한 체크
         Channel channel = channelService.findChannelById(channelId)
             .orElseThrow(() -> new ChannelException(CHANNEL_NOT_FOUND));
+
+        // 동일 날짜에 이미 MessageType이 존재하는지 확인
+        messageTypeRepository.findByDeliveryTime(requestDto.localDate(), channel)
+            .ifPresent(existingMessageType -> {
+                throw new MessageException(MESSAGE_TYPE_ALREADY_EXISTS);
+            });
 
         // MessageType 생성
         MessageType messageType = MessageType.of(

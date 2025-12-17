@@ -28,7 +28,7 @@ public class JwtUtils {
     public static final String BEARER_PREFIX = "Bearer ";
 
     // access Token 유효기간
-    public static final long TOKEN_TIME = 24 * 60 * 30 * 1000L; // 30분
+    public static final long TOKEN_TIME = 12 * 60 * 60 * 1000L; // 30분
 
     // Refresh Token 유효기간
     public static final long REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000L;

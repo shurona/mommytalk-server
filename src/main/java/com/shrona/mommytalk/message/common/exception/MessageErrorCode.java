@@ -13,6 +13,7 @@ public enum MessageErrorCode {
     REGISTERED_MESSAGE_PROMPT(HttpStatus.BAD_REQUEST, "등록된 메시지 프롬프트는 삭제할 수 없습니다."),
 
     MESSAGE_NOT_SCHEDULED_FOR_DATE(HttpStatus.BAD_REQUEST, "해당 날짜에 메시지가 예약되어 있지 않았습니다."),
+    MESSAGE_TYPE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "해당 날짜에 메시지 타입이 이미 존재합니다."),
     MESSAGE_CONTENT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "해당 레벨의 메시지 컨텐츠가 이미 존재합니다."),
     MESSAGE_NOT_DELIVER_YET(HttpStatus.BAD_REQUEST, "메시지가 아직 발송되지 않았습니다."),
     MESSAGE_CHANNEL_MISMATCH(HttpStatus.BAD_REQUEST, "메시지와 채널 정보 매칭이 잘못되었습니다."),

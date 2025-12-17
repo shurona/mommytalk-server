@@ -110,7 +110,9 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         }
     }
 
-    @Override
+    /**
+     * legacy
+     */
     public void sendScheduledMessage(
         Channel channel,
         List<User> users,
