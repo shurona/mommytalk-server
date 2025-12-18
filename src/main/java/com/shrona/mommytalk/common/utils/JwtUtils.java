@@ -27,8 +27,11 @@ public class JwtUtils {
     // Token 식별자
     public static final String BEARER_PREFIX = "Bearer ";
 
-    // access Token 유효기간
-    public static final long TOKEN_TIME = 12 * 60 * 60 * 1000L; // 30분
+    // Admin access Token 유효기간
+    public static final long ADMIN_TOKEN_TIME = 12 * 60 * 60 * 1000L; // 12시간
+
+    // User access Token 유효기간
+    public static final long USER_TOKEN_TIME = 7 * 24 * 60 * 60 * 1000L; // 7일
 
     // Refresh Token 유효기간
     public static final long REFRESH_TOKEN_TIME = 14 * 24 * 60 * 60 * 1000L;
@@ -50,7 +53,20 @@ public class JwtUtils {
             Jwts.builder()
                 .subject(String.valueOf(userId)) // 사용자 식별자값(ID)
                 .claim(AUTHORIZATION_KEY, role.getAuthority()) // 사용자 권한
-                .expiration(new Date(date.getTime() + TOKEN_TIME)) // 만료 시간
+                .expiration(new Date(date.getTime() + USER_TOKEN_TIME)) // 만료 시간 (7일)
+                .issuedAt(date) // 발급일
+                .signWith(key) // 암호화
+                .compact();
+    }
+
+    public String createAdminToken(Long userId, UserRole role) {
+        Date date = new Date();
+
+        return
+            Jwts.builder()
+                .subject(String.valueOf(userId)) // 사용자 식별자값(ID)
+                .claim(AUTHORIZATION_KEY, role.getAuthority()) // 사용자 권한
+                .expiration(new Date(date.getTime() + ADMIN_TOKEN_TIME)) // 만료 시간 (12시간)
                 .issuedAt(date) // 발급일
                 .signWith(key) // 암호화
                 .compact();
