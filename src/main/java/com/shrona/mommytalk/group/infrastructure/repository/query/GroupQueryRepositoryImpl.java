@@ -41,7 +41,8 @@ public class GroupQueryRepositoryImpl implements GroupQueryRepository {
         builder.and(group.channel.id.eq(channelId));
 
         // 상품쪽 그룹 정보를 갖고 온다.
-        builder.and(group.groupType.in(GroupType.AUTO_ACTIVE, GroupType.AUTO_ENDED));
+        builder.and(group.groupType.in(
+            GroupType.AUTO_ACTIVE, GroupType.AUTO_ENDED, GroupType.TEMP_CAMPAIGN));
 
         return query.select(group)
             .from(group)
