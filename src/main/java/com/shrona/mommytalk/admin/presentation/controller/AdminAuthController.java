@@ -70,7 +70,7 @@ public class AdminAuthController {
             throw new UserException(LOGIN_ERROR);
         }
 
-        String token = jwtUtils.createToken(user.getId(), UserRole.ADMIN);
+        String token = jwtUtils.createAdminToken(user.getId(), UserRole.ADMIN);
 
         AdminLoginResponseDto responseDto = AdminLoginResponseDto.of(
             token,
