@@ -21,6 +21,7 @@ import com.shrona.mommytalk.message.infrastructure.repository.query.MessageConte
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
 import com.shrona.mommytalk.user.domain.User;
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -86,29 +87,23 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
             for (Map.Entry<Long, List<MessageLogDetail>> entry : mldListByContentId.entrySet()) {
                 List<MessageLogDetail> contentMldList = entry.getValue();
 
-                // 메시지 로그의 상품 정보가 있는 경우 그에 맞춰서 로직을 수행되게 한다.
-                switch (messageLog.getEntitlement().getType()) {
-                    // 일반 유저
-                    case EntitlementType.MOMMYTALK -> {
-                        // 메시지 전송 (내부에서 상태 업데이트 완료)
-                        sendAlimtalkToKakao(
-                            messageLog.getChannel(),
-                            contentMldList,
-                            getReserveTimeIfPassed(messageLog),
-                            KakaoAlimtalkTemplate.MOMMYTALK365
-                        );
-                    }
-                    // 마미 보카
-                    case EntitlementType.MOMMYVOCA -> {
-                        // 메시지 전송 (내부에서 상태 업데이트 완료)
-                        sendAlimtalkToKakao(
-                            messageLog.getChannel(),
-                            contentMldList,
-                            getReserveTimeIfPassed(messageLog),
-                            KakaoAlimtalkTemplate.MOMMYTALK365_PREMIUM
-                        );
-                    }
-                }
+                // 예약 시간의 요일 확인 (KST 기준 일요일이면 리뷰 템플릿 사용)
+                LocalDateTime kstReserveTime = messageLog.getReserveTime().plusHours(9);
+                boolean isSunday = kstReserveTime.getDayOfWeek() == DayOfWeek.SUNDAY;
+
+                // 상품 타입과 요일에 따라 템플릿 선택
+                KakaoAlimtalkTemplate template = selectTemplate(
+                    messageLog.getEntitlement().getType(),
+                    isSunday
+                );
+
+                // 메시지 전송 (내부에서 상태 업데이트 완료)
+                sendAlimtalkToKakao(
+                    messageLog.getChannel(),
+                    contentMldList,
+                    getReserveTimeIfPassed(messageLog),
+                    template
+                );
             }
         }
     }
@@ -294,10 +289,24 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
     }
 
     /**
-     * 템플릿 변수 맵 생성
-     * - 오늘의엄마표영어: 메시지 내용
-     * - 발음안내링크: 발음듣기 버튼 URL
-     * - 단어안내링크: 마미보카 버튼 URL (PREMIUM만 해당)
+     * 상품 타입과 요일에 따라 알림톡 템플릿 선택
+     * - 일요일: 리뷰 템플릿 (MOMMYTALK365_REVIEW, MOMMYTALK365_PREMIUM_REVIEW)
+     * - 평일: 일반 템플릿 (MOMMYTALK365, MOMMYTALK365_PREMIUM)
+     */
+    private KakaoAlimtalkTemplate selectTemplate(
+        EntitlementType entitlementType, boolean isSunday) {
+        return switch (entitlementType) {
+            case MOMMYTALK -> isSunday
+                ? KakaoAlimtalkTemplate.MOMMYTALK365_REVIEW
+                : KakaoAlimtalkTemplate.MOMMYTALK365;
+            case MOMMYVOCA -> isSunday
+                ? KakaoAlimtalkTemplate.MOMMYTALK365_PREMIUM_REVIEW
+                : KakaoAlimtalkTemplate.MOMMYTALK365_PREMIUM;
+        };
+    }
+
+    /**
+     * 템플릿 변수 맵 생성 (템플릿별로 분기)
      */
     private Map<String, String> createTemplateParameter(
         String personalizedContent,
@@ -306,24 +315,100 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
         Long messageLogDetailId,
         KakaoAlimtalkTemplate template
     ) {
-        Map<String, String> templateParameter = new HashMap<>();
+        return switch (template) {
+            case MOMMYTALK365 -> createMommytalk365Parameter(
+                personalizedContent, voiceUrl, messageLogDetailId
+            );
+            case MOMMYTALK365_PREMIUM -> createMommytalk365PremiumParameter(
+                personalizedContent, voiceUrl, mommyVocaUrl, messageLogDetailId
+            );
+            case MOMMYTALK365_REVIEW -> createMommytalk365ReviewParameter(
+                personalizedContent
+            );
+            case MOMMYTALK365_PREMIUM_REVIEW -> createMommytalk365PremiumReviewParameter(
+                personalizedContent, mommyVocaUrl
+            );
+        };
+    }
 
-        // 메시지 내용
-        templateParameter.put("오늘의엄마표영어", personalizedContent);
+    /**
+     * MOMMYTALK365 템플릿 파라미터 생성
+     * - 오늘의엄마표영어: 메시지 내용
+     * - 발음안내링크: 발음듣기 버튼 URL
+     */
+    private Map<String, String> createMommytalk365Parameter(
+        String personalizedContent,
+        String voiceUrl,
+        Long messageLogDetailId
+    ) {
+        Map<String, String> params = new HashMap<>();
+        params.put("오늘의엄마표영어", personalizedContent);
 
-        // 발음듣기 버튼 URL
         if (voiceUrl != null && !voiceUrl.trim().isEmpty()) {
             String voiceLink = frontBaseUrl + "mommytalk365/" + messageLogDetailId;
-            templateParameter.put("발음안내링크", voiceLink);
+            params.put("발음안내링크", voiceLink);
         }
 
-        // 마미보카 버튼 URL (PREMIUM일 때만 추가)
-        if (template == KakaoAlimtalkTemplate.MOMMYTALK365_PREMIUM
-            && mommyVocaUrl != null && !mommyVocaUrl.trim().isEmpty()) {
-            templateParameter.put("단어안내링크", mommyVocaUrl.trim());
+        return params;
+    }
+
+    /**
+     * MOMMYTALK365_PREMIUM 템플릿 파라미터 생성
+     * - 오늘의엄마표영어: 메시지 내용
+     * - 발음안내링크: 발음듣기 버튼 URL
+     * - 단어안내링크: 마미보카 버튼 URL
+     */
+    private Map<String, String> createMommytalk365PremiumParameter(
+        String personalizedContent,
+        String voiceUrl,
+        String mommyVocaUrl,
+        Long messageLogDetailId
+    ) {
+        Map<String, String> params = new HashMap<>();
+        params.put("오늘의엄마표영어", personalizedContent);
+
+        if (voiceUrl != null && !voiceUrl.trim().isEmpty()) {
+            String voiceLink = frontBaseUrl + "mommytalk365/" + messageLogDetailId;
+            params.put("발음안내링크", voiceLink);
         }
 
-        return templateParameter;
+        if (mommyVocaUrl != null && !mommyVocaUrl.trim().isEmpty()) {
+            params.put("단어안내링크", mommyVocaUrl.trim());
+        }
+
+        return params;
+    }
+
+    /**
+     * MOMMYTALK365_REVIEW 템플릿 파라미터 생성 (일요일 리뷰)
+     * - 복습콘텐츠: 메시지 내용
+     * - 버튼 없음
+     */
+    private Map<String, String> createMommytalk365ReviewParameter(
+        String personalizedContent
+    ) {
+        Map<String, String> params = new HashMap<>();
+        params.put("복습콘텐츠", personalizedContent);
+        return params;
+    }
+
+    /**
+     * MOMMYTALK365_PREMIUM_REVIEW 템플릿 파라미터 생성 (일요일 프리미엄 리뷰)
+     * - 복습콘텐츠: 메시지 내용
+     * - 발음안내링크: 발음듣기 버튼 URL
+     */
+    private Map<String, String> createMommytalk365PremiumReviewParameter(
+        String personalizedContent,
+        String mommyVocaUrl
+    ) {
+        Map<String, String> params = new HashMap<>();
+        params.put("복습콘텐츠", personalizedContent);
+
+        if (mommyVocaUrl != null && !mommyVocaUrl.trim().isEmpty()) {
+            params.put("발음안내링크", mommyVocaUrl.trim());
+        }
+
+        return params;
     }
 
     /**

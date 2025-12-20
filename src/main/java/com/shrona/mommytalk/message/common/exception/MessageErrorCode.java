@@ -18,6 +18,7 @@ public enum MessageErrorCode {
     MESSAGE_NOT_DELIVER_YET(HttpStatus.BAD_REQUEST, "메시지가 아직 발송되지 않았습니다."),
     MESSAGE_CHANNEL_MISMATCH(HttpStatus.BAD_REQUEST, "메시지와 채널 정보 매칭이 잘못되었습니다."),
     MESSAGE_ALREADY_CANCEL(HttpStatus.BAD_REQUEST, "메시지가 이미 취소되었습니다."),
+    MESSAGE_CANCEL_TOO_LATE(HttpStatus.BAD_REQUEST, "예약 시간 30분 전에는 취소할 수 없습니다."),
     NEED_MORE_DATE_FOR_APPROVED(HttpStatus.BAD_REQUEST, "승인 되기에 데이터가 부족합니다."),
 
     MESSAGE_LOG_NOT_FOUND(HttpStatus.NOT_FOUND, "메시지 정보를 찾을 수 없습니다."),
