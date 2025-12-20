@@ -21,12 +21,25 @@ public enum KakaoAlimtalkTemplate {
 
     /**
      * 마미톡365 프리미엄 템플릿 (마미보카)
+     * - 템플릿 내용: "오늘의 마미톡\n#{복습콘텐츠}"
+     */
+    MOMMYTALK365_REVIEW("mommytalk_review", "마미톡365 일요일 리뷰"),
+
+    /**
+     * 마미톡365 프리미엄 템플릿 (마미보카)
      * - 템플릿 내용: "오늘의 마미톡\n#{오늘의엄마표영어}"
      * - 버튼 1: 발음듣기 🔈 (WL) → #{발음안내링크}
      * - 버튼 2: 마미보카 💌 (WL) → #{단어안내링크}
      * - 버튼 3: ➕ 나만의 문장 만들기 (WL) → 고정 URL (dashboard)
      */
-    MOMMYTALK365_PREMIUM("mommytalk365_premuim", "마미톡365 프리미엄");
+    MOMMYTALK365_PREMIUM("mommytalk365_premuim", "마미톡365 프리미엄"),
+
+    /**
+     * 마미톡365 프리미엄 템플릿 (마미보카)
+     * - 템플릿 내용: "오늘의 마미톡\n#{복습콘텐츠}"
+     * - 버튼 1: 마미보카 💌 (WL) → #{발음안내링크}
+     */
+    MOMMYTALK365_PREMIUM_REVIEW("mommytalk365_review", "마미톡365 프리미엄 일요일 리뷰");
 
     /**
      * NHN Cloud에 등록된 템플릿 코드

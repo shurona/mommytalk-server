@@ -1,6 +1,7 @@
 package com.shrona.mommytalk.message.application;
 
 import static com.shrona.mommytalk.group.common.exception.GroupErrorCode.GROUP_NOT_FOUND;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CANCEL_TOO_LATE;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CHANNEL_MISMATCH;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_NOT_SCHEDULED_FOR_DATE;
 import static com.shrona.mommytalk.message.domain.type.ReservationStatus.FAIL;
@@ -198,6 +199,15 @@ public class MessageServiceImpl implements MessageService {
         MessageLog messageLog = messageLogRepository.findById(messageLogId).orElseThrow(
             () -> new MessageException(MessageErrorCode.MESSAGE_LOG_NOT_FOUND)
         );
+
+        // 예약 시간 30분 전 체크 (KST 기준)
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime kstReserveTime = messageLog.getReserveTime().plusHours(9);
+        LocalDateTime kstNow = now.plusHours(9);
+
+        if (kstReserveTime.minusMinutes(30).isBefore(kstNow)) {
+            throw new MessageException(MESSAGE_CANCEL_TOO_LATE);
+        }
 
         // cancel
         messageLog.cancelMessageLog();
