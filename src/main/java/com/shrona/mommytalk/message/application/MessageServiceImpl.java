@@ -9,7 +9,6 @@ import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
-import com.shrona.mommytalk.entitlement.infrastructure.query.EntitlementQueryRepository;
 import com.shrona.mommytalk.group.application.GroupService;
 import com.shrona.mommytalk.group.common.exception.GroupException;
 import com.shrona.mommytalk.group.domain.Group;
@@ -31,6 +30,7 @@ import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDe
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogQueryRepository;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageHistoryResponseDto;
 import com.shrona.mommytalk.user.domain.User;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -63,7 +63,6 @@ public class MessageServiceImpl implements MessageService {
     private final MessageLogQueryRepository messageLogQueryRepository;
     private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
     private final GroupQueryRepository groupQueryRepository;
-    private final EntitlementQueryRepository entitlementQueryRepository;
 
     // service
     private final GroupService groupService;
@@ -80,11 +79,13 @@ public class MessageServiceImpl implements MessageService {
     public List<MessageLog> createMessageSelectGroup
         (Channel channel, Long selectGroupId,
             List<Long> selectedCustomGroupIds, List<Long> exceptGroupIds,
-            LocalDateTime reserveTime, String groupInfo) {
+            String deliveryDate, LocalDateTime reserveTime, String groupInfo) {
+
+        LocalDate deliveryDateFromString = LocalDate.parse(deliveryDate);
 
         // 해당 날짜와 채널에 해당하는 MessageType 정보를 갖고 온다.
         MessageType typeInfo = messageTypeRepository.findByDeliveryTime(
-                reserveTime.toLocalDate(), channel)
+                deliveryDateFromString, channel)
             .orElseThrow(() -> new MessageException(MESSAGE_NOT_SCHEDULED_FOR_DATE));
 
         Group entitlementGroupInfo = groupJpaRepository.findById(selectGroupId)
@@ -112,6 +113,10 @@ public class MessageServiceImpl implements MessageService {
 
         // 상품 정보 업데이트
         messageLogForSave.updateMessageEntitlement(entitlementGroupInfo.getEntitlement());
+
+        // messageLog에서 그룹 정보 업데이트
+        messageLogForSave.updateGroupInfo(
+            entitlementGroupInfo, selectedCustomGroupIds, exceptGroupIds);
 
         // messageLog 저장
         MessageLog messageLogInfo = messageLogRepository.save(messageLogForSave);

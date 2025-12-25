@@ -183,6 +183,7 @@ public class MessageLogRestController {
                 requestDto.includeGroupId(),
                 requestDto.includeCustomGroup(),
                 requestDto.excludeGroup(),
+                requestDto.deliveryDate(),
                 localDateTime,
                 requestDto.includeGroupId() + " " + requestDto.includeCustomGroup().toString());
         }

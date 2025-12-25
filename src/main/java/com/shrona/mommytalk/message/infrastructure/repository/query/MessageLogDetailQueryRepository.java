@@ -3,6 +3,7 @@ package com.shrona.mommytalk.message.infrastructure.repository.query;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -48,9 +49,14 @@ public interface MessageLogDetailQueryRepository {
     MessageLogDetail findByChannelAndUserAndContent(
         Long channelId, Long userId, Long messageLogDetailId);
 
+
+    /**
+     * MessageLogId를 기준으로 MessageLogDetail에 이미 있는 유저 Id 목록을 조회한다.
+     */
+    Set<Long> findUserIdsByMessageLogId(Long messageLogId);
+
     /**
      * MessageLogDetail ID 목록으로 상태 일괄 업데이트 (Batch UPDATE)
      */
     void updateStatusByIds(List<Long> messageLogDetailIds, ReservationStatus status);
-
 }

@@ -39,10 +39,9 @@ public interface MessageService {
     /**
      * 선택된 그룹에 메시지 전송(제외 그룹 확인)
      */
-    List<MessageLog> createMessageSelectGroup
-    (Channel channel, Long selectGroupId,
+    List<MessageLog> createMessageSelectGroup(Channel channel, Long selectGroupId,
         List<Long> selectedCustomGroupIds, List<Long> selectedExGroupIds,
-        LocalDateTime reserveTime, String groupInfo);
+        String deliveryDate, LocalDateTime reserveTime, String groupInfo);
 
     /**
      * 모든 그룹에 메시지 전송(제외 그룹 확인)
@@ -65,10 +64,11 @@ public interface MessageService {
     /**
      * 사용자가 받은 메시지 히스토리 조회 (연월 기준)
      */
-    List<MessageHistoryResponseDto> findMessageHistory(Long channelId, Long userId, int year, int month);
+    List<MessageHistoryResponseDto> findMessageHistory(
+        Long channelId, Long userId, int year, int month);
 
     /**
-     * MessageLog만 생성 (MessageLogDetail 없이, 스케줄 등록 없이)
+     * MessageLog만 생성 (MessageLogDetail 없이, 스케줄 등록 없이) 레거시 용
      */
     MessageLog createMessageLogOnly(Channel channel, Long entitlementGroupId,
         LocalDateTime reserveTime);

@@ -140,6 +140,7 @@ class MessageServiceImplTest {
         List<MessageLog> logList = messageService
             .createMessageSelectGroup(channel,
                 groupInfo.getId(), List.of(2L), new ArrayList<>(),
+                reserveTime.plusHours(5).toLocalDate().toString(),
                 reserveTime.plusHours(5), content);
         MessageLog afterSaveLog = messageService.findByMessageId(logList.getFirst().getId());
 
@@ -198,12 +199,14 @@ class MessageServiceImplTest {
             .createMessageSelectGroup(channel, groupInfo.getId(),
                 List.of(includeGroupInfo.getId()),
                 List.of(exceptGroupInfo.getId()),
+                reserveTime.plusHours(1).toLocalDate().toString(),
                 reserveTime.plusHours(1), content);
 
         List<MessageLog> messageLogListTwo = messageService
             .createMessageSelectGroup(channel, includeGroupInfo.getId(),
                 List.of(includeGroupInfo.getId()),
                 List.of(exceptGroupInfo.getId()),
+                reserveTime.plusHours(1).toLocalDate().toString(),
                 reserveTime.plusHours(1), content);
 
         // then
@@ -236,6 +239,7 @@ class MessageServiceImplTest {
             messageService
                 .createMessageSelectGroup(channel, groupInfo.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
+                    reserveTime.plusHours(3).toLocalDate().toString(),
                     reserveTime.plusHours(3), content);
         }
         // 이전 시간으로 추가(reserveList로 조회될 크기)
@@ -243,6 +247,7 @@ class MessageServiceImplTest {
             messageService
                 .createMessageSelectGroup(channel, groupInfo.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
+                    reserveTime.plusHours(3).toLocalDate().toString(),
                     reserveTime.minusHours(3), content);
         }
         // 다른 채널에 추가
@@ -250,6 +255,7 @@ class MessageServiceImplTest {
             messageService
                 .createMessageSelectGroup(channel2, groupInfo.getId(),
                     List.of(groupInfo.getId()), new ArrayList<>(),
+                    reserveTime.plusHours(3).toLocalDate().toString(),
                     reserveTime.minusHours(3), content);
         }
 
@@ -282,6 +288,7 @@ class MessageServiceImplTest {
         List<MessageLog> messageLogList = messageService
             .createMessageSelectGroup(channel, groupInfo.getId(),
                 List.of(groupInfo.getId()), new ArrayList<>(),
+                reserveTime.plusHours(3).toLocalDate().toString(),
                 reserveTime.plusHours(3), content);
 
         // when

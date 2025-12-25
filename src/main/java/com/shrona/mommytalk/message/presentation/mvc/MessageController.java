@@ -151,6 +151,7 @@ public class MessageController {
                 form.includeGroup().getFirst(),
                 form.includeGroup(),
                 form.excludeGroup(),
+                localDateTime.toLocalDate().toString(),
                 localDateTime,
                 form.content());
         }
