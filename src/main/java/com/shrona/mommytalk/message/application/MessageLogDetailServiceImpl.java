@@ -166,8 +166,6 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
     @Transactional
     public int addMissingDetailsBeforeSend(Long messageLogId) {
 
-        log.info("[누락 유저 추가 시작] messageLogId={}", messageLogId);
-
         // MessageLog 조회
         MessageLog messageLog = messageLogJpaRepository.findById(messageLogId)
             .orElseThrow(() -> new MessageException(MESSAGE_LOG_NOT_FOUND));

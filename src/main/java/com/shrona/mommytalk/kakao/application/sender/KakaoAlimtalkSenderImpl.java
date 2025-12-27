@@ -279,8 +279,8 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
 
                 logResponse(response);
 
-                // 테스트 용으로 일괄 성공 처리 한다.
-                // chunk.forEach(mld -> successIds.add(mld.getId()));
+//                // 테스트 용으로 일괄 성공 처리 한다.
+//                chunk.forEach(mld -> successIds.add(mld.getId()));
             } catch (RestClientResponseException ex) {
                 log.error("[알림톡 전송 에러] chunk 번호: {}, 에러: {}", i / CHUNK_SIZE, ex.getMessage());
                 // chunk 전체를 실패로 처리

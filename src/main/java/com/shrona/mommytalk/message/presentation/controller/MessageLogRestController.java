@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -175,7 +177,7 @@ public class MessageLogRestController {
         if (requestDto.messageTarget().equalsIgnoreCase(GROUP.getType())) {
             // 그룹 타겟 전송인데 그룹이 비어있는 경우
             if (requestDto.includeGroupId() == null) {
-                return;
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "상품 그룹 정보가 없습니다.");
             }
 
             messageService.createMessageSelectGroup(
