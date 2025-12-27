@@ -5,6 +5,7 @@ import static jakarta.persistence.CascadeType.PERSIST;
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.entity.BaseEntity;
 import com.shrona.mommytalk.entitlement.domain.Entitlement;
+import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
 import com.shrona.mommytalk.line.common.exception.LineException;
 import jakarta.persistence.Column;
@@ -19,7 +20,9 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,11 +43,21 @@ public class MessageLog extends BaseEntity {
     @Column(name = "group_info")
     private String groupInfo;
 
+    @Column(name = "include_custom_group_ids")
+    private String includeCustomGroupIds;  // "1,2,3"
+
+    @Column(name = "except_group_ids")
+    private String exceptGroupIds;  // "1,2,3"
+
     @Column(name = "reserve_time")
     private LocalDateTime reserveTime;
 
     @Column
     private Boolean cancel;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entitlement_group_id")
+    private Group entitlementGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "entitlement_id")
@@ -104,5 +117,53 @@ public class MessageLog extends BaseEntity {
      */
     public void cancelMessageLog() {
         this.cancel = true;
+    }
+
+    public void updateGroupInfo(Group entitlementGroup, List<Long> includeIds,
+        List<Long> exceptIds) {
+        this.entitlementGroup = entitlementGroup;
+
+        if (includeIds != null && !includeIds.isEmpty()) {
+            this.includeCustomGroupIds = includeIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+        }
+
+        if (exceptIds != null && !exceptIds.isEmpty()) {
+            this.exceptGroupIds = exceptIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+        }
+    }
+
+    /**
+     * 포함 그룹 아이디 목록을 갖고 온다.
+     */
+    public List<Long> getIncludeCustomGroupIdsAsList() {
+        if (includeCustomGroupIds == null || includeCustomGroupIds.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(includeCustomGroupIds.split(","))
+            .map(Long::parseLong)
+            .toList();
+    }
+
+    /**
+     * 제외 그룹 아이디 목록을 갖고 온다.
+     */
+    public List<Long> getExceptGroupIdsAsList() {
+        if (exceptGroupIds == null || exceptGroupIds.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(exceptGroupIds.split(","))
+            .map(Long::parseLong)
+            .toList();
+    }
+
+    /**
+     * 신규 MessageLogDetail을 추가할 수 잇는 지 확인한다.
+     */
+    public boolean canAddNewDetails() {
+        return !this.cancel && this.reserveTime.isAfter(LocalDateTime.now());
     }
 }

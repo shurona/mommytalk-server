@@ -15,4 +15,10 @@ public interface MessageLogDetailService {
      */
     int createLegacyDetails(Channel channel, Long entitlementId);
 
+
+    /**
+     * 예약 메시지 발송 전 누락 유저 추가
+     */
+    int addMissingDetailsBeforeSend(Long messageLogId);
+
 }

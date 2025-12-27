@@ -1,12 +1,19 @@
 package com.shrona.mommytalk.message.application;
 
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_LOG_NOT_FOUND;
+
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.entitlement.domain.UserEntitlement;
 import com.shrona.mommytalk.entitlement.infrastructure.query.UserEntitlementQueryRepository;
+import com.shrona.mommytalk.group.application.GroupService;
+import com.shrona.mommytalk.group.infrastructure.repository.query.GroupQueryRepository;
+import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
+import com.shrona.mommytalk.message.domain.service.MessageLogDetailDomainService;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogDetailJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.user.domain.User;
@@ -15,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,10 +36,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MessageLogDetailServiceImpl implements MessageLogDetailService {
 
-    private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
+    // Domain
+    private final MessageLogDetailDomainService domainService;
+
+    // Infrastructure
+    private final GroupQueryRepository groupQueryRepository;
     private final MessageLogJpaRepository messageLogJpaRepository;
+    private final MessageLogDetailJpaRepository messageLogDetailJpaRepository;
+    private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
     private final MessageContentJpaRepository messageContentJpaRepository;
     private final UserEntitlementQueryRepository userEntitlementQueryRepository;
+
+    // Service
+    private final GroupService groupService;
 
     @Override
     public Page<MessageLogDetail> findLogDetailListByLogId(Long messageLogId, Pageable pageable) {
@@ -142,5 +160,58 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
             messageLog.getId(), createdCount);
 
         return createdCount;
+    }
+
+    @Override
+    @Transactional
+    public int addMissingDetailsBeforeSend(Long messageLogId) {
+
+        // MessageLog 조회
+        MessageLog messageLog = messageLogJpaRepository.findById(messageLogId)
+            .orElseThrow(() -> new MessageException(MESSAGE_LOG_NOT_FOUND));
+
+        //  MessageLog에 포함된 유저 목록을 조회한다.
+        List<Long> targetGroupIds = Stream.concat(
+            messageLog.getIncludeCustomGroupIdsAsList().stream(),
+            Stream.of(messageLog.getEntitlementGroup().getId())
+        ).collect(Collectors.toList());
+
+        // 타겟 유저 목록을 조회한다.
+        List<User> userListByGroupIds = groupQueryRepository.findUserListByGroupIds(
+            targetGroupIds
+        );
+
+        // 제외 유저 조회
+        List<Long> exceptGroupIds = messageLog.getExceptGroupIdsAsList();
+        Set<Long> exceptUserIds = exceptGroupIds.isEmpty()
+            ? Set.of()
+            : new HashSet<>(groupService.findUserIdsByGroupIds(exceptGroupIds));
+
+        // 이미 있는 유저 조회
+        Set<Long> existingUserIds = messageLogDetailQueryRepository
+            .findUserIdsByMessageLogId(messageLogId);
+
+        // 누락 유저 필터링
+        List<User> missingUsers = userListByGroupIds.stream()
+            .filter(user -> !exceptUserIds.contains(user.getId()))
+            .filter(user -> !existingUserIds.contains(user.getId()))
+            .toList();
+
+        if (missingUsers.isEmpty()) {
+            log.info("[누락 유저 없음] messageLogId={}", messageLogId);
+            return 0;
+        }
+
+        // MessageLogDetail 생성 (domain service 호출)
+        List<MessageLogDetail> newDetails = domainService
+            .createDetailsForUsers(messageLog, missingUsers);
+
+        newDetails.forEach(messageLog::addMessageLogDetailInfo);
+        messageLogDetailJpaRepository.saveAll(newDetails);
+
+        log.info("[누락 유저 추가 완료] messageLogId={}, 추가 유저={}",
+            messageLogId, missingUsers.size());
+
+        return missingUsers.size();
     }
 }

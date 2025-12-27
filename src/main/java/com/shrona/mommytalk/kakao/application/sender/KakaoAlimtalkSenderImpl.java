@@ -13,6 +13,7 @@ import com.shrona.mommytalk.kakao.infrastructure.sender.NhnAlimtalkMessageClient
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.AlimtalkMessageRequestDto;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.AlimtalkMessageRequestDto.RecipientDto;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.AlimtalkMessageResponseDto;
+import com.shrona.mommytalk.message.application.MessageLogDetailService;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
@@ -62,6 +63,8 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
     private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
     private final MessageContentQueryRepository messageContentQueryRepository;
 
+    private final MessageLogDetailService messageLogDetailService;
+
     @Value("${kakao.secret-key}")
     private String kakaoSecretKey;
 
@@ -75,6 +78,9 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
         List<MessageLog> kakaoMessageByIds = messageRepository.findMessageByIds(messageIds);
 
         for (MessageLog messageLog : kakaoMessageByIds) {
+
+            // 예약 이후에 등록된 신규 유저들을 추가해준다.
+            messageLogDetailService.addMissingDetailsBeforeSend(messageLog.getId());
 
             // messageLogId가 동일하고 예약 상태인 messageLogDetail 목록을 갖고 온다.
             List<MessageLogDetail> mldList = messageLogDetailQueryRepository
@@ -135,11 +141,15 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
                 .orElse(null);
             String mommyVocaUrl = content.getMommyVoca();
 
+            boolean isSunday =
+                content.getMessageType().getDeliveryTime().getDayOfWeek() == DayOfWeek.SUNDAY;
             // mommyVocaUrl 유무로 MOMMYTALK/MOMMYVOCA 판단
-            KakaoAlimtalkTemplate template = (mommyVocaUrl != null
-                && !mommyVocaUrl.trim().isEmpty())
-                ? KakaoAlimtalkTemplate.MOMMYTALK365_PREMIUM
-                : KakaoAlimtalkTemplate.MOMMYTALK365;
+            KakaoAlimtalkTemplate template;
+            if (mommyVocaUrl != null && !mommyVocaUrl.trim().isEmpty()) {
+                template = selectTemplate(EntitlementType.MOMMYVOCA, isSunday);
+            } else {
+                template = selectTemplate(EntitlementType.MOMMYTALK, isSunday);
+            }
 
             String personalizedContent = content.getContent().replace("{아이이름}", "아이는");
 
@@ -268,6 +278,9 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
                 }
 
                 logResponse(response);
+
+//                // 테스트 용으로 일괄 성공 처리 한다.
+//                chunk.forEach(mld -> successIds.add(mld.getId()));
             } catch (RestClientResponseException ex) {
                 log.error("[알림톡 전송 에러] chunk 번호: {}, 에러: {}", i / CHUNK_SIZE, ex.getMessage());
                 // chunk 전체를 실패로 처리

@@ -14,6 +14,7 @@ import com.shrona.mommytalk.elevenlabs.domain.QElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -193,6 +194,16 @@ public class MessageLogDetailQueryRepositoryImpl implements
             .leftJoin(messageContent.headerTwoLink).fetchJoin()
             .where(builder)
             .fetchOne();
+    }
+
+    @Override
+    public Set<Long> findUserIdsByMessageLogId(Long messageLogId) {
+        List<Long> userIds = query.select(messageLogDetail.user.id)
+            .from(messageLogDetail)
+            .where(messageLogDetail.messageLog.id.eq(messageLogId))
+            .fetch();
+
+        return Set.copyOf(userIds);
     }
 
     @Override

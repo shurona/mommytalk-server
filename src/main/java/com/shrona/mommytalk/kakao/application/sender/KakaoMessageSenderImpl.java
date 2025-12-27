@@ -12,6 +12,7 @@ import com.shrona.mommytalk.kakao.infrastructure.sender.NhnBrandMessageClient;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.BrandMessageRequestDto;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.BrandMessageRequestDto.ButtonDto;
 import com.shrona.mommytalk.kakao.infrastructure.sender.dto.BrandMessageResponseDto;
+import com.shrona.mommytalk.message.application.MessageLogDetailService;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
@@ -58,6 +59,9 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
     private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
     private final MessageContentQueryRepository messageContentQueryRepository;
 
+    // service
+    private final MessageLogDetailService messageLogDetailService;
+
 
     @Value("${kakao.secret-key}")
     private String kakaoSecretKey;
@@ -73,6 +77,9 @@ public class KakaoMessageSenderImpl implements KakaoMessageSender {
         List<MessageLog> kakaoMessageByIds = messageRepository.findMessageByIds(messageIds);
 
         for (MessageLog messageLog : kakaoMessageByIds) {
+
+            // 예약 이후에 등록된 신규 유저들을 추가해준다.
+            messageLogDetailService.addMissingDetailsBeforeSend(messageLog.getId());
 
             // messageLogId가 동일하고 예약 상태인 messageLogDetail 목록을 갖고 온다.
             List<MessageLogDetail> mldList = messageLogDetailQueryRepository
