@@ -158,16 +158,41 @@ public class KakaoAuthService {
 
     /**
      * 카카오에서 넘어오는 휴대전화 번호를 변환
+     * 국제 형식(+82, +1)을 감지하여 자동으로 국내 형식으로 변환
      */
     private String convertPhoneNumber(String kakaoFormatPhone) {
         try {
-            PhoneNumber number = phoneUtil.parse(kakaoFormatPhone, "KR");
+            // Google PhoneNumberUtil로 파싱 (국가 코드 자동 감지)
+            PhoneNumber number = phoneUtil.parse(kakaoFormatPhone, null);
+            int countryCode = number.getCountryCode();
 
-            return phoneUtil.format(number,
-                PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
+            switch (countryCode) {
+                case 82:  // 한국 (+82)
+                    return phoneUtil.format(number, PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
+
+                case 1:   // 미국/캐나다 (+1)
+                    // (650) 123-4567 → 1-650-123-4567 변환
+                    String nationalFormat = phoneUtil.format(number,
+                        PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
+                    String digitsOnly = nationalFormat.replaceAll("[^0-9]", "");
+
+                    if (digitsOnly.length() == 10) {
+                        return "1-" + digitsOnly.substring(0, 3) + "-" +
+                            digitsOnly.substring(3, 6) + "-" +
+                            digitsOnly.substring(6);
+                    }
+
+                    log.warn("미국 전화번호 형식 오류: {}", nationalFormat);
+                    throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);
+
+                default:
+                    log.error("지원하지 않는 국가 코드: {}, 전화번호: {}", countryCode, kakaoFormatPhone);
+                    throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);
+            }
+
         } catch (NumberParseException exception) {
-            // TODO 에러 핸들링
-            throw new RuntimeException();
+            log.error("휴대전화 포맷 파싱 실패: {}", kakaoFormatPhone, exception);
+            throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);
         }
     }
 

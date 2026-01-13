@@ -32,7 +32,7 @@ class PhoneProcessTest {
         System.out.println(userList);
 
         // then
-        assertThat(userList.size()).isEqualTo(4);
+        assertThat(userList.size()).isEqualTo(6);
     }
 
     @DisplayName("휴대전화 입력 정합성 테스트")

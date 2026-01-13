@@ -82,7 +82,7 @@ public interface GroupService {
     );
 
     /**
-     * 그룹에 전화번호 추가(구)
+     * 그룹에 전화번호 추가
      */
     void addUserToGroup(Channel channel, Long groupId, List<String> phoneNumberList);
 
