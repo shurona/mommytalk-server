@@ -69,3 +69,9 @@ cloudflare:
 
 front:
   base-url: ${FRONT_CLIENT_BASE_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
