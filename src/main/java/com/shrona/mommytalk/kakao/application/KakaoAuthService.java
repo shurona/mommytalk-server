@@ -185,6 +185,26 @@ public class KakaoAuthService {
                     log.warn("미국 전화번호 형식 오류: {}", nationalFormat);
                     throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);
 
+                case 44:  // 영국 (+44)
+                    // 07911 123456 → 44-791-112-3456 변환
+                    String ukNationalFormat = phoneUtil.format(number,
+                        PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
+                    String ukDigitsOnly = ukNationalFormat.replaceAll("[^0-9]", "");
+
+                    // 영국 국내 형식은 leading 0 포함 11자리, 제거하면 10자리
+                    if (ukDigitsOnly.startsWith("0")) {
+                        ukDigitsOnly = ukDigitsOnly.substring(1);
+                    }
+
+                    if (ukDigitsOnly.length() == 10) {
+                        return "44-" + ukDigitsOnly.substring(0, 3) + "-" +
+                            ukDigitsOnly.substring(3, 6) + "-" +
+                            ukDigitsOnly.substring(6);
+                    }
+
+                    log.warn("영국 전화번호 형식 오류: {}", ukNationalFormat);
+                    throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);
+
                 default:
                     log.error("지원하지 않는 국가 코드: {}, 전화번호: {}", countryCode, kakaoFormatPhone);
                     throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);

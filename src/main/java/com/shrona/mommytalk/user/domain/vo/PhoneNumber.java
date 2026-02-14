@@ -33,6 +33,19 @@ public class PhoneNumber {
      */
     public final static String US_PHONE_NUMBER_PATTERN_PURE = "(1\\d{10})";
 
+    /**
+     * 영국 전화번호 패턴 (하이픈 또는 공백 포함)
+     * 형식: 44-791-112-3456 또는 44 791 112 3456
+     * 국가코드(44) + 10자리를 3-3-4로 분리
+     */
+    public final static String UK_PHONE_NUMBER_PATTERN = "44([- ])\\d{3}\\1\\d{3}\\1\\d{4}";
+
+    /**
+     * 영국 전화번호 패턴 (순수 숫자)
+     * 형식: 447911123456 (12자리, 44로 시작)
+     */
+    public final static String UK_PHONE_NUMBER_PATTERN_PURE = "(44\\d{10})";
+
     @Column(name = "phone_number", unique = true, nullable = true)
     private String phoneNumber;
 
@@ -50,10 +63,13 @@ public class PhoneNumber {
         Pattern koreanPurePattern = Pattern.compile(PHONE_NUMBER_PATTERN_TWO);
         Pattern usHyphenPattern = Pattern.compile(US_PHONE_NUMBER_PATTERN);
         Pattern usPurePattern = Pattern.compile(US_PHONE_NUMBER_PATTERN_PURE);
+        Pattern ukHyphenPattern = Pattern.compile(UK_PHONE_NUMBER_PATTERN);
+        Pattern ukPurePattern = Pattern.compile(UK_PHONE_NUMBER_PATTERN_PURE);
 
-        // 이미 하이픈 포함된 경우 (한국 또는 미국)
+        // 이미 하이픈 포함된 경우 (한국, 미국 또는 영국)
         if (koreanHyphenPattern.matcher(phoneNumber).matches() ||
-            usHyphenPattern.matcher(phoneNumber).matches()) {
+            usHyphenPattern.matcher(phoneNumber).matches() ||
+            ukHyphenPattern.matcher(phoneNumber).matches()) {
             this.phoneNumber = phoneNumber;
             return;
         }
@@ -70,6 +86,18 @@ public class PhoneNumber {
                                        phoneNumber.substring(1, 4) + "-" +
                                        phoneNumber.substring(4, 7) + "-" +
                                        phoneNumber.substring(7);
+                    return;
+                }
+            }
+
+            // 영국 번호: 44로 시작하는 12자리
+            if (firstDigit == '4' && phoneNumber.length() == 12) {
+                if (ukPurePattern.matcher(phoneNumber).matches()) {
+                    // 447911123456 → 44-791-112-3456
+                    this.phoneNumber = phoneNumber.substring(0, 2) + "-" +
+                                       phoneNumber.substring(2, 5) + "-" +
+                                       phoneNumber.substring(5, 8) + "-" +
+                                       phoneNumber.substring(8);
                     return;
                 }
             }
@@ -127,8 +155,12 @@ public class PhoneNumber {
         boolean isUS = Pattern.matches(US_PHONE_NUMBER_PATTERN, normalized) ||
                        Pattern.matches(US_PHONE_NUMBER_PATTERN_PURE, normalized);
 
-        // 둘 다 아니면 유효하지 않음
-        return !(isKorean || isUS);
+        // 영국 번호 패턴
+        boolean isUK = Pattern.matches(UK_PHONE_NUMBER_PATTERN, normalized) ||
+                       Pattern.matches(UK_PHONE_NUMBER_PATTERN_PURE, normalized);
+
+        // 모두 아니면 유효하지 않음
+        return !(isKorean || isUS || isUK);
     }
 
     @Override

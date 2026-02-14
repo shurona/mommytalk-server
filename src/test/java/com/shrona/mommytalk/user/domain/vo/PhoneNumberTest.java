@@ -72,6 +72,62 @@ class PhoneNumberTest {
     }
 
     @Nested
+    @DisplayName("영국 전화번호 생성")
+    class UKPhoneNumberCreation {
+
+        @Test
+        @DisplayName("하이픈 포함 영국 번호 - 유효")
+        void 하이픈_포함_영국_번호_유효() {
+            // given
+            String input = "44-791-112-3456";
+
+            // when
+            PhoneNumber phoneNumber = new PhoneNumber(input);
+
+            // then
+            assertThat(phoneNumber.getPhoneNumber()).isEqualTo("44-791-112-3456");
+        }
+
+        @Test
+        @DisplayName("공백 포함 영국 번호 - 하이픈으로 변환")
+        void 공백_포함_영국_번호_하이픈_변환() {
+            // given
+            String input = "44 791 112 3456";
+
+            // when
+            PhoneNumber phoneNumber = new PhoneNumber(input);
+
+            // then
+            assertThat(phoneNumber.getPhoneNumber()).isEqualTo("44-791-112-3456");
+        }
+
+        @Test
+        @DisplayName("순수 숫자 영국 번호 - 자동 포맷팅")
+        void 순수_숫자_영국_번호_자동_포맷팅() {
+            // given
+            String input = "447911123456";
+
+            // when
+            PhoneNumber phoneNumber = new PhoneNumber(input);
+
+            // then
+            assertThat(phoneNumber.getPhoneNumber()).isEqualTo("44-791-112-3456");
+        }
+
+        @Test
+        @DisplayName("다양한 영국 번호 - 유효")
+        void 다양한_영국_번호_유효() {
+            // London
+            PhoneNumber london = new PhoneNumber("44-207-946-0958");
+            assertThat(london.getPhoneNumber()).isEqualTo("44-207-946-0958");
+
+            // Mobile
+            PhoneNumber mobile = new PhoneNumber("44-750-555-1234");
+            assertThat(mobile.getPhoneNumber()).isEqualTo("44-750-555-1234");
+        }
+    }
+
+    @Nested
     @DisplayName("한국 전화번호 기존 동작 유지")
     class KoreanPhoneNumberBackwardCompatibility {
 
@@ -126,6 +182,20 @@ class PhoneNumberTest {
         @DisplayName("미국 번호 자릿수 초과 - 12자리")
         void 미국_번호_자릿수_초과() {
             assertThatThrownBy(() -> new PhoneNumber("1-650-123-45678"))
+                .isInstanceOf(UserException.class);
+        }
+
+        @Test
+        @DisplayName("영국 번호 자릿수 부족 - 11자리")
+        void 영국_번호_자릿수_부족() {
+            assertThatThrownBy(() -> new PhoneNumber("44-791-112-345"))
+                .isInstanceOf(UserException.class);
+        }
+
+        @Test
+        @DisplayName("영국 번호 자릿수 초과 - 13자리")
+        void 영국_번호_자릿수_초과() {
+            assertThatThrownBy(() -> new PhoneNumber("44-791-112-34567"))
                 .isInstanceOf(UserException.class);
         }
 
@@ -188,14 +258,25 @@ class PhoneNumberTest {
         }
 
         @Test
-        @DisplayName("한국과 미국 번호 동시 사용 가능")
-        void 한국과_미국_번호_동시사용() {
+        @DisplayName("첫 자리 44 - 영국 번호로 인식")
+        void 첫자리_44_영국번호() {
+            PhoneNumber phone = new PhoneNumber("447911123456");
+            assertThat(phone.getPhoneNumber()).startsWith("44-");
+        }
+
+        @Test
+        @DisplayName("한국, 미국, 영국 번호 동시 사용 가능")
+        void 한국_미국_영국_번호_동시사용() {
             PhoneNumber korean = new PhoneNumber("010-1234-5678");
             PhoneNumber us = new PhoneNumber("1-650-123-4567");
+            PhoneNumber uk = new PhoneNumber("44-791-112-3456");
 
             assertThat(korean.getPhoneNumber()).isEqualTo("010-1234-5678");
             assertThat(us.getPhoneNumber()).isEqualTo("1-650-123-4567");
+            assertThat(uk.getPhoneNumber()).isEqualTo("44-791-112-3456");
             assertThat(korean).isNotEqualTo(us);
+            assertThat(korean).isNotEqualTo(uk);
+            assertThat(us).isNotEqualTo(uk);
         }
     }
 
@@ -217,6 +298,14 @@ class PhoneNumberTest {
             PhoneNumber result = PhoneNumber.changeWithoutError("010-1234-5678");
             assertThat(result).isNotNull();
             assertThat(result.getPhoneNumber()).isEqualTo("010-1234-5678");
+        }
+
+        @Test
+        @DisplayName("유효한 영국 번호 - 성공")
+        void 유효한_영국번호_성공() {
+            PhoneNumber result = PhoneNumber.changeWithoutError("44-791-112-3456");
+            assertThat(result).isNotNull();
+            assertThat(result.getPhoneNumber()).isEqualTo("44-791-112-3456");
         }
 
         @Test
@@ -246,6 +335,25 @@ class PhoneNumberTest {
 
             assertThat(phone1).isEqualTo(phone2);
             assertThat(phone1.hashCode()).isEqualTo(phone2.hashCode());
+        }
+
+        @Test
+        @DisplayName("동일한 영국 번호 - equals true")
+        void 동일한_영국번호_equals_true() {
+            PhoneNumber phone1 = new PhoneNumber("44-791-112-3456");
+            PhoneNumber phone2 = new PhoneNumber("44-791-112-3456");
+
+            assertThat(phone1).isEqualTo(phone2);
+            assertThat(phone1.hashCode()).isEqualTo(phone2.hashCode());
+        }
+
+        @Test
+        @DisplayName("영국 번호 - 순수 숫자와 하이픈 포함 equals true")
+        void 영국번호_순수숫자와_하이픈포함_equals_true() {
+            PhoneNumber phone1 = new PhoneNumber("447911123456");
+            PhoneNumber phone2 = new PhoneNumber("44-791-112-3456");
+
+            assertThat(phone1).isEqualTo(phone2);
         }
 
         @Test
@@ -294,6 +402,13 @@ class PhoneNumberTest {
         void 유효한_한국번호_false반환() {
             assertThat(PhoneNumber.checkValidPhoneNumber("010-1234-5678")).isFalse();
             assertThat(PhoneNumber.checkValidPhoneNumber("01012345678")).isFalse();
+        }
+
+        @Test
+        @DisplayName("유효한 영국 번호 - false 반환")
+        void 유효한_영국번호_false반환() {
+            assertThat(PhoneNumber.checkValidPhoneNumber("44-791-112-3456")).isFalse();
+            assertThat(PhoneNumber.checkValidPhoneNumber("447911123456")).isFalse();
         }
 
         @Test
