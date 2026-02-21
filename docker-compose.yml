@@ -9,7 +9,7 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "19100:19100"
-      - "9090:9090"
+      - "19090:19090"
     environment:
       # Spring Profile
       - ACTIVE=${ACTIVE:-prod}
