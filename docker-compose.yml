@@ -1,0 +1,66 @@
+services:
+  # Spring Boot Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mommytalk
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "19100:19100"
+      - "9090:9090"
+    environment:
+      # Spring Profile
+      - ACTIVE=${ACTIVE:-prod}
+
+      # Database
+      - DB_URL=${DB_URL}
+      - DB_USER_NAME=${DB_USER_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # LINE
+      - LINE_AUTH_CHANNEL_ID=${LINE_AUTH_CHANNEL_ID}
+      - LINE_AUTH_SECRET_KEY=${LINE_AUTH_SECRET_KEY}
+      - LINE_CHANNEL_SECRET=${LINE_CHANNEL_SECRET}
+      - LINE_BASE_URL=${LINE_BASE_URL}
+
+      # Admin
+      - ADMIN_HEADER_KEY=${ADMIN_HEADER_KEY}
+      - ADMIN_HEADER_VALUE=${ADMIN_HEADER_VALUE}
+
+      # OpenAI
+      - OPEN_AI_KEY=${OPEN_AI_KEY}
+
+      # JWT
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_EXPIRATION_TIME=${JWT_EXPIRATION_TIME}
+
+      # Kakao
+      - KAKAO_APP_KEY=${KAKAO_APP_KEY}
+      - KAKAO_SECRET_KEY=${KAKAO_SECRET_KEY}
+      - KAKAO_OAUTH_CLIENT_ID=${KAKAO_OAUTH_CLIENT_ID}
+      - KAKAO_OAUTH_CLIENT_SECRET=${KAKAO_OAUTH_CLIENT_SECRET}
+
+      # elevenlabs
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+
+      # cloudflare
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
+      - CLOUDFLARE_ACCESS_KEY_ID=${CLOUDFLARE_ACCESS_KEY_ID}
+      - CLOUDFLARE_SECRET_ACCESS_KEY=${CLOUDFLARE_SECRET_ACCESS_KEY}
+      - CLOUDFLARE_BUCKET_NAME=${CLOUDFLARE_BUCKET_NAME}
+      - CLOUDFLARE_ENDPOINT=${CLOUDFLARE_ENDPOINT}
+      - CLOUDFLARE_PUBLIC_URL=${CLOUDFLARE_PUBLIC_URL}
+
+      # frontUrl
+      - FRONT_CLIENT_BASE_URL=${FRONT_CLIENT_BASE_URL}
+
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9090/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
