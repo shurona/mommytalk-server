@@ -52,7 +52,6 @@ public class WebConfig implements WebMvcConfigurer {
             .order(1)
             .addPathPatterns("/**")
             .excludePathPatterns("/", "/admin", "/admin/", "/admin/v1/login", "/api/v1/admin",
-                "/actuator/**", // 모니터링
                 "/api/admin/v1/auth/login", // admin login
                 "/logout", "/css/**", "/*.ico", "/error", // static files
                 "/mommy-talk", "/shrona-test", // hook

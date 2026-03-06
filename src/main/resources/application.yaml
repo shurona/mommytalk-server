@@ -71,6 +71,8 @@ front:
   base-url: ${FRONT_CLIENT_BASE_URL}
 
 management:
+  server:
+    port: 19090
   endpoints:
     web:
       exposure:
