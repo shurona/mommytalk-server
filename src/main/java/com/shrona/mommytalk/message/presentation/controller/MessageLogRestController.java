@@ -145,13 +145,14 @@ public class MessageLogRestController {
         Channel channel = channelService.findChannelById(channelId)
             .orElseThrow(() -> new ChannelException(ChannelErrorCode.CHANNEL_NOT_FOUND));
 
-        // 2. 오늘부터 14일 후까지 기간 설정
+        // 2. (오늘 -2일)부터 14일 후까지 기간 설정
         LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(2);
         LocalDate endDate = today.plusDays(14);
 
         // 3. 9개 컨텐츠가 모두 승인된 MessageType 조회 (messageCount 포함)
         List<AvailableDateResponseDto> response = messageLogQueryRepository
-            .findAvailableMessageTypesWithFullApprovedContent(channel, today, endDate);
+            .findAvailableMessageTypesWithFullApprovedContent(channel, startDate, endDate);
 
         return ApiResponse.success(response);
     }
