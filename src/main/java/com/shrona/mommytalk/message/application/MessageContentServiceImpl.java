@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.message.application;
 
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.BAD_REQUEST;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_ACCESS_DENIED;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_NOT_FOUND;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_NOT_FOUND;
@@ -10,31 +11,50 @@ import com.shrona.mommytalk.cloudflare.application.CloudflareService;
 import com.shrona.mommytalk.elevenlabs.application.ElevenLabsService;
 import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.elevenlabs.infrastructure.reposiotry.ElevenLabsMediaRepository;
+import com.shrona.mommytalk.elevenlabs.infrastructure.sender.dto.ElevenLabsRequest;
+import com.shrona.mommytalk.elevenlabs.infrastructure.sender.dto.ElevenLabsRequest.VoiceSettings;
 import com.shrona.mommytalk.entitlement.domain.EntitlementType;
 import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.MessageType;
-import com.shrona.mommytalk.message.domain.type.AudioRole;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageContentQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
+import com.shrona.mommytalk.message.common.exception.BatchValidationException;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.BatchAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpdateAudioTextsRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpdateAudioTextsRequestDto.AudioTextItem;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpdateMommyVocaRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.AudioTextsResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.AudioTextsResponseDto.AudioTextItemDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.BatchAudioResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.BatchAudioResponseDto.BatchAudioResultDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.ContentMommyVocaUpdateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MommyVocaUpdateResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.UpdateAudioTextsResponseDto;
 import com.shrona.mommytalk.openai.application.OpenAiServiceImpl;
 import com.shrona.mommytalk.openai.domain.MessagePrompt;
 import com.shrona.mommytalk.openai.domain.type.PromptType;
 import com.shrona.mommytalk.openai.infrastructure.repository.query.MessagePromptQueryRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -140,7 +160,7 @@ public class MessageContentServiceImpl implements MessageContentService {
 
         if (existingContent.isPresent()) {
             MessageContent messageContent = existingContent.get();
-            messageContent.updateContent(requestDto.content(), requestDto.mommyVoca());
+            messageContent.updateContent(requestDto.content());
             messageContentJpaRepository.save(messageContent);
 
             return existingContent.get().getId();
@@ -149,7 +169,7 @@ public class MessageContentServiceImpl implements MessageContentService {
             MessageContent messageContent = MessageContent.ofWithMockUrlsForUpsert(
                 messageType,
                 requestDto.content(),
-                requestDto.mommyVoca(),
+                null,
                 requestDto.childLevel(),
                 requestDto.userLevel()
             );
@@ -166,64 +186,27 @@ public class MessageContentServiceImpl implements MessageContentService {
         MessageContent messageContent = messageContentJpaRepository.findById(contentId)
             .orElseThrow(() -> new MessageException(MESSAGE_CONTENT_NOT_FOUND));
 
-        // 2. 기존 오디오 삭제 처리
-        deleteOldAudioIfExists(messageContent, requestDto.audioRole());
+        // 2. 기존 미디어 row 가져오기 (재사용)
+        ElevenLabsMedia existingMedia = switch (requestDto.audioRole()) {
+            case MOMMY -> messageContent.getHeaderOneLink();
+            case CHILD -> messageContent.getHeaderTwoLink();
+        };
 
-        // 3. 새 오디오 생성
-        ElevenLabsMedia elevenLabsMedia = elevenLabsService.generateAudio(
-            requestDto.toElevenLabsRequest(), contentId, requestDto.modelId());
+        // 3. 오디오 생성 (existingMedia 있으면 R2 교체 + row 업데이트, 없으면 신규)
+        ElevenLabsMedia elevenLabsMedia = elevenLabsService.saveAudio(
+            requestDto.toElevenLabsRequest(), contentId, requestDto.modelId(), existingMedia);
 
-        // 4. MessageContent 업데이트
-        switch (requestDto.audioRole()) {
-            case MOMMY -> messageContent.updateButtonOne(elevenLabsMedia);
-            case CHILD -> messageContent.updateButtonTwo(elevenLabsMedia);
-            default -> {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+        // 4. 신규 row일 때만 MessageContent 연결 업데이트
+        if (existingMedia == null) {
+            switch (requestDto.audioRole()) {
+                case MOMMY -> messageContent.updateButtonOne(elevenLabsMedia);
+                case CHILD -> messageContent.updateButtonTwo(elevenLabsMedia);
+                default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "지원하지 않는 Audio Role");
             }
         }
 
         return elevenLabsMedia;
-    }
-
-    /**
-     * 기존 오디오 삭제 처리
-     */
-    private void deleteOldAudioIfExists(MessageContent messageContent, AudioRole audioRole) {
-        ElevenLabsMedia oldMedia = switch (audioRole) {
-            case MOMMY -> messageContent.getHeaderOneLink();
-            case CHILD -> messageContent.getHeaderTwoLink();
-        };
-
-        if (oldMedia == null) {
-            log.info("기존 {} 오디오 없음, 삭제 스킵", audioRole);
-            return;
-        }
-
-        log.info("기존 {} 오디오 삭제 시작 - ID: {}, URL: {}",
-            audioRole, oldMedia.getId(), oldMedia.getFileUrl());
-
-        // 1. R2에서 파일 삭제 (실패해도 계속 진행)
-        try {
-            String fileKey = oldMedia.extractFileKey();
-            if (fileKey != null) {
-                cloudflareService.deleteFile(fileKey);
-                log.info("R2 파일 삭제 성공: {}", fileKey);
-            }
-        } catch (Exception e) {
-            log.warn("R2 파일 삭제 실패 (작업 계속 진행): {}", e.getMessage());
-            // 실패해도 계속 진행
-        }
-
-        // 2. ElevenLabsMedia 논리 삭제
-        try {
-            oldMedia.markAsDeleted();
-            elevenLabsMediaRepository.save(oldMedia);
-            log.info("ElevenLabsMedia 논리 삭제 완료 - ID: {}", oldMedia.getId());
-        } catch (Exception e) {
-            log.error("ElevenLabsMedia 논리 삭제 실패: {}", e.getMessage(), e);
-            // 이것도 실패해도 계속 진행
-        }
     }
 
     @Transactional
@@ -299,6 +282,309 @@ public class MessageContentServiceImpl implements MessageContentService {
                 MessageContent::createKeyPropertyForMessageContent, // key: "1_2"
                 MessageContent::getApproved
             ));
+    }
+
+    private static final int REQUIRED_CONTENT_COUNT = 9;
+
+    private static final List<String> ALL_LEVEL_KEYS = List.of(
+        "1_1", "1_2", "1_3", "2_1", "2_2", "2_3", "3_1", "3_2", "3_3"
+    );
+
+    @Override
+    public AudioTextsResponseDto getAudioTexts(Long channelId, Long messageTypeId) {
+        MessageType messageType = messageTypeJpaRepository.findById(messageTypeId)
+            .orElseThrow(() -> new MessageException(MESSAGE_TYPE_NOT_FOUND));
+
+        if (!messageType.getChannel().getId().equals(channelId)) {
+            throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
+        }
+
+        Map<String, MessageContent> contentByLevel = groupMessageContentByLevel(messageType);
+
+        List<AudioTextItemDto> items = new ArrayList<>();
+        for (int userLevel = 1; userLevel <= 3; userLevel++) {
+            for (int childLevel = 1; childLevel <= 3; childLevel++) {
+                String key = userLevel + "_" + childLevel;
+                MessageContent content = contentByLevel.get(key);
+                if (content == null) {
+                    items.add(new AudioTextItemDto(null, userLevel, childLevel, false,
+                        "", "", "", "", ""));
+                } else {
+                    String momAudioText = content.getHeaderOneLink() != null
+                        ? content.getHeaderOneLink().getText() : "";
+                    String childAudioText = content.getHeaderTwoLink() != null
+                        ? content.getHeaderTwoLink().getText() : "";
+                    String momAudioUrl = content.getHeaderOneLink() != null
+                        && content.getHeaderOneLink().getFileUrl() != null
+                        ? content.getHeaderOneLink().getFileUrl() : "";
+                    String childAudioUrl = content.getHeaderTwoLink() != null
+                        && content.getHeaderTwoLink().getFileUrl() != null
+                        ? content.getHeaderTwoLink().getFileUrl() : "";
+                    items.add(new AudioTextItemDto(
+                        content.getId(), userLevel, childLevel, true,
+                        content.getContent() != null ? content.getContent() : "",
+                        momAudioText != null ? momAudioText : "",
+                        childAudioText != null ? childAudioText : "",
+                        momAudioUrl, childAudioUrl
+                    ));
+                }
+            }
+        }
+
+        return new AudioTextsResponseDto(messageTypeId, items);
+    }
+
+    @Override
+    @Transactional
+    public UpdateAudioTextsResponseDto updateAudioTexts(Long channelId, Long messageTypeId,
+        UpdateAudioTextsRequestDto req) {
+
+        MessageType messageType = messageTypeJpaRepository.findById(messageTypeId)
+            .orElseThrow(() -> new MessageException(MESSAGE_TYPE_NOT_FOUND));
+
+        if (!messageType.getChannel().getId().equals(channelId)) {
+            throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
+        }
+
+        List<MessageContent> allContents = messageContentJpaRepository.findByMessageType(
+            messageType);
+
+        if (allContents.size() < REQUIRED_CONTENT_COUNT) {
+            List<String> existingKeys = allContents.stream()
+                .map(MessageContent::createKeyPropertyForMessageContent)
+                .toList();
+            List<String> missingLevels = ALL_LEVEL_KEYS.stream()
+                .filter(k -> !existingKeys.contains(k))
+                .toList();
+            throw new BatchValidationException(
+                "All 9 contents must exist before updating audio texts.",
+                Map.of("missingLevels", missingLevels));
+        }
+
+        Map<String, MessageContent> contentByLevel = allContents.stream()
+            .collect(Collectors.toMap(MessageContent::createKeyPropertyForMessageContent, c -> c));
+
+        // null 텍스트 검증
+        for (AudioTextItem item : req.items()) {
+            if (item.momAudioText() == null || item.childAudioText() == null) {
+                throw new MessageException(BAD_REQUEST);
+            }
+        }
+
+        int updatedCount = 0;
+        for (AudioTextItem item : req.items()) {
+            String key = item.userLevel() + "_" + item.childLevel();
+            MessageContent content = contentByLevel.get(key);
+            if (content == null) {
+                continue;
+            }
+
+            // MOMMY
+            if (content.getHeaderOneLink() != null) {
+                content.getHeaderOneLink().updateText(item.momAudioText());
+            } else {
+                ElevenLabsMedia newMedia = elevenLabsMediaRepository.save(
+                    ElevenLabsMedia.ofTextOnly(item.momAudioText()));
+                content.updateButtonOne(newMedia);
+            }
+
+            // CHILD
+            if (content.getHeaderTwoLink() != null) {
+                content.getHeaderTwoLink().updateText(item.childAudioText());
+            } else {
+                ElevenLabsMedia newMedia = elevenLabsMediaRepository.save(
+                    ElevenLabsMedia.ofTextOnly(item.childAudioText()));
+                content.updateButtonTwo(newMedia);
+            }
+
+            updatedCount++;
+        }
+
+        return new UpdateAudioTextsResponseDto(messageTypeId, updatedCount, LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional
+    public BatchAudioResponseDto batchCreateAudio(Long channelId, Long messageTypeId,
+        BatchAudioRequestDto req) {
+
+        MessageType messageType = messageTypeJpaRepository.findById(messageTypeId)
+            .orElseThrow(() -> new MessageException(MESSAGE_TYPE_NOT_FOUND));
+
+        if (!messageType.getChannel().getId().equals(channelId)) {
+            throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
+        }
+
+        List<MessageContent> allContents = messageContentJpaRepository.findByMessageType(
+            messageType);
+
+        // 9개 content 존재 검증
+        if (allContents.size() < REQUIRED_CONTENT_COUNT) {
+            List<String> existingKeys = allContents.stream()
+                .map(MessageContent::createKeyPropertyForMessageContent)
+                .toList();
+            List<String> missingLevels = ALL_LEVEL_KEYS.stream()
+                .filter(k -> !existingKeys.contains(k))
+                .toList();
+            throw new BatchValidationException(
+                "All 9 contents must exist before batch audio generation.",
+                Map.of("missingLevels", missingLevels));
+        }
+
+        // 오디오 텍스트 존재 검증 (childLevel=1은 아이 음성 없음)
+        List<Map<String, Object>> missingAudioText = new ArrayList<>();
+        for (MessageContent content : allContents) {
+            boolean momMissing = content.getHeaderOneLink() == null
+                || content.getHeaderOneLink().getText() == null
+                || content.getHeaderOneLink().getText().isBlank();
+
+            if (momMissing) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("userLevel", content.getUserLevel());
+                entry.put("childLevel", content.getChildLevel());
+                entry.put("audioRole", "MOMMY");
+                missingAudioText.add(entry);
+            }
+
+            if (content.getChildLevel() != null && content.getChildLevel() == 1) {
+                continue;
+            }
+
+            boolean childMissing = content.getHeaderTwoLink() == null
+                || content.getHeaderTwoLink().getText() == null
+                || content.getHeaderTwoLink().getText().isBlank();
+
+            if (childMissing) {
+                Map<String, Object> entry = new HashMap<>();
+                entry.put("userLevel", content.getUserLevel());
+                entry.put("childLevel", content.getChildLevel());
+                entry.put("audioRole", "CHILD");
+                missingAudioText.add(entry);
+            }
+        }
+
+        if (!missingAudioText.isEmpty()) {
+            throw new BatchValidationException(
+                "Audio text is missing for one or more contents.",
+                Map.of("missingAudioText", missingAudioText));
+        }
+
+        // 작업 데이터 사전 추출 (lazy loading은 main thread에서 처리)
+        // childLevel=1은 아이 음성 생성 스킵
+        List<AudioGenTask> tasks = new ArrayList<>();
+        for (MessageContent content : allContents) {
+            tasks.add(new AudioGenTask(
+                content.getId(), content.getUserLevel(), content.getChildLevel(),
+                "MOMMY", content.getHeaderOneLink(),
+                req.mommy().modelId(), req.mommy().speed()));
+
+            if (content.getChildLevel() != null && content.getChildLevel() == 1) {
+                continue;
+            }
+
+            tasks.add(new AudioGenTask(
+                content.getId(), content.getUserLevel(), content.getChildLevel(),
+                "CHILD", content.getHeaderTwoLink(),
+                req.child().modelId(), req.child().speed()));
+        }
+
+        // ElevenLabs 동시 요청 2개로 제한
+        List<BatchAudioResultDto> results;
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            List<CompletableFuture<BatchAudioResultDto>> futures = tasks.stream()
+                .map(task -> CompletableFuture.supplyAsync(
+                    () -> processAudioTask(task), executor))
+                .toList();
+            results = futures.stream().map(CompletableFuture::join).toList();
+        } finally {
+            executor.shutdown();
+        }
+
+        int successCount = (int) results.stream().filter(BatchAudioResultDto::success).count();
+        int failureCount = results.size() - successCount;
+
+        return new BatchAudioResponseDto(successCount, failureCount, results);
+    }
+
+    private BatchAudioResultDto processAudioTask(AudioGenTask task) {
+        try {
+            ElevenLabsRequest request = new ElevenLabsRequest(
+                task.existingMedia().getText(), null, null,
+                Optional.of(new VoiceSettings(null, null, null, null, task.speed())));
+            ElevenLabsMedia result = elevenLabsService.saveAudio(
+                request, task.contentId(), task.voiceId(), task.existingMedia());
+            return new BatchAudioResultDto(
+                task.contentId(), task.userLevel(), task.childLevel(),
+                task.role(), true, result.getFileUrl(), null);
+        } catch (Exception e) {
+            log.error("배치 오디오 생성 실패 - contentId={}, role={}: {}",
+                task.contentId(), task.role(), e.getMessage());
+            return new BatchAudioResultDto(
+                task.contentId(), task.userLevel(), task.childLevel(),
+                task.role(), false, null, e.getMessage());
+        }
+    }
+
+    private record AudioGenTask(
+        Long contentId, Integer userLevel, Integer childLevel,
+        String role, ElevenLabsMedia existingMedia,
+        String voiceId, Double speed
+    ) {
+
+    }
+
+    @Override
+    public String getMommyVocaForType(MessageType messageType) {
+        return messageType.getMessageContentList().stream()
+            .map(MessageContent::getMommyVoca)
+            .filter(v -> v != null && !v.isBlank())
+            .findFirst()
+            .orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public MommyVocaUpdateResponseDto updateMommyVocaForType(Long channelId, Long messageTypeId,
+        UpdateMommyVocaRequestDto requestDto) {
+
+        MessageType messageType = messageTypeJpaRepository.findById(messageTypeId)
+            .orElseThrow(() -> new MessageException(MESSAGE_TYPE_NOT_FOUND));
+
+        if (!messageType.getChannel().getId().equals(channelId)) {
+            throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
+        }
+
+        List<MessageContent> contents = messageContentJpaRepository.findByMessageType(messageType);
+
+        if (contents.size() < REQUIRED_CONTENT_COUNT) {
+            throw new MessageException(NEED_MORE_DATE_FOR_APPROVED);
+        }
+
+        contents.forEach(c -> c.updateMommyVoca(requestDto.mommyVoca()));
+        messageContentJpaRepository.saveAll(contents);
+
+        return new MommyVocaUpdateResponseDto(messageTypeId, requestDto.mommyVoca(),
+            messageType.getUpdatedAt());
+    }
+
+    @Override
+    @Transactional
+    public ContentMommyVocaUpdateResponseDto updateMommyVocaForContent(Long channelId,
+        Long contentId, UpdateMommyVocaRequestDto requestDto) {
+
+        MessageContent messageContent = messageContentJpaRepository.findById(contentId)
+            .orElseThrow(() -> new MessageException(MESSAGE_CONTENT_NOT_FOUND));
+
+        if (!messageContent.getMessageType().getChannel().getId().equals(channelId)) {
+            throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
+        }
+
+        messageContent.updateMommyVoca(requestDto.mommyVoca());
+        messageContentJpaRepository.save(messageContent);
+
+        return new ContentMommyVocaUpdateResponseDto(contentId, requestDto.mommyVoca(),
+            messageContent.getUpdatedAt());
     }
 
     @Override

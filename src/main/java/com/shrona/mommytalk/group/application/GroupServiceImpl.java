@@ -24,6 +24,7 @@ import com.shrona.mommytalk.user.application.UserService;
 import com.shrona.mommytalk.user.common.utils.UserUtils;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
+import com.shrona.mommytalk.common.utils.DateTimeUtils;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -342,8 +343,8 @@ public class GroupServiceImpl implements GroupService {
      */
     private void createUserEntitlementsForNewUsers(List<UserGroup> newUserGroups, Group group) {
         Entitlement entitlement = group.getEntitlement();
-        LocalDate today = LocalDate.now();
-        LocalDate oneYearLater = today.plusYears(1);
+        LocalDate today = DateTimeUtils.todayKst();
+        LocalDate oneYearLater = today.plusDays(364);
 
         for (UserGroup userGroup : newUserGroups) {
             User user = userGroup.getUser();

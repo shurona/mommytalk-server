@@ -27,6 +27,7 @@ import com.shrona.mommytalk.group.infrastructure.repository.query.UserGroupQuery
 import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.infrastructure.repository.jpa.UserJpaRepository;
+import com.shrona.mommytalk.common.utils.DateTimeUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +67,7 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
 
         // 2. 중복 체크 (같은 유저가 같은 상품권을 이미 가지고 있는지)
         List<UserEntitlement> existing = userEntitlementQueryRepository
-            .findActiveEntitlementsByType(user.getId(), entitlement.getId(), LocalDate.now());
+            .findActiveEntitlementsByType(user.getId(), entitlement.getId(), DateTimeUtils.todayKst());
 
         if (!existing.isEmpty()) {
             throw new EntitlementException(USER_ENTITLEMENT_ALREADY_EXISTS);
@@ -121,7 +122,7 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
             .orElseThrow(() -> new EntitlementException(USER_ENTITLEMENT_NOT_FOUND));
 
         // 2. 종료일 검증 (과거 날짜 불가)
-        if (requestDto.endDate().isBefore(LocalDate.now())) {
+        if (requestDto.endDate().isBefore(DateTimeUtils.todayKst())) {
             throw new EntitlementException(INVALID_END_DATE);
         }
 
@@ -215,7 +216,7 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
     @Override
     @Transactional
     public void processExpiredEntitlements() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = DateTimeUtils.todayKst();
 
         // 1. 만료된 상품권 조회
         List<UserEntitlement> expiredList = userEntitlementQueryRepository.findExpiredEntitlements(today);

@@ -12,16 +12,18 @@ public record MessageTypeInfoResponseDto(
     Long id,
     String theme,
     String context,
+    String mommyVoca,
     Map<String, Boolean> contentInfo,
     LocalDateTime createdAt,
     LocalDateTime updatedAt) {
 
     public static MessageTypeInfoResponseDto of(
-        MessageType messageType, Map<String, Boolean> contentInfo) {
+        MessageType messageType, String mommyVoca, Map<String, Boolean> contentInfo) {
         return MessageTypeInfoResponseDto.builder()
             .id(messageType.getId())
             .theme(messageType.getTheme())
             .context(messageType.getContext())
+            .mommyVoca(mommyVoca)
             .contentInfo(contentInfo)
             .createdAt(messageType.getCreatedAt())
             .updatedAt(messageType.getUpdatedAt())
