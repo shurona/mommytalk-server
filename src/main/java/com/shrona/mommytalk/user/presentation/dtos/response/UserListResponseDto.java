@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.user.presentation.dtos.response;
 
+import com.shrona.mommytalk.common.utils.DateTimeUtils;
 import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
 import java.time.LocalDateTime;
 import lombok.Builder;
@@ -30,7 +31,7 @@ public record UserListResponseDto(
             .email(listProjection.email())
             .name(listProjection.name())
             .phoneNumber(listProjection.phoneNumber().getPhoneNumber())
-            .signupAt(listProjection.signupAt())
+            .signupAt(DateTimeUtils.toKst(listProjection.signupAt()))
             .lastestPurchaseAt(listProjection.lastestPurchaseAt())
             .lastestProductName(listProjection.lastProductName())
             .socialId(listProjection.socialId())
