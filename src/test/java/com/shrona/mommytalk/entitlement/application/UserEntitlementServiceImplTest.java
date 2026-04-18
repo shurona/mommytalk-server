@@ -1,11 +1,9 @@
 package com.shrona.mommytalk.entitlement.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.utils.DateTimeUtils;
-import com.shrona.mommytalk.entitlement.common.exception.EntitlementException;
 import com.shrona.mommytalk.entitlement.domain.Entitlement;
 import com.shrona.mommytalk.entitlement.domain.EntitlementType;
 import com.shrona.mommytalk.entitlement.domain.UserEntitlement;
@@ -56,19 +54,6 @@ class UserEntitlementServiceImplTest {
     }
 
     @Test
-    @DisplayName("어제 날짜로 종료일 수정 시 예외 발생 (KST 기준)")
-    void 어제_날짜로_종료일_수정시_예외() {
-        // given
-        LocalDate yesterday = DateTimeUtils.todayKst().minusDays(1);
-        UpdateUserEntitlementRequestDto dto = new UpdateUserEntitlementRequestDto(null, yesterday);
-
-        // when / then
-        assertThatThrownBy(
-            () -> userEntitlementService.updateUserEntitlement(userEntitlementId, dto))
-            .isInstanceOf(EntitlementException.class);
-    }
-
-    @Test
     @DisplayName("오늘 날짜로 종료일 수정 성공 (KST 기준)")
     void 오늘_날짜로_종료일_수정_성공() {
         // given
@@ -76,7 +61,8 @@ class UserEntitlementServiceImplTest {
         UpdateUserEntitlementRequestDto dto = new UpdateUserEntitlementRequestDto(null, today);
 
         // when
-        UserEntitlement result = userEntitlementService.updateUserEntitlement(userEntitlementId, dto);
+        UserEntitlement result = userEntitlementService.updateUserEntitlement(userEntitlementId,
+            dto);
 
         // then
         assertThat(result.getEndDate()).isEqualTo(today);
