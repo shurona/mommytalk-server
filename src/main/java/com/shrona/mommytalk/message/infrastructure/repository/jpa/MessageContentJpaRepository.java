@@ -29,4 +29,9 @@ public interface MessageContentJpaRepository
      * 특정 MessageType의 승인된 MessageContent 목록 조회
      */
     List<MessageContent> findByMessageTypeAndApprovedTrue(MessageType messageType);
+
+    /**
+     * 특정 MessageType의 전체 MessageContent 목록 조회
+     */
+    List<MessageContent> findByMessageType(MessageType messageType);
 }

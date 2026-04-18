@@ -15,8 +15,10 @@ import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpdateMommyVocaRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UploadLegacyAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.ContentMommyVocaUpdateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentAudioResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
@@ -159,6 +161,16 @@ public class MessageContentRestController {
         messageContentService.approveMessageContent(channelId, contentId);
 
         return UpdateContentResponseDto.approved();
+    }
+
+    @PatchMapping("/{contentId}/mommy-voca")
+    public ApiResponse<ContentMommyVocaUpdateResponseDto> updateMommyVoca(
+        @PathVariable Long channelId,
+        @PathVariable Long contentId,
+        @RequestBody UpdateMommyVocaRequestDto requestDto
+    ) {
+        return ApiResponse.success(
+            messageContentService.updateMommyVocaForContent(channelId, contentId, requestDto));
     }
 
     @GetMapping("/status")

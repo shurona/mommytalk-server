@@ -4,8 +4,7 @@ public record UpsertMessageContentRequestDto(
     Long messageTypeId,
     Integer userLevel,
     Integer childLevel,
-    String content,
-    String mommyVoca
+    String content
 ) {
 
 }

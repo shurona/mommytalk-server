@@ -46,6 +46,22 @@ public class ElevenLabsMedia extends BaseEntity {
         return elevenLabsMedia;
     }
 
+    public static ElevenLabsMedia ofTextOnly(String text) {
+        ElevenLabsMedia media = new ElevenLabsMedia();
+        media.text = text;
+        return media;
+    }
+
+    public void updateText(String text) {
+        this.text = text;
+    }
+
+    public void updateAudio(String fileUrl, String fileName, Integer fileSize) {
+        this.fileUrl = fileUrl;
+        this.fileName = fileName;
+        this.fileSize = fileSize;
+    }
+
     /**
      * 논리 삭제 처리
      */

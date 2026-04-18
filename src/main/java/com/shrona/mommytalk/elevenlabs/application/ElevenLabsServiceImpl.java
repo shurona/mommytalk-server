@@ -74,6 +74,57 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
         }
     }
 
+    @Override
+    public ElevenLabsMedia saveAudio(
+        ElevenLabsRequest request, Long messageContentId, String voiceId,
+        ElevenLabsMedia existingMedia) {
+
+        if (existingMedia == null) {
+            return generateAudio(request, messageContentId, voiceId);
+        }
+
+        try {
+            log.info("ElevenLabs TTS 시작 (재사용) - mediaId: {}, messageContentId: {}",
+                existingMedia.getId(), messageContentId);
+
+            // 기존 R2 파일 삭제
+            String oldFileKey = existingMedia.extractFileKey();
+            if (oldFileKey != null) {
+                try {
+                    cloudflareService.deleteFile(oldFileKey);
+                    log.info("기존 R2 파일 삭제 완료: {}", oldFileKey);
+                } catch (Exception e) {
+                    log.warn("기존 R2 파일 삭제 실패 (계속 진행): {}", e.getMessage());
+                }
+            }
+
+            // TTS 생성
+            ResponseEntity<byte[]> response = elevenLabsClient.textToSpeech(
+                voiceId, request, elevenlabsConfig.apiKey());
+
+            byte[] audioData = response.getBody();
+            if (audioData == null || audioData.length == 0) {
+                throw new RuntimeException("ElevenLabs API 응답이 비어있습니다.");
+            }
+
+            // R2 업로드
+            String fileName = String.format("messageContent_%d_%d.mp3", messageContentId,
+                System.currentTimeMillis());
+            String publicUrl = cloudflareService.uploadAudioBytes(audioData, fileName);
+
+            // 기존 row 업데이트
+            existingMedia.updateText(request.text());
+            existingMedia.updateAudio(publicUrl, fileName, audioData.length);
+
+            log.info("ElevenLabs TTS 완료 (재사용) - R2 URL: {}", publicUrl);
+            return elevenLabsMediaRepository.save(existingMedia);
+
+        } catch (Exception e) {
+            log.error("ElevenLabs API 호출 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("오디오 생성 실패: " + e.getMessage(), e);
+        }
+    }
+
     /**
      * 로컬 테스트용 저장 로직
      */

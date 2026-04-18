@@ -8,15 +8,23 @@ import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.message.application.MessageContentService;
 import com.shrona.mommytalk.message.application.MessageTypeService;
 import com.shrona.mommytalk.message.domain.MessageType;
+import com.shrona.mommytalk.message.presentation.dtos.request.BatchAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.MessageTypeRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpdateAudioTextsRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.AudioTextsResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.BatchAudioResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageTypeInfoResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageTypeResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.UpdateAudioTextsResponseDto;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpdateMommyVocaRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MommyVocaUpdateResponseDto;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -72,9 +80,11 @@ public class MessageTypeRestController {
         Map<String, Boolean> contentMap = messageContentService.groupMessageApprovedByLevel(
             messageTypeByDate);
 
+        String mommyVoca = messageContentService.getMommyVocaForType(messageTypeByDate);
+
         return ApiResponse.success(
             MessageTypeInfoResponseDto.of(
-                messageTypeByDate, contentMap
+                messageTypeByDate, mommyVoca, contentMap
             )
         );
     }
@@ -101,6 +111,48 @@ public class MessageTypeRestController {
             .updateMessageType(channelId, requestDto);
 
         return ApiResponse.success(updatedMessageType);
+    }
+
+    @PatchMapping("/{messageTypeId}/mommy-voca")
+    public ApiResponse<MommyVocaUpdateResponseDto> updateMommyVoca(
+        @PathVariable Long channelId,
+        @PathVariable Long messageTypeId,
+        @RequestBody UpdateMommyVocaRequestDto requestDto
+    ) {
+
+        MommyVocaUpdateResponseDto result = messageContentService
+            .updateMommyVocaForType(channelId, messageTypeId, requestDto);
+
+        return ApiResponse.success(result);
+    }
+
+    @GetMapping("/{messageTypeId}/audio-texts")
+    public ApiResponse<AudioTextsResponseDto> getAudioTexts(
+        @PathVariable Long channelId,
+        @PathVariable Long messageTypeId
+    ) {
+        return ApiResponse.success(
+            messageContentService.getAudioTexts(channelId, messageTypeId));
+    }
+
+    @PutMapping("/{messageTypeId}/audio-texts")
+    public ApiResponse<UpdateAudioTextsResponseDto> updateAudioTexts(
+        @PathVariable Long channelId,
+        @PathVariable Long messageTypeId,
+        @RequestBody UpdateAudioTextsRequestDto requestDto
+    ) {
+        return ApiResponse.success(
+            messageContentService.updateAudioTexts(channelId, messageTypeId, requestDto));
+    }
+
+    @PostMapping("/{messageTypeId}/audio/batch")
+    public ApiResponse<BatchAudioResponseDto> batchCreateAudio(
+        @PathVariable Long channelId,
+        @PathVariable Long messageTypeId,
+        @RequestBody BatchAudioRequestDto requestDto
+    ) {
+        return ApiResponse.success(
+            messageContentService.batchCreateAudio(channelId, messageTypeId, requestDto));
     }
 
 }

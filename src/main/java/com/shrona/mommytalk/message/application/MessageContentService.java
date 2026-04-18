@@ -5,11 +5,19 @@ import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.BatchAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpdateAudioTextsRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.UpdateMommyVocaRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.AudioTextsResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.BatchAudioResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.ContentMommyVocaUpdateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.MessageContentResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.MommyVocaUpdateResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.UpdateAudioTextsResponseDto;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +79,23 @@ public interface MessageContentService {
     Map<String, Boolean> groupMessageApprovedByLevel(MessageType messageType);
 
     /**
+     * MessageType의 9개 content 중 공통 mommyVoca 값을 반환한다.
+     */
+    String getMommyVocaForType(MessageType messageType);
+
+    /**
+     * MessageType에 속한 전체 content의 mommyVoca를 일괄 업데이트한다.
+     */
+    MommyVocaUpdateResponseDto updateMommyVocaForType(Long channelId, Long messageTypeId,
+        UpdateMommyVocaRequestDto requestDto);
+
+    /**
+     * 특정 MessageContent의 mommyVoca만 단건 업데이트한다.
+     */
+    ContentMommyVocaUpdateResponseDto updateMommyVocaForContent(Long channelId, Long contentId,
+        UpdateMommyVocaRequestDto requestDto);
+
+    /**
      * 사용자가 받은 메시지 컨텐츠 조회 (MOMMYVOCA 권한 확인 포함)
      */
     MessageContentResponseDto findContentForUser(
@@ -86,4 +111,21 @@ public interface MessageContentService {
      * (CSV 기반, userLevel=2/childLevel=2 고정)
      */
     int uploadLegacyAudio(Channel channel, int year, int month);
+
+    /**
+     * 9개 레벨 매트릭스의 오디오 텍스트/URL 정보를 조회한다.
+     */
+    AudioTextsResponseDto getAudioTexts(Long channelId, Long messageTypeId);
+
+    /**
+     * 9개 레벨 매트릭스의 오디오 텍스트를 저장한다 (부분 items 허용).
+     */
+    UpdateAudioTextsResponseDto updateAudioTexts(Long channelId, Long messageTypeId,
+        UpdateAudioTextsRequestDto req);
+
+    /**
+     * 저장된 텍스트 기준으로 오디오를 일괄 생성한다.
+     */
+    BatchAudioResponseDto batchCreateAudio(Long channelId, Long messageTypeId,
+        BatchAudioRequestDto req);
 }

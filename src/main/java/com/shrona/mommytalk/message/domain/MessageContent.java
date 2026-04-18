@@ -111,6 +111,20 @@ public class MessageContent extends BaseEntity {
     }
 
     /**
+     * 컨텐츠 본문만 업데이트 (mommyVoca 유지)
+     */
+    public void updateContent(String newContent) {
+        this.content = newContent;
+    }
+
+    /**
+     * 마미보카 URL 업데이트
+     */
+    public void updateMommyVoca(String newMommyVoca) {
+        this.mommyVoca = newMommyVoca;
+    }
+
+    /**
      * 컨텐츠 승인 (이미 승인된 경우 업데이트 안함)
      */
     public boolean approve() {

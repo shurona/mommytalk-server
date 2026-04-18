@@ -25,4 +25,16 @@ public interface ElevenLabsService {
      * @return 저장된 파일 경로
      */
     ElevenLabsMedia generateAudio(ElevenLabsRequest request, Long messageContentId, String voiceId);
+
+    /**
+     * 오디오 생성 및 저장. existingMedia가 있으면 R2 파일 교체 + row 업데이트, 없으면 새 row 생성.
+     *
+     * @param request          ElevenLabs 요청 DTO
+     * @param messageContentId 메시지 콘텐츠 ID (파일명에 사용)
+     * @param voiceId          사용할 Voice ID
+     * @param existingMedia    기존 미디어 (null이면 신규 생성)
+     * @return 저장된 ElevenLabsMedia
+     */
+    ElevenLabsMedia saveAudio(ElevenLabsRequest request, Long messageContentId, String voiceId,
+        ElevenLabsMedia existingMedia);
 }
