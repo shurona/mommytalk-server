@@ -1,6 +1,10 @@
 package com.shrona.mommytalk.entitlement.application;
 
-import static com.shrona.mommytalk.entitlement.common.exception.EntitlementErrorCode.*;
+import static com.shrona.mommytalk.entitlement.common.exception.EntitlementErrorCode.AUTO_ACTIVE_GROUP_NOT_FOUND;
+import static com.shrona.mommytalk.entitlement.common.exception.EntitlementErrorCode.AUTO_ENDED_GROUP_NOT_FOUND;
+import static com.shrona.mommytalk.entitlement.common.exception.EntitlementErrorCode.ENTITLEMENT_NOT_FOUND;
+import static com.shrona.mommytalk.entitlement.common.exception.EntitlementErrorCode.USER_ENTITLEMENT_ALREADY_EXISTS;
+import static com.shrona.mommytalk.entitlement.common.exception.EntitlementErrorCode.USER_ENTITLEMENT_NOT_FOUND;
 import static com.shrona.mommytalk.group.domain.GroupType.AUTO_ACTIVE;
 import static com.shrona.mommytalk.group.domain.GroupType.AUTO_ENDED;
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.USER_NOT_FOUND;
@@ -8,6 +12,7 @@ import static com.shrona.mommytalk.user.common.exception.UserErrorCode.USER_NOT_
 import com.shrona.mommytalk.channel.application.ChannelService;
 import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.common.utils.DateTimeUtils;
 import com.shrona.mommytalk.entitlement.common.exception.EntitlementException;
 import com.shrona.mommytalk.entitlement.domain.Entitlement;
 import com.shrona.mommytalk.entitlement.domain.EntitlementStatus;
@@ -27,7 +32,6 @@ import com.shrona.mommytalk.group.infrastructure.repository.query.UserGroupQuery
 import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.infrastructure.repository.jpa.UserJpaRepository;
-import com.shrona.mommytalk.common.utils.DateTimeUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +71,8 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
 
         // 2. 중복 체크 (같은 유저가 같은 상품권을 이미 가지고 있는지)
         List<UserEntitlement> existing = userEntitlementQueryRepository
-            .findActiveEntitlementsByType(user.getId(), entitlement.getId(), DateTimeUtils.todayKst());
+            .findActiveEntitlementsByType(user.getId(), entitlement.getId(),
+                DateTimeUtils.todayKst());
 
         if (!existing.isEmpty()) {
             throw new EntitlementException(USER_ENTITLEMENT_ALREADY_EXISTS);
@@ -122,9 +127,9 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
             .orElseThrow(() -> new EntitlementException(USER_ENTITLEMENT_NOT_FOUND));
 
         // 2. 종료일 검증 (과거 날짜 불가)
-        if (requestDto.endDate().isBefore(DateTimeUtils.todayKst())) {
-            throw new EntitlementException(INVALID_END_DATE);
-        }
+//        if (requestDto.endDate().isBefore(DateTimeUtils.todayKst())) {
+//            throw new EntitlementException(INVALID_END_DATE);
+//        }
 
         // 3. 종료일 연장
         userEntitlement.updateEndDate(requestDto.endDate());
@@ -143,7 +148,8 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
 
             // ACTIVE → INACTIVE/EXPIRED: AUTO_ACTIVE → AUTO_ENDED 그룹 이동
             if (oldStatus == EntitlementStatus.ACTIVE
-                && (newStatus == EntitlementStatus.INACTIVE || newStatus == EntitlementStatus.EXPIRED)) {
+                && (newStatus == EntitlementStatus.INACTIVE
+                || newStatus == EntitlementStatus.EXPIRED)) {
 
                 moveToAutoEndedGroup(userEntitlement.getUser(), userEntitlement.getEntitlement());
 
@@ -151,8 +157,9 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
                     userEntitlement.getUser().getId(), oldStatus, newStatus);
             }
             // INACTIVE/EXPIRED → ACTIVE: AUTO_ENDED → AUTO_ACTIVE 그룹 이동
-            else if ((oldStatus == EntitlementStatus.INACTIVE || oldStatus == EntitlementStatus.EXPIRED)
-                && newStatus == EntitlementStatus.ACTIVE) {
+            else if (
+                (oldStatus == EntitlementStatus.INACTIVE || oldStatus == EntitlementStatus.EXPIRED)
+                    && newStatus == EntitlementStatus.ACTIVE) {
 
                 moveToAutoActiveGroup(userEntitlement.getUser(), userEntitlement.getEntitlement());
 
@@ -174,7 +181,8 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
             .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         // 2. 유저의 모든 상품권 조회
-        List<UserEntitlement> userEntitlements = userEntitlementQueryRepository.findByUserId(userId);
+        List<UserEntitlement> userEntitlements = userEntitlementQueryRepository.findByUserId(
+            userId);
 
         // 3. 유저가 속한 AUTO_ACTIVE/AUTO_ENDED 그룹 조회 (Group fetch join)
         List<UserGroup> userGroups = userGroupQueryRepository
@@ -219,7 +227,8 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
         LocalDate today = DateTimeUtils.todayKst();
 
         // 1. 만료된 상품권 조회
-        List<UserEntitlement> expiredList = userEntitlementQueryRepository.findExpiredEntitlements(today);
+        List<UserEntitlement> expiredList = userEntitlementQueryRepository.findExpiredEntitlements(
+            today);
 
         log.info("[만료 처리 시작] 처리 대상: {}건", expiredList.size());
 
@@ -233,7 +242,8 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
                 Entitlement entitlement = ue.getEntitlement();
 
                 // 유저가 속한 AUTO_ACTIVE 그룹 찾기 (fetch join으로 channel 포함)
-                List<UserGroup> userAutoActiveGroups = userGroupQueryRepository.findByUserId(user.getId())
+                List<UserGroup> userAutoActiveGroups = userGroupQueryRepository.findByUserId(
+                        user.getId())
                     .stream()
                     .filter(ug -> {
                         Group group = ug.getGroup();
@@ -258,7 +268,8 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
                     UserGroup newUserGroup = UserGroup.createUserGroup(user, autoEndedGroup);
                     userGroupJpaRepository.save(newUserGroup);
 
-                    log.info("[만료 처리 완료] userId={}, entitlementId={}", user.getId(), entitlement.getId());
+                    log.info("[만료 처리 완료] userId={}, entitlementId={}", user.getId(),
+                        entitlement.getId());
                 } else {
                     log.warn("[만료 처리 스킵] AUTO_ACTIVE 그룹 없음: userId={}, entitlementId={}",
                         user.getId(), entitlement.getId());
@@ -346,7 +357,8 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
 
     @Override
     @Transactional
-    public void bulkUpdateUserEntitlementDates(Long entitlementId, List<BulkUpdateUserEntitlementRequestDto> requests) {
+    public void bulkUpdateUserEntitlementDates(Long entitlementId,
+        List<BulkUpdateUserEntitlementRequestDto> requests) {
         int totalUpdated = 0;
         int totalSkipped = 0;
 

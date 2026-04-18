@@ -15,7 +15,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import com.shrona.mommytalk.common.utils.DateTimeUtils;
 import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -129,9 +128,6 @@ public class UserEntitlement extends BaseEntity {
      * 종료일 연장 (미래 날짜만 가능)
      */
     public void updateEndDate(LocalDate newEndDate) {
-        if (newEndDate.isBefore(DateTimeUtils.todayKst())) {
-            throw new IllegalArgumentException("종료일은 과거 날짜로 설정할 수 없습니다.");
-        }
         this.endDate = newEndDate;
     }
 

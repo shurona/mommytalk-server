@@ -1,7 +1,9 @@
 package com.shrona.mommytalk.common.utils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 public class DateTimeUtils {
 
@@ -15,5 +17,15 @@ public class DateTimeUtils {
      */
     public static LocalDate todayKst() {
         return LocalDate.now(KST);
+    }
+
+    /**
+     * UTC LocalDateTime을 KST LocalDateTime으로 변환 (DB에서 읽은 시각을 응답 시 사용).
+     */
+    public static LocalDateTime toKst(LocalDateTime utcDateTime) {
+        if (utcDateTime == null) {
+            return null;
+        }
+        return utcDateTime.atZone(ZoneOffset.UTC).withZoneSameInstant(KST).toLocalDateTime();
     }
 }
