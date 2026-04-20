@@ -44,6 +44,15 @@ public interface CloudflareService {
     String uploadAudioBytesWithPath(byte[] audioBytes, String customPath);
 
     /**
+     * R2 버킷 내에서 오디오 파일 복사 (서버 사이드)
+     *
+     * @param sourceFileKey 복사할 원본 파일 경로 (예: "audio/2024/01/file.mp3")
+     * @param destFileName  복사본 파일명 (예: "messageContent_102_1234567890.mp3")
+     * @return 복사된 파일의 공개 URL
+     */
+    String copyAudioFile(String sourceFileKey, String destFileName);
+
+    /**
      * R2에서 파일 삭제
      *
      * @param fileKey 삭제할 파일 경로

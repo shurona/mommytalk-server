@@ -56,6 +56,13 @@ public class CloudflareServiceImpl implements CloudflareService {
     }
 
     @Override
+    public String copyAudioFile(String sourceFileKey, String destFileName) {
+        String datePath = LocalDateTime.now().format(PATH_FORMATTER);
+        String destKey = String.format("%s/%s/%s", AUDIO_BASE_PATH, datePath, destFileName);
+        return r2Client.copyFile(sourceFileKey, destKey);
+    }
+
+    @Override
     public void deleteFile(String fileKey) {
         try {
             r2Client.deleteFile(fileKey);

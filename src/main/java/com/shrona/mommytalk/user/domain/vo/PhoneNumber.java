@@ -46,6 +46,19 @@ public class PhoneNumber {
      */
     public final static String UK_PHONE_NUMBER_PATTERN_PURE = "(44\\d{10})";
 
+    /**
+     * 베트남 전화번호 패턴 (하이픈 또는 공백 포함)
+     * 형식: 84-976-530-720 또는 84 976 530 720
+     * 국가코드(84) + 9자리를 3-3-3으로 분리
+     */
+    public final static String VN_PHONE_NUMBER_PATTERN = "84([- ])\\d{3}\\1\\d{3}\\1\\d{3}";
+
+    /**
+     * 베트남 전화번호 패턴 (순수 숫자)
+     * 형식: 84976530720 (11자리, 84로 시작)
+     */
+    public final static String VN_PHONE_NUMBER_PATTERN_PURE = "(84\\d{9})";
+
     @Column(name = "phone_number", unique = true, nullable = true)
     private String phoneNumber;
 
@@ -65,11 +78,14 @@ public class PhoneNumber {
         Pattern usPurePattern = Pattern.compile(US_PHONE_NUMBER_PATTERN_PURE);
         Pattern ukHyphenPattern = Pattern.compile(UK_PHONE_NUMBER_PATTERN);
         Pattern ukPurePattern = Pattern.compile(UK_PHONE_NUMBER_PATTERN_PURE);
+        Pattern vnHyphenPattern = Pattern.compile(VN_PHONE_NUMBER_PATTERN);
+        Pattern vnPurePattern = Pattern.compile(VN_PHONE_NUMBER_PATTERN_PURE);
 
-        // 이미 하이픈 포함된 경우 (한국, 미국 또는 영국)
+        // 이미 하이픈 포함된 경우 (한국, 미국, 영국 또는 베트남)
         if (koreanHyphenPattern.matcher(phoneNumber).matches() ||
             usHyphenPattern.matcher(phoneNumber).matches() ||
-            ukHyphenPattern.matcher(phoneNumber).matches()) {
+            ukHyphenPattern.matcher(phoneNumber).matches() ||
+            vnHyphenPattern.matcher(phoneNumber).matches()) {
             this.phoneNumber = phoneNumber;
             return;
         }
@@ -94,6 +110,18 @@ public class PhoneNumber {
             if (firstDigit == '4' && phoneNumber.length() == 12) {
                 if (ukPurePattern.matcher(phoneNumber).matches()) {
                     // 447911123456 → 44-791-112-3456
+                    this.phoneNumber = phoneNumber.substring(0, 2) + "-" +
+                                       phoneNumber.substring(2, 5) + "-" +
+                                       phoneNumber.substring(5, 8) + "-" +
+                                       phoneNumber.substring(8);
+                    return;
+                }
+            }
+
+            // 베트남 번호: 84로 시작하는 11자리
+            if (phoneNumber.startsWith("84") && phoneNumber.length() == 11) {
+                if (vnPurePattern.matcher(phoneNumber).matches()) {
+                    // 84976530720 → 84-976-530-720
                     this.phoneNumber = phoneNumber.substring(0, 2) + "-" +
                                        phoneNumber.substring(2, 5) + "-" +
                                        phoneNumber.substring(5, 8) + "-" +
@@ -159,8 +187,12 @@ public class PhoneNumber {
         boolean isUK = Pattern.matches(UK_PHONE_NUMBER_PATTERN, normalized) ||
                        Pattern.matches(UK_PHONE_NUMBER_PATTERN_PURE, normalized);
 
+        // 베트남 번호 패턴
+        boolean isVN = Pattern.matches(VN_PHONE_NUMBER_PATTERN, normalized) ||
+                       Pattern.matches(VN_PHONE_NUMBER_PATTERN_PURE, normalized);
+
         // 모두 아니면 유효하지 않음
-        return !(isKorean || isUS || isUK);
+        return !(isKorean || isUS || isUK || isVN);
     }
 
     @Override

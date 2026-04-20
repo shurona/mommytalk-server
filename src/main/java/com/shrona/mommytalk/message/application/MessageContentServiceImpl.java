@@ -1,10 +1,13 @@
 package com.shrona.mommytalk.message.application;
 
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.BAD_REQUEST;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.CHILD_LEVEL_1_AUDIO_NOT_SUPPORTED;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_ACCESS_DENIED;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_CONTENT_NOT_FOUND;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.MESSAGE_TYPE_NOT_FOUND;
 import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.NEED_MORE_DATE_FOR_APPROVED;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.SOURCE_AUDIO_NOT_GENERATED;
+import static com.shrona.mommytalk.message.common.exception.MessageErrorCode.SOURCE_CONTENT_MISMATCH;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.cloudflare.application.CloudflareService;
@@ -18,12 +21,14 @@ import com.shrona.mommytalk.message.common.exception.MessageException;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.MessageType;
+import com.shrona.mommytalk.message.domain.type.AudioRole;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageContentQueryRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.message.common.exception.BatchValidationException;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.ApplyLevelAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.BatchAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
@@ -33,6 +38,8 @@ import com.shrona.mommytalk.message.presentation.dtos.request.UpdateMommyVocaReq
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.AudioTextsResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.AudioTextsResponseDto.AudioTextItemDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.ApplyLevelAudioResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.ApplyLevelAudioResponseDto.ApplyLevelResultDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.BatchAudioResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.BatchAudioResponseDto.BatchAudioResultDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentMommyVocaUpdateResponseDto;
@@ -884,6 +891,144 @@ public class MessageContentServiceImpl implements MessageContentService {
      */
     private record CsvRow(int number, LocalDate date) {
 
+    }
+
+    @Override
+    @Transactional
+    public ApplyLevelAudioResponseDto applyLevelAudio(Long channelId, Long messageTypeId,
+        ApplyLevelAudioRequestDto requestDto) {
+
+        if (requestDto.audioRole() == AudioRole.CHILD && requestDto.targetLevel() == 1) {
+            throw new MessageException(CHILD_LEVEL_1_AUDIO_NOT_SUPPORTED);
+        }
+
+        MessageType messageType = messageTypeJpaRepository.findById(messageTypeId)
+            .orElseThrow(() -> new MessageException(MESSAGE_TYPE_NOT_FOUND));
+
+        if (!messageType.getChannel().getId().equals(channelId)) {
+            throw new MessageException(MESSAGE_CONTENT_ACCESS_DENIED);
+        }
+
+        List<MessageContent> allContents = messageContentJpaRepository.findByMessageType(
+            messageType);
+        Map<String, MessageContent> contentByLevel = allContents.stream()
+            .collect(Collectors.toMap(MessageContent::createKeyPropertyForMessageContent, c -> c));
+
+        // source content 검증
+        String sourceKey =
+            requestDto.source().userLevel() + "_" + requestDto.source().childLevel();
+        MessageContent sourceContent = contentByLevel.get(sourceKey);
+        if (sourceContent == null || !sourceContent.getId().equals(requestDto.sourceContentId())) {
+            throw new MessageException(SOURCE_CONTENT_MISMATCH);
+        }
+
+        ElevenLabsMedia sourceMedia = switch (requestDto.audioRole()) {
+            case MOMMY -> sourceContent.getHeaderOneLink();
+            case CHILD -> sourceContent.getHeaderTwoLink();
+        };
+        if (sourceMedia == null || sourceMedia.getFileUrl() == null) {
+            throw new MessageException(SOURCE_AUDIO_NOT_GENERATED);
+        }
+
+        // 대상 3개 content 선택
+        List<MessageContent> targets = switch (requestDto.audioRole()) {
+            case MOMMY -> allContents.stream()
+                .filter(c -> c.getUserLevel().equals(requestDto.targetLevel()))
+                .toList();
+            case CHILD -> allContents.stream()
+                .filter(c -> c.getChildLevel().equals(requestDto.targetLevel()))
+                .toList();
+        };
+
+        if (targets.size() < 3) {
+            List<String> missingLevels = new ArrayList<>();
+            if (requestDto.audioRole() == AudioRole.MOMMY) {
+                for (int childLevel = 1; childLevel <= 3; childLevel++) {
+                    String key = requestDto.targetLevel() + "_" + childLevel;
+                    if (!contentByLevel.containsKey(key)) {
+                        missingLevels.add(key);
+                    }
+                }
+            } else {
+                for (int userLevel = 1; userLevel <= 3; userLevel++) {
+                    String key = userLevel + "_" + requestDto.targetLevel();
+                    if (!contentByLevel.containsKey(key)) {
+                        missingLevels.add(key);
+                    }
+                }
+            }
+            throw new BatchValidationException(
+                "All same-level contents must exist before applying audio.",
+                Map.of("missingLevels", missingLevels));
+        }
+
+        // source content 텍스트 업데이트 (파일은 이미 생성됨)
+        sourceMedia.updateText(requestDto.audioText());
+
+        // 파일 복사 방식으로 각 target에 적용 (source 제외)
+        String sourceFileKey = sourceMedia.extractFileKey();
+        List<ApplyLevelResultDto> results = new ArrayList<>();
+        String audioText = requestDto.audioText();
+        for (MessageContent target : targets) {
+            // source content는 텍스트만 업데이트했으므로 결과만 추가
+            if (target.getId().equals(sourceContent.getId())) {
+                results.add(new ApplyLevelResultDto(
+                    target.getId(), target.getUserLevel(), target.getChildLevel(),
+                    true, sourceMedia.getFileUrl(), null));
+                continue;
+            }
+
+            try {
+                ElevenLabsMedia targetMedia = switch (requestDto.audioRole()) {
+                    case MOMMY -> target.getHeaderOneLink();
+                    case CHILD -> target.getHeaderTwoLink();
+                };
+
+                // 기존 R2 파일 삭제
+                if (targetMedia != null && targetMedia.getFileUrl() != null) {
+                    String oldKey = targetMedia.extractFileKey();
+                    if (oldKey != null) {
+                        try {
+                            cloudflareService.deleteFile(oldKey);
+                        } catch (Exception e) {
+                            log.warn("기존 R2 파일 삭제 실패 (계속 진행): {}", e.getMessage());
+                        }
+                    }
+                }
+
+                // source 파일을 target용 새 키로 복사
+                String destFileName = String.format("messageContent_%d_%d.mp3",
+                    target.getId(), System.currentTimeMillis());
+                String newFileUrl = cloudflareService.copyAudioFile(sourceFileKey, destFileName);
+
+                if (targetMedia != null) {
+                    targetMedia.updateText(audioText);
+                    targetMedia.updateAudio(newFileUrl, destFileName, sourceMedia.getFileSize());
+                } else {
+                    ElevenLabsMedia newMedia = elevenLabsMediaRepository.save(
+                        ElevenLabsMedia.of(audioText, newFileUrl, destFileName,
+                            sourceMedia.getFileSize()));
+                    switch (requestDto.audioRole()) {
+                        case MOMMY -> target.updateButtonOne(newMedia);
+                        case CHILD -> target.updateButtonTwo(newMedia);
+                    }
+                }
+                results.add(new ApplyLevelResultDto(
+                    target.getId(), target.getUserLevel(), target.getChildLevel(),
+                    true, newFileUrl, null));
+            } catch (Exception e) {
+                log.error("레벨 적용 실패 - contentId={}: {}", target.getId(), e.getMessage());
+                results.add(new ApplyLevelResultDto(
+                    target.getId(), target.getUserLevel(), target.getChildLevel(),
+                    false, null, e.getMessage()));
+            }
+        }
+
+        int successCount = (int) results.stream().filter(ApplyLevelResultDto::success).count();
+        int failureCount = results.size() - successCount;
+
+        return new ApplyLevelAudioResponseDto(messageTypeId, requestDto.audioRole().name(),
+            requestDto.targetLevel(), successCount, failureCount, results);
     }
 
 }

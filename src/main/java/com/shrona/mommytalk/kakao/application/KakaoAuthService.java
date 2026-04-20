@@ -205,6 +205,24 @@ public class KakaoAuthService {
                     log.warn("영국 전화번호 형식 오류: {}", ukNationalFormat);
                     throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);
 
+                case 84:  // 베트남 (+84)
+                    String vnNationalFormat = phoneUtil.format(number,
+                        PhoneNumberUtil.PhoneNumberFormat.NATIONAL);
+                    String vnDigitsOnly = vnNationalFormat.replaceAll("[^0-9]", "");
+
+                    if (vnDigitsOnly.startsWith("0")) {
+                        vnDigitsOnly = vnDigitsOnly.substring(1);
+                    }
+
+                    if (vnDigitsOnly.length() == 9) {
+                        return "84-" + vnDigitsOnly.substring(0, 3) + "-" +
+                            vnDigitsOnly.substring(3, 6) + "-" +
+                            vnDigitsOnly.substring(6);
+                    }
+
+                    log.warn("베트남 전화번호 형식 오류: {}", vnNationalFormat);
+                    throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);
+
                 default:
                     log.error("지원하지 않는 국가 코드: {}, 전화번호: {}", countryCode, kakaoFormatPhone);
                     throw new UserException(UserErrorCode.INVALID_PHONE_NUMBER_INPUT);
