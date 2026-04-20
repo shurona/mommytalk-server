@@ -5,6 +5,7 @@ import com.shrona.mommytalk.elevenlabs.domain.ElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageType;
 import com.shrona.mommytalk.message.presentation.dtos.request.AiGenerateRequestDto;
+import com.shrona.mommytalk.message.presentation.dtos.request.ApplyLevelAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.BatchAudioRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.BulkImportMessageRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.ContentAudioRequestDto;
@@ -12,6 +13,7 @@ import com.shrona.mommytalk.message.presentation.dtos.request.UpdateAudioTextsRe
 import com.shrona.mommytalk.message.presentation.dtos.request.UpdateMommyVocaRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.request.UpsertMessageContentRequestDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.AudioTextsResponseDto;
+import com.shrona.mommytalk.message.presentation.dtos.response.ApplyLevelAudioResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.BatchAudioResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentMommyVocaUpdateResponseDto;
 import com.shrona.mommytalk.message.presentation.dtos.response.ContentStatusResponseDto;
@@ -128,4 +130,10 @@ public interface MessageContentService {
      */
     BatchAudioResponseDto batchCreateAudio(Long channelId, Long messageTypeId,
         BatchAudioRequestDto req);
+
+    /**
+     * 샘플 음성을 같은 레벨 전체에 적용한다 (URL 공유 방식).
+     */
+    ApplyLevelAudioResponseDto applyLevelAudio(Long channelId, Long messageTypeId,
+        ApplyLevelAudioRequestDto requestDto);
 }

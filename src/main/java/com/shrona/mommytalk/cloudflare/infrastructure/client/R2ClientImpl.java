@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -82,6 +83,30 @@ public class R2ClientImpl implements R2Client {
             throw new CloudflareException(CloudflareErrorCode.S3_CLIENT_ERROR, e);
         } catch (Exception e) {
             log.error("Failed to upload bytes to R2: {}", e.getMessage(), e);
+            throw new CloudflareException(CloudflareErrorCode.UPLOAD_FAILED, e);
+        }
+    }
+
+    @Override
+    public String copyFile(String sourceKey, String destKey) {
+        try {
+            CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                .sourceBucket(properties.bucketName())
+                .sourceKey(sourceKey)
+                .destinationBucket(properties.bucketName())
+                .destinationKey(destKey)
+                .build();
+
+            s3Client.copyObject(copyRequest);
+            String publicUrl = buildPublicUrl(destKey);
+            log.info("File copied in R2: {} -> {}", sourceKey, publicUrl);
+            return publicUrl;
+
+        } catch (S3Exception e) {
+            log.error("S3 error while copying file: {}", e.getMessage(), e);
+            throw new CloudflareException(CloudflareErrorCode.S3_CLIENT_ERROR, e);
+        } catch (Exception e) {
+            log.error("Failed to copy file in R2: {}", e.getMessage(), e);
             throw new CloudflareException(CloudflareErrorCode.UPLOAD_FAILED, e);
         }
     }

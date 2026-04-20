@@ -6,6 +6,8 @@ import static com.shrona.mommytalk.user.domain.vo.PhoneNumber.UK_PHONE_NUMBER_PA
 import static com.shrona.mommytalk.user.domain.vo.PhoneNumber.UK_PHONE_NUMBER_PATTERN_PURE;
 import static com.shrona.mommytalk.user.domain.vo.PhoneNumber.US_PHONE_NUMBER_PATTERN;
 import static com.shrona.mommytalk.user.domain.vo.PhoneNumber.US_PHONE_NUMBER_PATTERN_PURE;
+import static com.shrona.mommytalk.user.domain.vo.PhoneNumber.VN_PHONE_NUMBER_PATTERN;
+import static com.shrona.mommytalk.user.domain.vo.PhoneNumber.VN_PHONE_NUMBER_PATTERN_PURE;
 
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import java.util.List;
@@ -41,7 +43,12 @@ public class PhoneProcess {
         boolean isUKHyphen = input.matches(UK_PHONE_NUMBER_PATTERN);
         boolean isUKPure = input.matches(UK_PHONE_NUMBER_PATTERN_PURE);
 
-        return isKoreanHyphen || isKoreanPure || isUSHyphen || isUSPure || isUKHyphen || isUKPure;
+        // 베트남 번호 패턴
+        boolean isVNHyphen = input.matches(VN_PHONE_NUMBER_PATTERN);
+        boolean isVNPure = input.matches(VN_PHONE_NUMBER_PATTERN_PURE);
+
+        return isKoreanHyphen || isKoreanPure || isUSHyphen || isUSPure || isUKHyphen || isUKPure
+            || isVNHyphen || isVNPure;
     }
 
 

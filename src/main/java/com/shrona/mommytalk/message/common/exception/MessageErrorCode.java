@@ -27,6 +27,10 @@ public enum MessageErrorCode {
 
     MESSAGE_CONTENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 채널의 메시지 컨텐츠에 접근할 수 없습니다."),
 
+    CHILD_LEVEL_1_AUDIO_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "아이 레벨1은 아이 발음 생성이 불가합니다."),
+    SOURCE_CONTENT_MISMATCH(HttpStatus.BAD_REQUEST, "sourceContentId가 source 레벨과 일치하지 않습니다."),
+    SOURCE_AUDIO_NOT_GENERATED(HttpStatus.BAD_REQUEST, "샘플 음성이 아직 생성되지 않았습니다."),
+
     ;
 
     private HttpStatus status;

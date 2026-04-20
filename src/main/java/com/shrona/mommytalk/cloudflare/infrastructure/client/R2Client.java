@@ -37,6 +37,15 @@ public interface R2Client {
     String uploadBytes(byte[] bytes, String key, String contentType);
 
     /**
+     * R2 버킷 내에서 파일 복사 (서버 사이드)
+     *
+     * @param sourceKey 복사할 원본 파일 경로
+     * @param destKey   복사본 저장 경로
+     * @return 복사된 파일의 공개 URL
+     */
+    String copyFile(String sourceKey, String destKey);
+
+    /**
      * R2에서 파일 삭제
      *
      * @param key 삭제할 파일 경로
