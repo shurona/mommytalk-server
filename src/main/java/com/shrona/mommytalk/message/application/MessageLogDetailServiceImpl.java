@@ -12,6 +12,7 @@ import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.service.MessageLogDetailDomainService;
+import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogDetailJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
@@ -29,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -62,11 +64,11 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
         log.info("[레거시 MessageLogDetail 생성 시작] channelId={}, entitlementId={}",
             channel.getId(), entitlementId);
 
-        LocalDate afterDate = LocalDate.of(2025, 11, 30); // 예시
+        LocalDate afterDate = LocalDate.of(2025, 12, 3); // 예시
 
         // 1. groupInfo='legacy' + entitlement_id 조건으로 MessageLog 조회
         List<MessageLog> legacyLogs = messageLogJpaRepository.findAll().stream()
-            .filter(log -> "legacy".equals(log.getGroupInfo()))
+            .filter(log -> !"legacy".equals(log.getGroupInfo()))
             .filter(log -> log.getEntitlement() != null
                 && log.getEntitlement().getId().equals(entitlementId))
             .filter(log -> log.getChannel().getId().equals(channel.getId()))
@@ -116,7 +118,7 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
         // 3. 이미 MessageLogDetail이 있는 유저 ID 조회 (중복 제외용)
         Set<Long> existingUserIds = new HashSet<>();
         List<MessageLogDetail> existingDetails = messageLogDetailQueryRepository
-            .findMldListByStatusWithKakao(messageLog.getId(), null);
+            .findMldListByStatusWithKakao(messageLog.getId(), null, null);
         existingDetails.forEach(detail -> existingUserIds.add(detail.getUser().getId()));
 
         log.info("[기존 MessageLogDetail 조회] messageLogId={}, 기존 유저 수={}",
@@ -147,6 +149,10 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
                 if (existingUserIds.contains(user.getId())) {
                     continue;
                 }
+//
+//                if (!user.getId().equals(4804L)) {
+//                    continue;
+//                }
 
                 // MessageLogDetail 생성
                 MessageLogDetail detail = MessageLogDetail.createLogDetailForLegacy(
@@ -213,5 +219,14 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
             messageLogId, missingUsers.size());
 
         return missingUsers.size();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateStatusByIds(List<Long> messageLogDetailIds, ReservationStatus status) {
+        if (messageLogDetailIds.isEmpty()) {
+            return;
+        }
+        messageLogDetailQueryRepository.updateStatusByIds(messageLogDetailIds, status);
     }
 }

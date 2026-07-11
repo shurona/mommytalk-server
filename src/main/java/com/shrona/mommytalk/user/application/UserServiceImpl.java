@@ -27,6 +27,7 @@ import com.shrona.mommytalk.user.presentation.dtos.response.SentenceHistoryRespo
 import com.shrona.mommytalk.user.presentation.dtos.response.TokenUsageResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
 import com.shrona.mommytalk.openai.infrastructure.repository.query.UserSentenceHistoryQueryRepository;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -212,6 +213,15 @@ public class UserServiceImpl implements UserService {
         );
 
         userInfo.completeOnboarding();
+    }
+
+    @Transactional
+    @Override
+    public void updatePreferredSendTime(Long userId, LocalTime preferredSendTime) {
+        User userInfo = userRepository.findById(userId)
+            .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        userInfo.updatePreferredSendTime(preferredSendTime);
     }
 
     @Transactional

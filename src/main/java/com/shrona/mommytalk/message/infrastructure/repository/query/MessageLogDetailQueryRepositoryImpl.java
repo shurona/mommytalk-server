@@ -13,6 +13,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shrona.mommytalk.elevenlabs.domain.QElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -98,7 +99,7 @@ public class MessageLogDetailQueryRepositoryImpl implements
     }
 
     public List<MessageLogDetail> findMldListByStatusWithKakao(
-        Long messageLogId, List<ReservationStatus> status) {
+        Long messageLogId, List<ReservationStatus> status, LocalTime sendTimeBefore) {
 
         BooleanBuilder builder = new BooleanBuilder();
 
@@ -110,6 +111,11 @@ public class MessageLogDetailQueryRepositoryImpl implements
 
         if (status != null) {
             builder.and(messageLogDetail.status.in(status));
+        }
+
+        // 선호 발송 시간(KST)이 윈도우 끝 이전인 유저만 조회
+        if (sendTimeBefore != null) {
+            builder.and(messageLogDetail.user.preferredSendTime.lt(sendTimeBefore));
         }
 
         // 다른 별칭 사용

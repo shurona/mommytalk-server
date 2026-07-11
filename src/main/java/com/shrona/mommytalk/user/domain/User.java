@@ -22,6 +22,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -73,6 +74,10 @@ public class User extends BaseEntity {
 
     @Column(name = "last_login_date")
     private LocalDateTime lastLoginDate;
+
+    // 카카오 메시지 선호 발송 시간 (KST 기준)
+    @Column(name = "preferred_send_time")
+    private LocalTime preferredSendTime = LocalTime.of(10, 0);
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "line_user_id")
@@ -189,6 +194,17 @@ public class User extends BaseEntity {
      */
     public void updateLastLoginDate() {
         this.lastLoginDate = LocalDateTime.now();
+    }
+
+    /**
+     * 카카오 메시지 선호 발송 시간(KST)을 변경한다.
+     * 알림톡은 야간 전송 제한이 없으므로 시간 제한 없이 허용한다.
+     */
+    public void updatePreferredSendTime(LocalTime time) {
+        // null이 아닌 경우에만 바꿔준다.
+        if (time != null) {
+            this.preferredSendTime = time;
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.shrona.mommytalk.kakao.application.sender;
 
+import static com.shrona.mommytalk.kakao.common.utils.KakaoSendTimeUtils.calculateUserRequestDateKst;
 import static com.shrona.mommytalk.message.domain.type.ReservationStatus.COMPLETE;
 import static com.shrona.mommytalk.message.domain.type.ReservationStatus.FAIL;
 
@@ -24,6 +25,7 @@ import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQuery
 import com.shrona.mommytalk.user.domain.User;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +36,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,6 @@ import org.springframework.web.client.RestClientResponseException;
 
 @Slf4j
 @Service
-@Primary
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
@@ -73,7 +73,7 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void sendKakaoMessageByReservationByMessageIds(
-        List<Long> messageIds, List<ReservationStatus> statusList) {
+        List<Long> messageIds, List<ReservationStatus> statusList, LocalTime sendTimeBeforeKst) {
 
         List<MessageLog> kakaoMessageByIds = messageRepository.findMessageByIds(messageIds);
 
@@ -82,9 +82,9 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
             // 예약 이후에 등록된 신규 유저들을 추가해준다.
             messageLogDetailService.addMissingDetailsBeforeSend(messageLog.getId());
 
-            // messageLogId가 동일하고 예약 상태인 messageLogDetail 목록을 갖고 온다.
+            // messageLogId가 동일하고 예약 상태이며 선호 발송 시간이 윈도우 내인 목록을 갖고 온다.
             List<MessageLogDetail> mldList = messageLogDetailQueryRepository
-                .findMldListByStatusWithKakao(messageLog.getId(), statusList);
+                .findMldListByStatusWithKakao(messageLog.getId(), statusList, sendTimeBeforeKst);
 
             // MessageContent.id를 기준으로 MessageLogDetail 목록 그룹핑 (레벨별 그룹화 유지)
             Map<Long, List<MessageLogDetail>> mldListByContentId = mldList.stream()
@@ -103,13 +103,23 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
                     isSunday
                 );
 
-                // 메시지 전송 (내부에서 상태 업데이트 완료)
-                sendAlimtalkToKakao(
-                    messageLog.getChannel(),
-                    contentMldList,
-                    getReserveTimeIfPassed(messageLog),
-                    template
-                );
+                // 알림톡은 API 호출 단위로 예약 시간이 지정되므로
+                // 유저별 선호 발송 시간(KST, 분 단위)을 기준으로 그룹핑해서 전송한다.
+                Map<String, List<MessageLogDetail>> mldListByRequestDate = contentMldList.stream()
+                    .collect(Collectors.groupingBy(
+                        mld -> calculateUserRequestDateKst(messageLog, mld.getUser())
+                            .format(DATE_FORMATTER)));
+
+                for (Map.Entry<String, List<MessageLogDetail>> timeEntry
+                    : mldListByRequestDate.entrySet()) {
+                    // 메시지 전송 (내부에서 상태 업데이트 완료)
+                    sendAlimtalkToKakao(
+                        messageLog.getChannel(),
+                        timeEntry.getValue(),
+                        timeEntry.getKey(),
+                        template
+                    );
+                }
             }
         }
     }
@@ -196,7 +206,7 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
     private int sendAlimtalkToKakao(
         Channel channel,
         List<MessageLogDetail> mldList,
-        LocalDateTime reserveTime,
+        String requestDate,
         KakaoAlimtalkTemplate template) {
 
         String senderKey = channel.getKakaoSenderKey();
@@ -211,14 +221,14 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
             .orElse(null);
         String mommyVocaUrl = firstContent.getMommyVoca();
 
-        String requestDate = reserveTime.format(DATE_FORMATTER);
-
-        // 성공/실패 ID 수집용 리스트
-        List<Long> successIds = new ArrayList<>();
-        List<Long> failIds = new ArrayList<>();
+        int successCount = 0;
+        int failCount = 0;
 
         // 1000명씩 chunk로 나누어 전송
         for (int i = 0; i < mldList.size(); i += CHUNK_SIZE) {
+            // 성공/실패 ID 수집용 리스트 (청크 단위로 커밋)
+            List<Long> successIds = new ArrayList<>();
+            List<Long> failIds = new ArrayList<>();
             List<MessageLogDetail> chunk = mldList.subList(
                 i,
                 Math.min(i + CHUNK_SIZE, mldList.size())
@@ -286,19 +296,18 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
                 // chunk 전체를 실패로 처리
                 chunk.forEach(mld -> failIds.add(mld.getId()));
             }
+
+            // 접수 결과를 청크 단위로 즉시 커밋 (장애로 중단 시 중복 접수 방지)
+            messageLogDetailService.updateStatusByIds(successIds, COMPLETE);
+            messageLogDetailService.updateStatusByIds(failIds, FAIL);
+
+            successCount += successIds.size();
+            failCount += failIds.size();
         }
 
-        // Batch 업데이트: 성공/실패 ID 목록으로 상태 변경
-        if (!successIds.isEmpty()) {
-            messageLogDetailQueryRepository.updateStatusByIds(successIds, COMPLETE);
-        }
-        if (!failIds.isEmpty()) {
-            messageLogDetailQueryRepository.updateStatusByIds(failIds, FAIL);
-        }
-
-        log.info("[알림톡 개인화 전송 완료] 템플릿: {}, 성공: {}, 실패: {}",
-            template.getDescription(), successIds.size(), failIds.size());
-        return failIds.isEmpty() ? SEND_SUCCESS : SEND_FAIL;
+        log.info("[알림톡 개인화 전송 완료] 템플릿: {}, 예약시간: {}, 성공: {}, 실패: {}",
+            template.getDescription(), requestDate, successCount, failCount);
+        return failCount == 0 ? SEND_SUCCESS : SEND_FAIL;
     }
 
     /**
@@ -452,12 +461,4 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
         return isSuccessful;
     }
 
-    /**
-     * 현재보다 과거이면 1분 뒤로 전송한다.
-     */
-    private LocalDateTime getReserveTimeIfPassed(MessageLog messageLog) {
-        return LocalDateTime.now().isAfter(messageLog.getReserveTime())
-            ? LocalDateTime.now().plusHours(9).plusMinutes(1)// 약간 뒤의 시간으로 예약한다.
-            : messageLog.getReserveTime().plusHours(9);
-    }
 }

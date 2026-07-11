@@ -8,6 +8,7 @@ import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.SentenceHistoryResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.TokenUsageResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserResponseDto;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -65,6 +66,11 @@ public interface UserService {
      * 유저 정보를 업데이트 해준다.(클라이언트)
      */
     void updateUserInfoByClient(Long userId, UpdateUserRequestDto requestDto);
+
+    /**
+     * 카카오 메시지 선호 발송 시간(KST)을 업데이트 해준다.
+     */
+    void updatePreferredSendTime(Long userId, LocalTime preferredSendTime);
 
     /**
      * 라인 유저의 휴대전화를 업데이트 한다. (만약 유저가 없으면 생성)

@@ -16,6 +16,7 @@ import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.presentation.dtos.request.GenerateSentenceRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.request.SentenceHistorySearchRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateOnboardingRequestBody;
+import com.shrona.mommytalk.user.presentation.dtos.request.UpdatePreferredSendTimeRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.CreateUserSentenceResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserClientResponseDto;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -102,6 +104,16 @@ public class UserClientRestController {
                 requestBody.childLevel()
             )
         );
+    }
+
+    @PatchMapping("/preferred-send-time")
+    public ApiResponse<?> updatePreferredSendTime(
+        @CurrentUserId Long userId,
+        @Validated @RequestBody UpdatePreferredSendTimeRequestDto requestBody) {
+
+        userService.updatePreferredSendTime(userId, requestBody.preferredSendTime());
+
+        return ApiResponse.success(null);
     }
 
     @PostMapping("/sentences")

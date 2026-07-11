@@ -244,8 +244,9 @@ public class MessageServiceImpl implements MessageService {
 
         switch (platform) {
             case ChannelPlatform.KAKAO -> {
+                // 수동 재전송이므로 시간 필터 없이 전체 대상 (지난 시간은 즉시, 미도래 시간은 선호 시간에 발송)
                 kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
-                    List.of(messageLogId), List.of(PREPARE, FAIL));
+                    List.of(messageLogId), List.of(PREPARE, FAIL), null);
             }
             case ChannelPlatform.LINE -> {
                 lineMessageSender.sendLineMessageByReservationByMessageIds(
