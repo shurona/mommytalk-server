@@ -18,6 +18,8 @@ public enum UserErrorCode {
 
     DUPLICATE_PHONE_NUMBER(HttpStatus.BAD_REQUEST, "중복 휴대전화 번호 입력입니다."),
     INVALID_PHONE_NUMBER_INPUT(HttpStatus.BAD_REQUEST, "잘못된 휴대전화 입력입니다"),
+    INVALID_PREFERRED_SEND_TIME(HttpStatus.BAD_REQUEST,
+        "발송 시간은 오전 7시부터 오후 8시까지 30분 단위로 설정할 수 있습니다."),
 
     INTERNAL_SERVER_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "로그인 중 에러가 발생하였습니다. 고객센터에 문의해주세요");
 

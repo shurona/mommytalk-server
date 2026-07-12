@@ -19,6 +19,7 @@ import com.shrona.mommytalk.user.presentation.dtos.request.UpdateOnboardingReque
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdatePreferredSendTimeRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.CreateUserSentenceResponseDto;
+import com.shrona.mommytalk.user.presentation.dtos.response.PreferredSendTimeResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserClientResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserSentenceListResponseDto;
 import java.util.List;
@@ -107,13 +108,13 @@ public class UserClientRestController {
     }
 
     @PatchMapping("/preferred-send-time")
-    public ApiResponse<?> updatePreferredSendTime(
+    public ApiResponse<PreferredSendTimeResponseDto> updatePreferredSendTime(
         @CurrentUserId Long userId,
         @Validated @RequestBody UpdatePreferredSendTimeRequestDto requestBody) {
 
-        userService.updatePreferredSendTime(userId, requestBody.preferredSendTime());
+        User user = userService.updatePreferredSendTime(userId, requestBody.preferredSendTime());
 
-        return ApiResponse.success(null);
+        return ApiResponse.success(PreferredSendTimeResponseDto.from(user));
     }
 
     @PostMapping("/sentences")

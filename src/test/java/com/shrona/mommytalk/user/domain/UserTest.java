@@ -30,19 +30,29 @@ class UserTest {
     }
 
     @Test
-    public void 야간_시간도_설정_가능_테스트() {
-        // given: 알림톡은 야간 전송 제한이 없어 24시간 허용
+    public void 대기_선호_시간_저장은_현재값을_건드리지_않는_테스트() {
+        // given
         User user = User.createUser(new PhoneNumber("010-1234-5678"));
 
         // when
-        user.updatePreferredSendTime(LocalTime.of(23, 0));
+        user.updatePendingPreferredSendTime(LocalTime.of(15, 30));
+
         // then
-        assertThat(user.getPreferredSendTime()).isEqualTo(LocalTime.of(23, 0));
+        assertThat(user.getPreferredSendTime()).isEqualTo(LocalTime.of(10, 0));
+        assertThat(user.getPendingPreferredSendTime()).isEqualTo(LocalTime.of(15, 30));
+    }
+
+    @Test
+    public void 대기_선호_시간_재변경시_마지막_값으로_덮어쓰는_테스트() {
+        // given
+        User user = User.createUser(new PhoneNumber("010-1234-5678"));
+        user.updatePendingPreferredSendTime(LocalTime.of(19, 30));
 
         // when
-        user.updatePreferredSendTime(LocalTime.of(3, 30));
+        user.updatePendingPreferredSendTime(LocalTime.of(8, 0));
+
         // then
-        assertThat(user.getPreferredSendTime()).isEqualTo(LocalTime.of(3, 30));
+        assertThat(user.getPendingPreferredSendTime()).isEqualTo(LocalTime.of(8, 0));
     }
 
     @Test

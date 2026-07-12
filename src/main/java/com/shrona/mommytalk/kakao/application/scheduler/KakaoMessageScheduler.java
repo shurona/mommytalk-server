@@ -3,9 +3,11 @@ package com.shrona.mommytalk.kakao.application.scheduler;
 import static com.shrona.mommytalk.kakao.common.utils.KakaoSendTimeUtils.ZONE_KST;
 import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE;
 
+import com.shrona.mommytalk.kakao.application.scheduler.dto.SubmitWindow;
 import com.shrona.mommytalk.kakao.application.sender.KakaoMessageSender;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.infrastructure.repository.query.MessageQueryRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -50,8 +52,38 @@ public class KakaoMessageScheduler {
     public void submitKakaoMessagesInWindow() {
         LocalDateTime nowKst = LocalDateTime.now(ZONE_KST);
 
-        // 오늘(KST) 발송분 MessageLog 조회 (reserveTime은 UTC 저장이므로 범위 변환)
-        LocalDateTime startUtc = nowKst.toLocalDate().atStartOfDay(ZONE_KST)
+        for (SubmitWindow window : calculateWindows(nowKst)) {
+            submitWindow(window.sendDate(), window.windowEnd());
+        }
+    }
+
+    /**
+     * 실행 시점 기준 접수할 (발송일, 윈도우 끝) 목록을 계산한다.
+     * 윈도우가 자정을 넘으면(23:55 실행) 두 개로 나눈다:
+     * 오늘 나머지 전체 + 내일 초반 윈도우(00:00~00:25 유저를 정각 발송되도록 선접수).
+     * 내일 윈도우를 초반으로 제한하는 이유: 내일 하루 전체를 선접수하면
+     * 00:05 승격 배치 이전의 옛 선호 시간으로 접수되어
+     * "변경은 다음날부터 적용" 규칙이 무너지기 때문.
+     */
+    static List<SubmitWindow> calculateWindows(LocalDateTime nowKst) {
+        LocalTime windowEnd = nowKst.toLocalTime().plusMinutes(WINDOW_MINUTES);
+
+        // LocalTime은 자정을 넘으면 00시로 되감기므로, 현재보다 앞서면 자정을 넘은 것
+        if (windowEnd.isBefore(nowKst.toLocalTime())) {
+            return List.of(
+                new SubmitWindow(nowKst.toLocalDate(), LocalTime.MAX),
+                new SubmitWindow(nowKst.toLocalDate().plusDays(1), windowEnd)
+            );
+        }
+        return List.of(new SubmitWindow(nowKst.toLocalDate(), windowEnd));
+    }
+
+    /**
+     * 발송일(KST)의 MessageLog를 조회해 윈도우 내 대상을 NHN에 접수한다.
+     */
+    private void submitWindow(LocalDate sendDateKst, LocalTime windowEnd) {
+        // reserveTime은 UTC 저장이므로 발송일(KST)을 UTC 범위로 변환
+        LocalDateTime startUtc = sendDateKst.atStartOfDay(ZONE_KST)
             .withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime endUtc = startUtc.plusDays(1);
 
@@ -60,13 +92,8 @@ public class KakaoMessageScheduler {
             return;
         }
 
-        // 윈도우 끝 계산 (자정을 넘어가면 그날 끝까지)
-        LocalTime windowEnd = nowKst.toLocalTime().plusMinutes(WINDOW_MINUTES);
-        if (windowEnd.isBefore(nowKst.toLocalTime())) {
-            windowEnd = LocalTime.MAX;
-        }
-
-        log.info("[카카오 발송 스케줄러] 대상 MessageLog {}건, 윈도우 종료(KST): {}", logs.size(), windowEnd);
+        log.info("[카카오 발송 스케줄러] 발송일(KST): {}, 대상 MessageLog {}건, 윈도우 종료(KST): {}",
+            sendDateKst, logs.size(), windowEnd);
 
         kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
             logs.stream().map(MessageLog::getId).toList(),

@@ -79,6 +79,10 @@ public class User extends BaseEntity {
     @Column(name = "preferred_send_time")
     private LocalTime preferredSendTime = LocalTime.of(10, 0);
 
+    // 다음날부터 적용될 선호 발송 시간 (KST 기준). NULL이면 대기 중인 변경 없음
+    @Column(name = "pending_preferred_send_time")
+    private LocalTime pendingPreferredSendTime;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "line_user_id")
     private LineUser lineUser;
@@ -197,14 +201,22 @@ public class User extends BaseEntity {
     }
 
     /**
-     * 카카오 메시지 선호 발송 시간(KST)을 변경한다.
-     * 알림톡은 야간 전송 제한이 없으므로 시간 제한 없이 허용한다.
+     * 선호 발송 시간(KST)을 즉시 변경한다. 유저 변경은 지연 적용 규칙에 따라
+     * updatePendingPreferredSendTime()을 사용하고, 즉시 반영은 승격 배치(벌크 UPDATE)가
+     * 담당하므로 프로덕션 경로에서는 호출하지 않는다 (테스트 셋업용).
      */
     public void updatePreferredSendTime(LocalTime time) {
         // null이 아닌 경우에만 바꿔준다.
         if (time != null) {
             this.preferredSendTime = time;
         }
+    }
+
+    /**
+     * 다음날부터 적용될 선호 발송 시간(KST)을 저장한다. 같은 날 재변경은 마지막 값으로 덮어쓴다.
+     */
+    public void updatePendingPreferredSendTime(LocalTime time) {
+        this.pendingPreferredSendTime = time;
     }
 
 }

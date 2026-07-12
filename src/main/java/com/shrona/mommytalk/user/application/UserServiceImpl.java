@@ -2,6 +2,7 @@ package com.shrona.mommytalk.user.application;
 
 import static com.shrona.mommytalk.channel.common.exception.ChannelErrorCode.CHANNEL_NOT_FOUND;
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.DUPLICATE_PHONE_NUMBER;
+import static com.shrona.mommytalk.user.common.exception.UserErrorCode.INVALID_PREFERRED_SEND_TIME;
 import static com.shrona.mommytalk.user.common.exception.UserErrorCode.USER_NOT_FOUND;
 
 import com.shrona.mommytalk.channel.common.exception.ChannelException;
@@ -47,6 +48,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
+
+    // 선호 발송 시간 허용 범위 (KST, 30분 단위)
+    private static final LocalTime MIN_PREFERRED_SEND_TIME = LocalTime.of(7, 0);
+    private static final LocalTime MAX_PREFERRED_SEND_TIME = LocalTime.of(20, 0);
 
     // jpa
     private final ChannelJpaRepository channelRepository;
@@ -217,11 +222,36 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void updatePreferredSendTime(Long userId, LocalTime preferredSendTime) {
+    public User updatePreferredSendTime(Long userId, LocalTime preferredSendTime) {
+        validatePreferredSendTime(preferredSendTime);
+
         User userInfo = userRepository.findById(userId)
             .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        userInfo.updatePreferredSendTime(preferredSendTime);
+        // 변경은 항상 다음날부터 적용: pending에만 저장하고 승격 배치가 반영한다.
+        userInfo.updatePendingPreferredSendTime(preferredSendTime);
+
+        return userInfo;
+    }
+
+    @Transactional
+    @Override
+    public int promotePendingPreferredSendTime() {
+        return userRepository.promoteAllPendingPreferredSendTime();
+    }
+
+    /**
+     * 선호 발송 시간은 07:00~20:00 사이 30분 단위만 허용한다.
+     */
+    private void validatePreferredSendTime(LocalTime time) {
+        boolean outOfRange = time.isBefore(MIN_PREFERRED_SEND_TIME)
+            || time.isAfter(MAX_PREFERRED_SEND_TIME);
+        boolean invalidUnit = (time.getMinute() != 0 && time.getMinute() != 30)
+            || time.getSecond() != 0 || time.getNano() != 0;
+
+        if (outOfRange || invalidUnit) {
+            throw new UserException(INVALID_PREFERRED_SEND_TIME);
+        }
     }
 
     @Transactional

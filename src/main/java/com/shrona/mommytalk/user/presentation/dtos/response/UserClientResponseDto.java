@@ -18,6 +18,7 @@ public record UserClientResponseDto(
     Boolean onboardingCompleted,
     String phoneNumber,
     LocalTime preferredSendTime,
+    LocalTime pendingPreferredSendTime,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -33,6 +34,7 @@ public record UserClientResponseDto(
             .onboardingCompleted(OnBoardingStatus.isOnboarding(user.getOnboardingStatus()))
             .phoneNumber(user.getPhoneNumber().getPhoneNumber())
             .preferredSendTime(user.getPreferredSendTime())
+            .pendingPreferredSendTime(user.getPendingPreferredSendTime())
             .createdAt(user.getCreatedAt())
             .updatedAt(user.getUpdatedAt())
             .build();
