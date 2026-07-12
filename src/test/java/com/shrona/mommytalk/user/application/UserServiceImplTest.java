@@ -237,6 +237,21 @@ class UserServiceImplTest {
         assertThat(user.getPendingPreferredSendTime()).isNull();
     }
 
+    @DisplayName("현재값과 같은 값을 다시 고르면 대기 중 변경이 취소된다")
+    @Test
+    void 현재값_재선택시_pending_취소_테스트() {
+        // given: 19:30으로 변경 대기 중
+        User user = createPreferredTimeTestUser("010-1111-0005");
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(19, 30));
+
+        // when: 현재값(10:00)을 다시 선택
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(10, 0));
+
+        // then: pending이 비워져 예정 표시가 사라진다
+        assertThat(user.getPendingPreferredSendTime()).isNull();
+        assertThat(user.getPreferredSendTime()).isEqualTo(LocalTime.of(10, 0));
+    }
+
     private User createPreferredTimeTestUser(String phoneNumber) {
         User user = User.createUser(new PhoneNumber(phoneNumber));
         entityManager.persist(user);

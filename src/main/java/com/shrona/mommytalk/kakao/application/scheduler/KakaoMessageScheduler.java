@@ -46,6 +46,23 @@ public class KakaoMessageScheduler {
     private final KakaoMessageSender kakaoMessageSender;
 
     /**
+     * 실행 시점 기준 접수할 (발송일, 윈도우 끝) 목록을 계산한다.
+     * 자정을 넘는 실행(23:55)은 윈도우 끝을 오늘 끝으로 클램프한다.
+     * 내일 선접수는 하지 않는다: 선호 시간 설정 범위(07:00~20:00)상 자정 구간
+     * 유저가 없고, 00:02 승격 배치 이전에 선접수하면 옛 선호 시간으로 접수되어
+     * "변경은 다음날부터 적용" 규칙이 무너지기 때문.
+     */
+    static List<SubmitWindow> calculateWindows(LocalDateTime nowKst) {
+        LocalTime windowEnd = nowKst.toLocalTime().plusMinutes(WINDOW_MINUTES);
+
+        // LocalTime은 자정을 넘으면 00시로 되감기므로, 현재보다 앞서면 자정을 넘은 것
+        if (windowEnd.isBefore(nowKst.toLocalTime())) {
+            windowEnd = LocalTime.MAX;
+        }
+        return List.of(new SubmitWindow(nowKst.toLocalDate(), windowEnd));
+    }
+
+    /**
      * 매시 25분/55분(KST)에 실행 — 정각/30분 선호 유저를 5분 먼저 접수해서 정시 발송을 보장한다.
      */
     @Scheduled(cron = "0 25,55 * * * *", zone = "Asia/Seoul")
@@ -55,27 +72,6 @@ public class KakaoMessageScheduler {
         for (SubmitWindow window : calculateWindows(nowKst)) {
             submitWindow(window.sendDate(), window.windowEnd());
         }
-    }
-
-    /**
-     * 실행 시점 기준 접수할 (발송일, 윈도우 끝) 목록을 계산한다.
-     * 윈도우가 자정을 넘으면(23:55 실행) 두 개로 나눈다:
-     * 오늘 나머지 전체 + 내일 초반 윈도우(00:00~00:25 유저를 정각 발송되도록 선접수).
-     * 내일 윈도우를 초반으로 제한하는 이유: 내일 하루 전체를 선접수하면
-     * 00:05 승격 배치 이전의 옛 선호 시간으로 접수되어
-     * "변경은 다음날부터 적용" 규칙이 무너지기 때문.
-     */
-    static List<SubmitWindow> calculateWindows(LocalDateTime nowKst) {
-        LocalTime windowEnd = nowKst.toLocalTime().plusMinutes(WINDOW_MINUTES);
-
-        // LocalTime은 자정을 넘으면 00시로 되감기므로, 현재보다 앞서면 자정을 넘은 것
-        if (windowEnd.isBefore(nowKst.toLocalTime())) {
-            return List.of(
-                new SubmitWindow(nowKst.toLocalDate(), LocalTime.MAX),
-                new SubmitWindow(nowKst.toLocalDate().plusDays(1), windowEnd)
-            );
-        }
-        return List.of(new SubmitWindow(nowKst.toLocalDate(), windowEnd));
     }
 
     /**

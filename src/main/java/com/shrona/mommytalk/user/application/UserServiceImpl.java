@@ -229,7 +229,12 @@ public class UserServiceImpl implements UserService {
             .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
         // 변경은 항상 다음날부터 적용: pending에만 저장하고 승격 배치가 반영한다.
-        userInfo.updatePendingPreferredSendTime(preferredSendTime);
+        // 현재값과 같은 값을 고르면 대기 중 변경을 취소한다.
+        if (preferredSendTime.equals(userInfo.getPreferredSendTime())) {
+            userInfo.updatePendingPreferredSendTime(null);
+        } else {
+            userInfo.updatePendingPreferredSendTime(preferredSendTime);
+        }
 
         return userInfo;
     }

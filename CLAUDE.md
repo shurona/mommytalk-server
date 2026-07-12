@@ -151,16 +151,16 @@ LINE 메신저 통합 기능과 관리자 대시보드를 제공하는 Spring Bo
 - **전화번호 기반**: LINE과 달리 전화번호로 사용자 식별 및 메시지 전송 (한국/미국/영국 지원)
 - **유저별 선호 발송 시간**: `User.preferredSendTime`(KST, 기본 10:00, 설정 가능 범위 07:00~20:00·30분 단위)에 맞춰 발송
     - `KakaoMessageScheduler`가 매시 25분/55분(KST) 폴링 → 다음 30분 윈도우 내 대상만 NHN에 예약 접수 (`requestDate`)
-    - 자정을 넘는 실행(23:55)은 두 패스로 분리: 오늘 나머지 전체 + 내일 초반 윈도우 선접수 (설정 범위 제한으로 현재는 대상 0명인 무해 코드 — 제거하지 않고 유지)
+    - 자정을 넘는 실행(23:55)은 윈도우 끝을 오늘 끝으로 클램프 (내일 선접수 없음 — 설정 범위상 자정 구간 유저가 없고, 00:02 승격 전 선접수는 옛값 접수가 되기 때문)
     - 실제 발송 시각은 NHN API 예약이 보장, 놓친 건은 다음 폴링에서 자동 처리 (상태 기반 중복 방지)
     - 접수 결과는 청크 단위로 새 트랜잭션 커밋 (장애 중단 시 중복 접수 방지)
     - 킬 스위치: `kakao.polling-scheduler.enabled=false`
     - LINE과 달리 TaskScheduler 개별 태스크를 사용하지 않음 (LINE은 기존 방식 유지)
 - **선호 시간 변경은 항상 다음날부터 적용** (지연 적용 규칙):
-    - PATCH `/preferred-send-time`은 `User.pendingPreferredSendTime`에만 저장 (current 불변, 범위·30분 단위 검증 포함), 응답과 `/me`에 current+pending 노출
-    - `PreferredSendTimeScheduler`(user 모듈)가 매일 00:05 KST에 벌크 UPDATE 1문으로 일괄 승격 (current ← pending, 멱등, soft delete 유저 제외 — `@SQLRestriction`은 벌크 JPQL에 미적용이라 WHERE에 isDeleted 조건 직접 포함)
+    - PATCH `/preferred-send-time`은 `User.pendingPreferredSendTime`에만 저장 (current 불변, 범위·30분 단위 검증 포함, 현재값과 같은 값 선택 시 pending 클리어 = 변경 취소), 응답과 `/me`에 current+pending 노출
+    - `PreferredSendTimeScheduler`(user 모듈)가 매일 00:02 KST에 벌크 UPDATE 1문으로 일괄 승격 (current ← pending, 멱등, soft delete 유저 제외 — `@SQLRestriction`은 벌크 JPQL에 미적용이라 WHERE에 isDeleted 조건 직접 포함)
     - 발송 선별 쿼리는 current 단일 컬럼 비교 그대로 — 이 단순함이 "변경 당일 불변"을 구조적으로 보장
-    - 승격/폴링 시간 관계: 마지막 접수 19:55, 승격 00:05, 첫 접수 06:55 (충돌 없음)
+    - 승격/폴링 시간 관계: 마지막 접수 19:55, 승격 00:02, 첫 접수 06:55 (충돌 없음)
     - 배포 시 수동 마이그레이션 필요: `docs/migration/2026-07-12_add_pending_preferred_send_time.sql`
 - **버튼 메시지**: EntitlementType에 따라 템플릿/링크 버튼 자동 선택 (일요일은 리뷰 템플릿)
 - **개인화 메시지**: {아이이름} 템플릿 변수를 통한 수신자별 메시지 개인화

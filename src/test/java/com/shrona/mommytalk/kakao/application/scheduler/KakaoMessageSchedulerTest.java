@@ -26,34 +26,17 @@ class KakaoMessageSchedulerTest {
     }
 
     @Test
-    public void 자정을_넘는_실행은_오늘_나머지와_내일_초반_윈도우로_분리_테스트() {
-        // given: 23:55 실행 → 윈도우가 다음 날 00:25까지 걸침
+    public void 자정을_넘는_실행은_오늘_끝으로_클램프_테스트() {
+        // given: 23:55 실행 → 윈도우 끝이 다음 날 00:25로 되감김
         LocalDateTime nowKst = LocalDateTime.of(2026, 7, 12, 23, 55);
 
         // when
         List<SubmitWindow> windows = KakaoMessageScheduler.calculateWindows(nowKst);
 
-        // then: (오늘, 끝까지) + (내일, 00:25까지) — 00:00 선호 유저가 정각에 발송되게 선접수
-        assertThat(windows).hasSize(2);
-
+        // then: (오늘, 끝까지) 하나만 — 내일 선접수는 하지 않음
+        // (설정 범위 07:00~20:00상 자정 구간 유저 없음 + 00:05 승격 전 선접수는 옛값 접수)
+        assertThat(windows).hasSize(1);
         assertThat(windows.get(0).sendDate()).isEqualTo(LocalDate.of(2026, 7, 12));
         assertThat(windows.get(0).windowEnd()).isEqualTo(LocalTime.MAX);
-
-        assertThat(windows.get(1).sendDate()).isEqualTo(LocalDate.of(2026, 7, 13));
-        assertThat(windows.get(1).windowEnd()).isEqualTo(LocalTime.of(0, 25));
-    }
-
-    @Test
-    public void 자정_경계_연말에도_다음_해_날짜로_계산_테스트() {
-        // given: 12/31 23:55 → 내일은 다음 해 1/1
-        LocalDateTime nowKst = LocalDateTime.of(2026, 12, 31, 23, 55);
-
-        // when
-        List<SubmitWindow> windows = KakaoMessageScheduler.calculateWindows(nowKst);
-
-        // then
-        assertThat(windows).hasSize(2);
-        assertThat(windows.get(1).sendDate()).isEqualTo(LocalDate.of(2027, 1, 1));
-        assertThat(windows.get(1).windowEnd()).isEqualTo(LocalTime.of(0, 25));
     }
 }

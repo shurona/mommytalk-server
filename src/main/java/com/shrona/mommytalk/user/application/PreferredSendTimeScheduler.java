@@ -16,13 +16,13 @@ public class PreferredSendTimeScheduler {
     private final UserService userService;
 
     /**
-     * 매일 00:05 KST에 대기 중인 선호 발송 시간(pending)을 일괄 승격
+     * 매일 00:02 KST에 대기 중인 선호 발송 시간(pending)을 일괄 승격
      * - 전날 변경된 선호 시간이 오늘 발송부터 적용된다 (변경은 항상 다음날부터 규칙)
      * - 첫 접수 폴링(06:55 KST) 이전이므로 발송과 충돌 없음
      */
-    @Scheduled(cron = "0 5 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 2 0 * * *", zone = "Asia/Seoul")
     public void promotePendingPreferredSendTimes() {
-        log.info("=== [스케줄러 시작] 선호 발송 시간 승격 (KST 00:05) ===");
+        log.info("=== [스케줄러 시작] 선호 발송 시간 승격 (KST 00:02) ===");
 
         try {
             int promoted = userService.promotePendingPreferredSendTime();
