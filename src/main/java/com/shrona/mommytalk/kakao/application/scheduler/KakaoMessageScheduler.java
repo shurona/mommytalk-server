@@ -49,8 +49,8 @@ public class KakaoMessageScheduler {
      * 실행 시점 기준 접수할 (발송일, 윈도우 끝) 목록을 계산한다.
      * 자정을 넘는 실행(23:55)은 윈도우 끝을 오늘 끝으로 클램프한다.
      * 내일 선접수는 하지 않는다: 선호 시간 설정 범위(07:00~20:00)상 자정 구간
-     * 유저가 없고, 00:02 승격 배치 이전에 선접수하면 옛 선호 시간으로 접수되어
-     * "변경은 다음날부터 적용" 규칙이 무너지기 때문.
+     * 유저가 없고, 자정 직후(00:00:20) 승격 배치 이전에 선접수하면 옛 선호 시간으로
+     * 접수되어 "변경은 다음날부터 적용" 규칙이 무너지기 때문.
      */
     static List<SubmitWindow> calculateWindows(LocalDateTime nowKst) {
         LocalTime windowEnd = nowKst.toLocalTime().plusMinutes(WINDOW_MINUTES);
