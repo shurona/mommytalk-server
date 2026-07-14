@@ -72,10 +72,12 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
     private String frontBaseUrl;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void sendKakaoMessageByReservationByMessageIds(
+    public int sendKakaoMessageByReservationByMessageIds(
         List<Long> messageIds, List<ReservationStatus> statusList, LocalTime sendTimeBeforeKst) {
 
         List<MessageLog> kakaoMessageByIds = messageRepository.findMessageByIds(messageIds);
+
+        int submittedCount = 0;
 
         for (MessageLog messageLog : kakaoMessageByIds) {
 
@@ -85,6 +87,8 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
             // messageLogId가 동일하고 예약 상태이며 선호 발송 시간이 윈도우 내인 목록을 갖고 온다.
             List<MessageLogDetail> mldList = messageLogDetailQueryRepository
                 .findMldListByStatusWithKakao(messageLog.getId(), statusList, sendTimeBeforeKst);
+
+            submittedCount += mldList.size();
 
             // MessageContent.id를 기준으로 MessageLogDetail 목록 그룹핑 (레벨별 그룹화 유지)
             Map<Long, List<MessageLogDetail>> mldListByContentId = mldList.stream()
@@ -122,6 +126,8 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
                 }
             }
         }
+
+        return submittedCount;
     }
 
     @Override

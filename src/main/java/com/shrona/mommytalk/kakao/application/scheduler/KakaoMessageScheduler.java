@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,13 +89,19 @@ public class KakaoMessageScheduler {
             return;
         }
 
-        log.info("[카카오 발송 스케줄러] 발송일(KST): {}, 대상 MessageLog {}건, 윈도우 종료(KST): {}",
-            sendDateKst, logs.size(), windowEnd);
-
-        kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
+        int submitted = kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
             logs.stream().map(MessageLog::getId).toList(),
             List.of(PREPARE),
             windowEnd
         );
+
+        // 접수가 있을 때만 INFO — 남은 유저가 전부 미래 시간대인 실행은 DEBUG로만 남긴다.
+        if (submitted > 0) {
+            log.info("[카카오 발송 스케줄러] 발송일(KST): {}, 윈도우 내 접수 {}건, 윈도우 종료(KST): {}",
+                sendDateKst, submitted, windowEnd.truncatedTo(ChronoUnit.MINUTES));
+        } else {
+            log.debug("[카카오 발송 스케줄러] 발송일(KST): {}, 접수 대상 없음, 윈도우 종료(KST): {}",
+                sendDateKst, windowEnd.truncatedTo(ChronoUnit.MINUTES));
+        }
     }
 }
