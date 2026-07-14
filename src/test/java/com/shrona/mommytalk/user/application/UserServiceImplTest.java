@@ -1,15 +1,18 @@
 package com.shrona.mommytalk.user.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.line.application.LineServiceImpl;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.line.infrastructure.dao.ChannelLineUserWithPhoneDao;
 import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaRepository;
+import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import jakarta.persistence.EntityManager;
+import java.time.LocalTime;
 import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -169,6 +172,90 @@ class UserServiceImplTest {
         assertThat(createdUser).isNotNull();
         assertThat(createdUser.getPhoneNumber().getPhoneNumber()).isEqualTo(newPhoneNumber);
         assertThat(createdUser.getLineUser().getLineId()).isEqualTo(newLineId);
+    }
+
+    @DisplayName("선호 시간 변경은 pending에만 저장되고 current는 불변")
+    @Test
+    void 선호_시간_변경시_pending에만_저장_테스트() {
+        // given
+        User user = createPreferredTimeTestUser("010-1111-0001");
+
+        // when
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(19, 30));
+
+        // then
+        assertThat(user.getPreferredSendTime()).isEqualTo(LocalTime.of(10, 0));
+        assertThat(user.getPendingPreferredSendTime()).isEqualTo(LocalTime.of(19, 30));
+    }
+
+    @DisplayName("같은 날 재변경 시 pending은 마지막 값으로 덮어쓴다")
+    @Test
+    void 선호_시간_재변경시_마지막_값_저장_테스트() {
+        // given
+        User user = createPreferredTimeTestUser("010-1111-0002");
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(19, 30));
+
+        // when
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(8, 0));
+
+        // then
+        assertThat(user.getPendingPreferredSendTime()).isEqualTo(LocalTime.of(8, 0));
+    }
+
+    @DisplayName("경계값 07:00, 20:00과 30분 단위 값은 허용")
+    @Test
+    void 선호_시간_경계값_허용_테스트() {
+        // given
+        User user = createPreferredTimeTestUser("010-1111-0003");
+
+        // when
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(7, 0));
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(20, 0));
+
+        // then
+        assertThat(user.getPendingPreferredSendTime()).isEqualTo(LocalTime.of(20, 0));
+    }
+
+    @DisplayName("범위 밖이거나 30분 단위가 아니면 거부하고 값을 바꾸지 않는다")
+    @Test
+    void 선호_시간_검증_실패_테스트() {
+        // given
+        User user = createPreferredTimeTestUser("010-1111-0004");
+
+        // when & then: 범위 밖 (07:00 이전 / 20:00 초과), 30분 단위 위반, 초 단위 입력
+        assertThatThrownBy(() -> userService.updatePreferredSendTime(user.getId(), LocalTime.of(6, 30)))
+            .isInstanceOf(UserException.class);
+        assertThatThrownBy(() -> userService.updatePreferredSendTime(user.getId(), LocalTime.of(20, 30)))
+            .isInstanceOf(UserException.class);
+        assertThatThrownBy(() -> userService.updatePreferredSendTime(user.getId(), LocalTime.of(10, 15)))
+            .isInstanceOf(UserException.class);
+        assertThatThrownBy(() -> userService.updatePreferredSendTime(user.getId(), LocalTime.of(10, 0, 30)))
+            .isInstanceOf(UserException.class);
+
+        // then: current·pending 모두 불변
+        assertThat(user.getPreferredSendTime()).isEqualTo(LocalTime.of(10, 0));
+        assertThat(user.getPendingPreferredSendTime()).isNull();
+    }
+
+    @DisplayName("현재값과 같은 값을 다시 고르면 대기 중 변경이 취소된다")
+    @Test
+    void 현재값_재선택시_pending_취소_테스트() {
+        // given: 19:30으로 변경 대기 중
+        User user = createPreferredTimeTestUser("010-1111-0005");
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(19, 30));
+
+        // when: 현재값(10:00)을 다시 선택
+        userService.updatePreferredSendTime(user.getId(), LocalTime.of(10, 0));
+
+        // then: pending이 비워져 예정 표시가 사라진다
+        assertThat(user.getPendingPreferredSendTime()).isNull();
+        assertThat(user.getPreferredSendTime()).isEqualTo(LocalTime.of(10, 0));
+    }
+
+    private User createPreferredTimeTestUser(String phoneNumber) {
+        User user = User.createUser(new PhoneNumber(phoneNumber));
+        entityManager.persist(user);
+        return user;
     }
 
 }

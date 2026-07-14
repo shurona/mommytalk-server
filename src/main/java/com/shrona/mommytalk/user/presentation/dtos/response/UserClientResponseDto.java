@@ -3,6 +3,7 @@ package com.shrona.mommytalk.user.presentation.dtos.response;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.type.OnBoardingStatus;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 
@@ -16,6 +17,8 @@ public record UserClientResponseDto(
     String childName,
     Boolean onboardingCompleted,
     String phoneNumber,
+    LocalTime preferredSendTime,
+    LocalTime pendingPreferredSendTime,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -30,6 +33,8 @@ public record UserClientResponseDto(
             .childName(user.getChildName())
             .onboardingCompleted(OnBoardingStatus.isOnboarding(user.getOnboardingStatus()))
             .phoneNumber(user.getPhoneNumber().getPhoneNumber())
+            .preferredSendTime(user.getPreferredSendTime())
+            .pendingPreferredSendTime(user.getPendingPreferredSendTime())
             .createdAt(user.getCreatedAt())
             .updatedAt(user.getUpdatedAt())
             .build();

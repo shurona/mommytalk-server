@@ -11,4 +11,4 @@ spring:
       ddl-auto: update
   task:
     scheduling:
-      enabled: false  # local에서는 스케줄러 비활성화
+      enabled: true  # local에서는 스케줄러 비활성화

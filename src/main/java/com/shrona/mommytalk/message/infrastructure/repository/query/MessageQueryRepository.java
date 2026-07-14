@@ -16,4 +16,9 @@ public interface MessageQueryRepository {
      */
     public List<MessageLog> findMessageByIds(List<Long> messageLogIds);
 
+    /**
+     * 예약 시간(UTC)이 범위 내이고 PREPARE 상태 상세가 남아있는 카카오 채널 MessageLog 목록을 갖고 온다.
+     */
+    List<MessageLog> findKakaoLogsByReserveTimeRange(LocalDateTime start, LocalDateTime end);
+
 }

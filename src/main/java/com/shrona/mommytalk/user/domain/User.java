@@ -22,6 +22,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -73,6 +74,14 @@ public class User extends BaseEntity {
 
     @Column(name = "last_login_date")
     private LocalDateTime lastLoginDate;
+
+    // 카카오 메시지 선호 발송 시간 (KST 기준)
+    @Column(name = "preferred_send_time")
+    private LocalTime preferredSendTime = LocalTime.of(10, 0);
+
+    // 다음날부터 적용될 선호 발송 시간 (KST 기준). NULL이면 대기 중인 변경 없음
+    @Column(name = "pending_preferred_send_time")
+    private LocalTime pendingPreferredSendTime;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "line_user_id")
@@ -189,6 +198,25 @@ public class User extends BaseEntity {
      */
     public void updateLastLoginDate() {
         this.lastLoginDate = LocalDateTime.now();
+    }
+
+    /**
+     * 선호 발송 시간(KST)을 즉시 변경한다. 유저 변경은 지연 적용 규칙에 따라
+     * updatePendingPreferredSendTime()을 사용하고, 즉시 반영은 승격 배치(벌크 UPDATE)가
+     * 담당하므로 프로덕션 경로에서는 호출하지 않는다 (테스트 셋업용).
+     */
+    public void updatePreferredSendTime(LocalTime time) {
+        // null이 아닌 경우에만 바꿔준다.
+        if (time != null) {
+            this.preferredSendTime = time;
+        }
+    }
+
+    /**
+     * 다음날부터 적용될 선호 발송 시간(KST)을 저장한다. 같은 날 재변경은 마지막 값으로 덮어쓴다.
+     */
+    public void updatePendingPreferredSendTime(LocalTime time) {
+        this.pendingPreferredSendTime = time;
     }
 
 }

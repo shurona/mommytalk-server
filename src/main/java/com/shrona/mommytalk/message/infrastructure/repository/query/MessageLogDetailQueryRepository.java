@@ -2,6 +2,7 @@ package com.shrona.mommytalk.message.infrastructure.repository.query;
 
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.domain.Page;
@@ -28,9 +29,11 @@ public interface MessageLogDetailQueryRepository {
 
     /**
      * status(Optional)에 해당하는 MessageLogDetailInfo 목록을 갖고 온다. (KAKAO용)
+     *
+     * @param sendTimeBefore 유저 선호 발송 시간(KST)이 이 시간 이전인 대상만 조회 (null이면 전체)
      */
     List<MessageLogDetail> findMldListByStatusWithKakao(
-        Long messageLogId, List<ReservationStatus> status);
+        Long messageLogId, List<ReservationStatus> status, LocalTime sendTimeBefore);
 
     /**
      * 메시지 LogId에 해당하는 것중 complete 이외에 모두 cancel

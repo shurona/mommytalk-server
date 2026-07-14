@@ -5,7 +5,6 @@ import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
-import com.shrona.mommytalk.kakao.application.sender.KakaoMessageSender;
 import com.shrona.mommytalk.line.application.sender.LineMessageSender;
 import com.shrona.mommytalk.line.domain.LineUser;
 import com.shrona.mommytalk.message.domain.MessageLog;
@@ -30,7 +29,6 @@ public class MessageUtils {
     private final TaskScheduler taskScheduler;
 
     private final LineMessageSender lineMessageSender;
-    private final KakaoMessageSender kakaoMessageSender;
 
     // MessageLog ID → ScheduledFuture 매핑 저장
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
@@ -41,25 +39,6 @@ public class MessageUtils {
     public long calculateDelaySeconds(LocalDateTime now, LocalDateTime targetDateTime) {
         Duration duration = Duration.between(now, targetDateTime);
         return Math.max(NO_DELAY, duration.getSeconds());
-    }
-
-    /**
-     * 예약 시간 기준 N분 전 스케줄 실행 시간을 계산한다.
-     * 만약 N분 전 시간이 현재보다 이전이면 최소 1초 후 실행하도록 반환한다.
-     *
-     * @param reserveTime   원래 예약 시간 (UTC)
-     * @param minutesBefore 몇 분 전에 실행할지 (예: 30)
-     * @return 스케줄 실행까지 대기할 초 (최소 1초)
-     */
-    public long calculateScheduleDelayBeforeReserve(LocalDateTime reserveTime, int minutesBefore) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime scheduleTime = reserveTime.minusMinutes(minutesBefore);
-
-        Duration duration = Duration.between(now, scheduleTime);
-        long delaySeconds = duration.getSeconds();
-
-        // 이미 스케줄 시간이 지났으면 최소 1초 후 실행
-        return Math.max(1L, delaySeconds);
     }
 
     /**
@@ -76,14 +55,8 @@ public class MessageUtils {
 
         switch (platform) {
             case ChannelPlatform.KAKAO -> {
-                // 카카오: 예약 시간 30분 전에 실행 (이미 지났으면 1초 후)
-                long delaySeconds = calculateScheduleDelayBeforeReserve(reserveTime, 30);
-
-                Runnable task = () -> kakaoMessageSender.sendKakaoMessageByReservationByMessageIds(
-                    messageLogList.stream().map(MessageLog::getId).toList(), List.of(PREPARE)
-                );
-                registerSchedule(task, delaySeconds);
-                log.info("[{}]초 이후로 [KAKAO] 플랫폼 그룹 전송 실행이 등록되었습니다. (예약시간 30분 전)", delaySeconds);
+                // 카카오: 개별 태스크를 등록하지 않고 KakaoMessageScheduler 폴링이 발송을 담당한다.
+                log.info("[KAKAO] 플랫폼은 폴링 스케줄러가 발송하므로 태스크를 등록하지 않습니다.");
             }
             case ChannelPlatform.LINE -> {
                 // 라인: 예약 시간 기준 비동기 실행

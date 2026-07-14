@@ -1,7 +1,6 @@
 package com.shrona.mommytalk.kakao.infrastructure.adapter;
 
 import com.shrona.mommytalk.kakao.infrastructure.sender.NhnAlimtalkMessageClient;
-import com.shrona.mommytalk.kakao.infrastructure.sender.NhnBrandMessageClient;
 import java.io.IOException;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -29,23 +28,6 @@ public class KakaoMessageAdapter {
     ) {
         this.kakaoBaseUrl = kakaoBaseUrl;
         this.kakaoAppKey = kakaoAppKey;
-    }
-
-    /**
-     * KakaoTalk Brand Message Client Bean 생성
-     */
-    @Bean
-    public NhnBrandMessageClient brandMessageClient() {
-        RestClient restClient = RestClient.builder()
-            .baseUrl(kakaoBaseUrl)
-            .defaultUriVariables(Map.of("appkey", kakaoAppKey))
-            .requestInterceptor(logRequestInterceptor())
-            .build();
-
-        RestClientAdapter adapter = RestClientAdapter.create(restClient);
-        HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
-
-        return factory.createClient(NhnBrandMessageClient.class);
     }
 
     /**

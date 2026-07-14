@@ -8,6 +8,7 @@ import static com.shrona.mommytalk.message.domain.type.ReservationStatus.PREPARE
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,6 +49,25 @@ public class MessageQueryRepositoryImpl implements MessageQueryRepository {
             .from(messageLog)
             .leftJoin(messageLog.channel, channel).fetchJoin()
             .where(builder)
+            .fetch();
+    }
+
+    public List<MessageLog> findKakaoLogsByReserveTimeRange(LocalDateTime start, LocalDateTime end) {
+
+        return query.select(messageLog)
+            .from(messageLog)
+            .leftJoin(messageLog.channel, channel).fetchJoin()
+            .where(
+                messageLog.cancel.isFalse()
+                    .and(channel.channelPlatform.eq(ChannelPlatform.KAKAO))
+                    .and(messageLog.reserveTime.goe(start))
+                    .and(messageLog.reserveTime.lt(end))
+                    .and(messageLog.id.in(
+                        JPAExpressions.select(messageLogDetail.messageLog.id)
+                            .from(messageLogDetail)
+                            .where(messageLogDetail.status.eq(PREPARE))
+                    ))
+            )
             .fetch();
     }
 
