@@ -134,6 +134,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
                 messageType.theme,
                 messageLog.createdAt,
                 messageLog.reserveTime,
+                messageLog.cancel,
                 messageLogDetail.status
             )
             .from(messageLog)
@@ -153,6 +154,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
             String theme = row.get(messageType.theme);
             LocalDateTime createdAt = row.get(messageLog.createdAt);
             LocalDateTime reserveTime = row.get(messageLog.reserveTime);
+            Boolean cancel = row.get(messageLog.cancel);
             ReservationStatus status = row.get(messageLogDetail.status);
 
             // MessageLog ID -> MessageType ID 매핑 저장
@@ -160,7 +162,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
 
             // 첫 번째 row일 때 초기 데이터 생성
             dataMap.computeIfAbsent(id, k -> new MessageLogData(
-                id, theme, createdAt, reserveTime
+                id, theme, createdAt, reserveTime, Boolean.TRUE.equals(cancel)
             ));
 
             // 상태별 개수 증가
@@ -260,6 +262,7 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
         final String theme;
         final LocalDateTime createdAt;
         final LocalDateTime reserveTime;
+        final boolean cancel;
 
         int prepareCount = 0;
         int successCount = 0;
@@ -268,11 +271,13 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
 
         MessageLogData(Long id, String theme,
             LocalDateTime createdAt,
-            LocalDateTime reserveTime) {
+            LocalDateTime reserveTime,
+            boolean cancel) {
             this.id = id;
             this.theme = theme;
             this.createdAt = createdAt;
             this.reserveTime = reserveTime;
+            this.cancel = cancel;
         }
 
         void incrementStatus(ReservationStatus status) {
@@ -289,10 +294,11 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
         }
 
         /**
-         * 전체 상태 계산 (우선순위: CANCEL > PREPARE > FAIL > COMPLETE)
+         * 전체 상태 계산 (MessageLog가 전체 취소된 경우만 CANCEL, 이후 우선순위: PREPARE > FAIL > COMPLETE)
+         * 유저 단위 취소(Detail의 CANCEL)는 대표 상태에 영향을 주지 않는다.
          */
         String calculateOverallStatus() {
-            if (cancelCount > 0) {
+            if (cancel) {
                 return "CANCEL";
             } else if (prepareCount > 0) {
                 return "PREPARE";
