@@ -2,6 +2,7 @@ package com.shrona.mommytalk.message.infrastructure.repository.query;
 
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
@@ -62,4 +63,15 @@ public interface MessageLogDetailQueryRepository {
      * MessageLogDetail ID 목록으로 상태 일괄 업데이트 (Batch UPDATE)
      */
     void updateStatusByIds(List<Long> messageLogDetailIds, ReservationStatus status);
+
+    /**
+     * 특정 유저의 미발송(PREPARE) Detail 중 reserveTime이 미래인 건을 EXPIRED로 일괄 변경한다. (사용권 만료 처리용)
+     */
+    long expireFutureDetailsByUserAndEntitlement(Long userId, Long entitlementId,
+        LocalDateTime now);
+
+    /**
+     * MessageLog 내 특정 유저들의 EXPIRED 상태 Detail ID 목록을 조회한다. (재활성 유저 복구용)
+     */
+    List<Long> findExpiredDetailIdsByLogIdAndUserIds(Long messageLogId, List<Long> userIds);
 }

@@ -193,6 +193,24 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
             ? Set.of()
             : new HashSet<>(groupService.findUserIdsByGroupIds(exceptGroupIds));
 
+        // 재구매 등으로 다시 대상이 된 유저의 만료(EXPIRED) Detail을 PREPARE로 복구한다.
+        if (messageLog.canAddNewDetails()) {
+            List<Long> targetUserIds = userListByGroupIds.stream()
+                .map(User::getId)
+                .filter(userId -> !exceptUserIds.contains(userId))
+                .toList();
+
+            List<Long> expiredDetailIds = messageLogDetailQueryRepository
+                .findExpiredDetailIdsByLogIdAndUserIds(messageLogId, targetUserIds);
+
+            if (!expiredDetailIds.isEmpty()) {
+                messageLogDetailQueryRepository.updateStatusByIds(
+                    expiredDetailIds, ReservationStatus.PREPARE);
+                log.info("[재활성 유저 EXPIRED 복구] messageLogId={}, 복구 건수={}",
+                    messageLogId, expiredDetailIds.size());
+            }
+        }
+
         // 이미 있는 유저 조회
         Set<Long> existingUserIds = messageLogDetailQueryRepository
             .findUserIdsByMessageLogId(messageLogId);

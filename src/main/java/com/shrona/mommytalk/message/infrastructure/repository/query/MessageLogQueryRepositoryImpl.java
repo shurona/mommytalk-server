@@ -286,6 +286,9 @@ public class MessageLogQueryRepositoryImpl implements MessageLogQueryRepository 
                 case COMPLETE -> successCount++;
                 case FAIL -> failCount++;
                 case CANCEL -> cancelCount++;
+                case EXPIRED -> {
+                    // 만료 건은 발송 대상이 아니므로 카운트에서 제외
+                }
             }
         }
 

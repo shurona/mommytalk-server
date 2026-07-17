@@ -16,10 +16,12 @@ import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.MessageType;
+import com.shrona.mommytalk.message.domain.type.ReservationStatus;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageContentJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogDetailJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageLogJpaRepository;
 import com.shrona.mommytalk.message.infrastructure.repository.jpa.MessageTypeJpaRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import com.shrona.mommytalk.user.infrastructure.repository.jpa.UserJpaRepository;
@@ -65,6 +67,9 @@ class MessageLogDetailServiceImplTest {
 
     @Autowired
     private EntitlementJpaRepository entitlementJpaRepository;
+
+    @Autowired
+    private MessageLogDetailQueryRepository messageLogDetailQueryRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -268,6 +273,60 @@ class MessageLogDetailServiceImplTest {
 
         // then
         assertThat(addedCount).isZero();
+    }
+
+    @Test
+    @DisplayName("재활성 유저의 EXPIRED Detail은 PREPARE로 복구되고, 제외그룹 유저는 복구되지 않음")
+    void 재활성유저_EXPIRED_복구_테스트() {
+
+        messageType = messageTypeJpaRepository.findById(messageType.getId()).orElseThrow();
+
+        // given
+        MessageLog messageLog = MessageLog.messageLog(
+            channel,
+            messageType,
+            LocalDateTime.now().plusDays(1),
+            "test"
+        );
+
+        messageLog.updateGroupInfo(
+            entitlementGroup,
+            List.of(includeGroup.getId()),
+            List.of(exceptGroup.getId())
+        );
+
+        // user1: 만료됐다가 재구매로 그룹에 복귀한 상태 (그룹 소속 + EXPIRED Detail)
+        MessageLogDetail revivalTarget = MessageLogDetail.createLogDetail(
+            messageLog, user1, messageContent);
+        // user3: 제외그룹 소속 + EXPIRED Detail (복구되면 안 됨)
+        MessageLogDetail exceptTarget = MessageLogDetail.createLogDetail(
+            messageLog, user3, messageContent);
+        messageLog.addMessageLogDetailInfo(revivalTarget);
+        messageLog.addMessageLogDetailInfo(exceptTarget);
+        messageLog.addMessageLogDetailInfo(
+            MessageLogDetail.createLogDetail(messageLog, user2, messageContent));
+        messageLog.addMessageLogDetailInfo(
+            MessageLogDetail.createLogDetail(messageLog, user4, messageContent));
+
+        MessageLog savedMessageLog = messageLogJpaRepository.save(messageLog);
+        entityManager.flush();
+
+        messageLogDetailQueryRepository.updateStatusByIds(
+            List.of(revivalTarget.getId(), exceptTarget.getId()), ReservationStatus.EXPIRED);
+        entityManager.clear();
+
+        // when
+        int addedCount = messageLogDetailService.addMissingDetailsBeforeSend(
+            savedMessageLog.getId()
+        );
+        entityManager.clear();
+
+        // then: 신규 추가 유저는 없고, 그룹에 남아있는 user1의 EXPIRED만 PREPARE로 복구된다
+        assertThat(addedCount).isZero();
+        assertThat(messageLogDetailJpaRepository.findById(revivalTarget.getId())
+            .orElseThrow().getStatus()).isEqualTo(ReservationStatus.PREPARE);
+        assertThat(messageLogDetailJpaRepository.findById(exceptTarget.getId())
+            .orElseThrow().getStatus()).isEqualTo(ReservationStatus.EXPIRED);
     }
 
 }

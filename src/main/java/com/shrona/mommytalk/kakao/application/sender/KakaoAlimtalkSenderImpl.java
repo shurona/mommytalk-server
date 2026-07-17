@@ -81,7 +81,7 @@ public class KakaoAlimtalkSenderImpl implements KakaoMessageSender {
 
         for (MessageLog messageLog : kakaoMessageByIds) {
 
-            // 예약 이후에 등록된 신규 유저들을 추가해준다.
+            // 예약 이후에 등록된 신규 유저 추가 + 재활성 유저의 EXPIRED Detail 복구
             messageLogDetailService.addMissingDetailsBeforeSend(messageLog.getId());
 
             // messageLogId가 동일하고 예약 상태이며 선호 발송 시간이 윈도우 내인 목록을 갖고 온다.

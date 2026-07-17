@@ -8,11 +8,13 @@ import static com.shrona.mommytalk.message.domain.QMessageLogDetail.messageLogDe
 import static com.shrona.mommytalk.user.domain.QUser.user;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.shrona.mommytalk.elevenlabs.domain.QElevenLabsMedia;
 import com.shrona.mommytalk.message.domain.MessageLogDetail;
 import com.shrona.mommytalk.message.domain.type.ReservationStatus;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +40,8 @@ public class MessageLogDetailQueryRepositoryImpl implements
         BooleanBuilder builder = new BooleanBuilder();
 
         builder.and(messageLogDetail.messageLog.id.eq(messageLogId));
+        // 만료(EXPIRED) 건은 상세 목록에서 제외한다
+        builder.and(messageLogDetail.status.ne(ReservationStatus.EXPIRED));
 
         List<MessageLogDetail> fetch = query.selectFrom(messageLogDetail)
             .leftJoin(messageLogDetail.messageContent, messageContent).fetchJoin()
@@ -138,7 +142,9 @@ public class MessageLogDetailQueryRepositoryImpl implements
 
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(messageLogDetail.messageLog.id.eq(messageLogId));
-        builder.and(messageLogDetail.status.notIn(ReservationStatus.COMPLETE));
+        // 만료(EXPIRED) 이력은 전체 취소로 덮어쓰지 않고 보존한다.
+        builder.and(messageLogDetail.status.notIn(
+            ReservationStatus.COMPLETE, ReservationStatus.EXPIRED));
 
         query.update(messageLogDetail)
             .set(messageLogDetail.status, ReservationStatus.CANCEL)
@@ -223,5 +229,45 @@ public class MessageLogDetailQueryRepositoryImpl implements
             .set(messageLogDetail.status, status)
             .where(messageLogDetail.id.in(messageLogDetailIds))
             .execute();
+    }
+
+    @Override
+    @Transactional
+    public long expireFutureDetailsByUserAndEntitlement(Long userId, Long entitlementId,
+        LocalDateTime now) {
+
+        return query.update(messageLogDetail)
+            .set(messageLogDetail.status, ReservationStatus.EXPIRED)
+            .where(
+                messageLogDetail.user.id.eq(userId),
+                messageLogDetail.status.eq(ReservationStatus.PREPARE),
+                messageLogDetail.messageLog.id.in(
+                    JPAExpressions.select(messageLog.id)
+                        .from(messageLog)
+                        .where(
+                            messageLog.entitlement.id.eq(entitlementId),
+                            messageLog.reserveTime.gt(now)
+                        )
+                )
+            )
+            .execute();
+    }
+
+    @Override
+    public List<Long> findExpiredDetailIdsByLogIdAndUserIds(Long messageLogId,
+        List<Long> userIds) {
+
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+
+        return query.select(messageLogDetail.id)
+            .from(messageLogDetail)
+            .where(
+                messageLogDetail.messageLog.id.eq(messageLogId),
+                messageLogDetail.status.eq(ReservationStatus.EXPIRED),
+                messageLogDetail.user.id.in(userIds)
+            )
+            .fetch();
     }
 }

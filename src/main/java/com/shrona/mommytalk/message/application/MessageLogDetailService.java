@@ -19,7 +19,7 @@ public interface MessageLogDetailService {
 
 
     /**
-     * 예약 메시지 발송 전 누락 유저 추가
+     * 예약 메시지 발송 전 누락 유저 추가 및 재활성 유저의 EXPIRED Detail 복구
      */
     int addMissingDetailsBeforeSend(Long messageLogId);
 

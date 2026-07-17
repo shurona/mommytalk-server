@@ -29,10 +29,12 @@ import com.shrona.mommytalk.group.domain.UserGroup;
 import com.shrona.mommytalk.group.infrastructure.repository.jpa.UserGroupJpaRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.query.GroupQueryRepository;
 import com.shrona.mommytalk.group.infrastructure.repository.query.UserGroupQueryRepository;
+import com.shrona.mommytalk.message.infrastructure.repository.query.MessageLogDetailQueryRepository;
 import com.shrona.mommytalk.user.common.exception.UserException;
 import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.infrastructure.repository.jpa.UserJpaRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +56,7 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
     private final UserGroupQueryRepository userGroupQueryRepository;
     private final GroupQueryRepository groupQueryRepository;
     private final ChannelService channelService;
+    private final MessageLogDetailQueryRepository messageLogDetailQueryRepository;
 
     @Override
     @Transactional
@@ -273,6 +276,15 @@ public class UserEntitlementServiceImpl implements UserEntitlementService {
                 } else {
                     log.warn("[만료 처리 스킵] AUTO_ACTIVE 그룹 없음: userId={}, entitlementId={}",
                         user.getId(), entitlement.getId());
+                }
+
+                // 4. 아직 발송되지 않은 미래 예약 메시지(PREPARE)를 EXPIRED로 변경
+                long expiredCount = messageLogDetailQueryRepository
+                    .expireFutureDetailsByUserAndEntitlement(
+                        user.getId(), entitlement.getId(), LocalDateTime.now());
+                if (expiredCount > 0) {
+                    log.info("[만료 유저 예약 취소] userId={}, entitlementId={}, 취소 건수={}",
+                        user.getId(), entitlement.getId(), expiredCount);
                 }
 
             } catch (Exception e) {

@@ -109,6 +109,32 @@ class MessageLogQueryRepositoryImplTest {
     }
 
     @Test
+    public void 만료_EXPIRED_Detail은_목록_카운트에서_제외된다() {
+
+        // given
+        MessageLog messageLog = MessageLog.messageLog(
+            channel, null, LocalDateTime.now().plusHours(5), "yahoo");
+        MessageLogDetail expiredTarget = MessageLogDetail.createLogDetail(messageLog, null, null);
+        MessageLogDetail remainTarget = MessageLogDetail.createLogDetail(messageLog, null, null);
+        messageLog.addMessageLogDetailInfo(expiredTarget);
+        messageLog.addMessageLogDetailInfo(remainTarget);
+        messageLogRepository.save(messageLog);
+
+        // 사용권 만료로 EXPIRED 처리
+        messageLogDetailQueryRepository.updateStatusByIds(
+            List.of(expiredTarget.getId()), ReservationStatus.EXPIRED);
+
+        // when
+        Page<MessageLogResponseDto> result = messageLogQueryRepository
+            .findMessageLogsByChannel(channel.getId(), PageRequest.of(0, 20));
+
+        // then: EXPIRED는 totalCount에 포함되지 않고, 대표 상태에도 영향 없다
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).status()).isEqualTo("PREPARE");
+        assertThat(result.getContent().get(0).totalCount()).isEqualTo(1);
+    }
+
+    @Test
     public void 전체_취소된_로그는_CANCEL_상태로_표시된다() {
 
         // given
