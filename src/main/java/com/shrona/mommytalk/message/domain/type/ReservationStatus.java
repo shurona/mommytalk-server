@@ -9,7 +9,8 @@ public enum ReservationStatus {
     PREPARE("PREPARE"),
     FAIL("FAIL"),
     COMPLETE("COMPLETE"),
-    CANCEL("CANCEL");
+    CANCEL("CANCEL"),
+    EXPIRED("EXPIRED");
 
     private final String status;
 

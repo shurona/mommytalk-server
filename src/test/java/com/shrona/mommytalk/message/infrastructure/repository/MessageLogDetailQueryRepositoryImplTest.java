@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.config.JpaTestConfig;
+import com.shrona.mommytalk.entitlement.domain.Entitlement;
+import com.shrona.mommytalk.entitlement.domain.EntitlementType;
+import com.shrona.mommytalk.entitlement.infrastructure.jpa.EntitlementJpaRepository;
 import com.shrona.mommytalk.kakao.domain.KakaoUser;
 import com.shrona.mommytalk.kakao.infrastructure.repository.jpa.KakaoUserJpaRepository;
 import com.shrona.mommytalk.line.infrastructure.repository.jpa.ChannelJpaRepository;
@@ -25,7 +28,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @Import({JpaTestConfig.class, MessageLogDetailQueryRepositoryImpl.class})
 @DataJpaTest
@@ -46,6 +52,10 @@ class MessageLogDetailQueryRepositoryImplTest {
     private MessageLogDetailJpaRepository messageLogDetailJpaRepository;
     @Autowired
     private MessageContentJpaRepository messageContentJpaRepository;
+    @Autowired
+    private EntitlementJpaRepository entitlementJpaRepository;
+    @Autowired
+    private TestEntityManager em;
 
     private MessageLog messageLog;
     private MessageLog otherLog;
@@ -185,5 +195,98 @@ class MessageLogDetailQueryRepositoryImplTest {
         // then
         List<Long> ids = result.stream().map(MessageLogDetail::getId).toList();
         assertThat(ids).doesNotContain(otherLogDetail.getId());
+    }
+
+    @Test
+    public void 만료_유저의_미래_PREPARE_Detail만_EXPIRED로_전환_테스트() {
+        // given
+        Channel channel = channelJpaRepository.save(
+            Channel.createChannel("expireChannel", "만료 테스트 채널"));
+        Entitlement entitlement = entitlementJpaRepository.save(
+            Entitlement.createEntitlement("마미톡", EntitlementType.MOMMYTALK));
+        Entitlement otherEntitlement = entitlementJpaRepository.save(
+            Entitlement.createEntitlement("마미보카", EntitlementType.MOMMYVOCA));
+
+        User expiredUser = createKakaoLinkedUser("010-6666-6666", LocalTime.of(9, 0));
+        User activeUser = createKakaoLinkedUser("010-7777-7777", LocalTime.of(9, 0));
+
+        MessageLog futureLog = MessageLog.messageLog(
+            channel, null, LocalDateTime.now().plusDays(1), "future");
+        futureLog.updateMessageEntitlement(entitlement);
+        MessageLog pastLog = MessageLog.messageLog(
+            channel, null, LocalDateTime.now().minusDays(1), "past");
+        pastLog.updateMessageEntitlement(entitlement);
+        MessageLog otherEntitlementLog = MessageLog.messageLog(
+            channel, null, LocalDateTime.now().plusDays(1), "otherEntitlement");
+        otherEntitlementLog.updateMessageEntitlement(otherEntitlement);
+        messageLogJpaRepository.saveAll(List.of(futureLog, pastLog, otherEntitlementLog));
+
+        MessageLogDetail cancelTarget = messageLogDetailJpaRepository.save(
+            MessageLogDetail.createLogDetail(futureLog, expiredUser, content));
+        MessageLogDetail pastDetail = messageLogDetailJpaRepository.save(
+            MessageLogDetail.createLogDetail(pastLog, expiredUser, content));
+        MessageLogDetail otherEntitlementDetail = messageLogDetailJpaRepository.save(
+            MessageLogDetail.createLogDetail(otherEntitlementLog, expiredUser, content));
+        MessageLogDetail otherUserDetail = messageLogDetailJpaRepository.save(
+            MessageLogDetail.createLogDetail(futureLog, activeUser, content));
+
+        // when
+        long expiredCount = messageLogDetailQueryRepository
+            .expireFutureDetailsByUserAndEntitlement(
+                expiredUser.getId(), entitlement.getId(), LocalDateTime.now());
+
+        // 벌크 UPDATE는 영속성 컨텍스트를 우회하므로 초기화 후 재조회
+        em.clear();
+
+        // then: 만료 유저 + 해당 사용권 + 미래 예약 건만 EXPIRED로 전환된다
+        assertThat(expiredCount).isEqualTo(1);
+        assertThat(findStatusById(cancelTarget.getId())).isEqualTo(ReservationStatus.EXPIRED);
+        assertThat(findStatusById(pastDetail.getId())).isEqualTo(ReservationStatus.PREPARE);
+        assertThat(findStatusById(otherEntitlementDetail.getId()))
+            .isEqualTo(ReservationStatus.PREPARE);
+        assertThat(findStatusById(otherUserDetail.getId())).isEqualTo(ReservationStatus.PREPARE);
+    }
+
+    @Test
+    public void 상세_목록_조회에서_EXPIRED는_제외_테스트() {
+        // given: prepare0900을 만료 처리된 상태로 변경
+        messageLogDetailQueryRepository.updateStatusByIds(
+            List.of(prepare0900.getId()), ReservationStatus.EXPIRED);
+        em.clear();
+
+        // when
+        Page<MessageLogDetail> result = messageLogDetailQueryRepository
+            .findMessageLogDetailListByLogId(messageLog.getId(), PageRequest.of(0, 20));
+
+        // then: EXPIRED 건은 목록과 전체 개수 모두에서 제외된다
+        List<Long> ids = result.getContent().stream().map(MessageLogDetail::getId).toList();
+        assertThat(ids).doesNotContain(prepare0900.getId());
+        assertThat(ids).contains(
+            prepare1000.getId(), complete0900.getId(), noKakao0900.getId(), noPhone0900.getId());
+        assertThat(result.getTotalElements()).isEqualTo(4);
+    }
+
+    @Test
+    public void 전체_취소는_EXPIRED_상태를_덮어쓰지_않음_테스트() {
+        // given: prepare0900을 만료 처리된 상태로 변경
+        messageLogDetailQueryRepository.updateStatusByIds(
+            List.of(prepare0900.getId()), ReservationStatus.EXPIRED);
+
+        // when: 전체 취소 실행
+        messageLogDetailQueryRepository.cancelDetailByLogId(messageLog.getId());
+        em.clear();
+
+        // then: EXPIRED와 COMPLETE는 보존되고, 나머지 PREPARE만 CANCEL로 변경된다
+        assertThat(findStatusById(prepare0900.getId())).isEqualTo(ReservationStatus.EXPIRED);
+        assertThat(findStatusById(complete0900.getId())).isEqualTo(ReservationStatus.COMPLETE);
+        assertThat(findStatusById(prepare1000.getId())).isEqualTo(ReservationStatus.CANCEL);
+    }
+
+    private ReservationStatus findStatusById(Long detailId) {
+        return messageLogDetailJpaRepository.findAll().stream()
+            .filter(detail -> detail.getId().equals(detailId))
+            .findFirst()
+            .orElseThrow()
+            .getStatus();
     }
 }
