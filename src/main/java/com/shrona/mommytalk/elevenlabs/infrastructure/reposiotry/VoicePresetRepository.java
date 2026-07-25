@@ -12,4 +12,10 @@ public interface VoicePresetRepository extends JpaRepository<VoicePreset, Long> 
 
     Optional<VoicePreset> findByIdAndChannel(Long id, Channel channel);
 
+    Optional<VoicePreset> findByChannelAndVoiceId(Channel channel, String voiceId);
+
+    Optional<VoicePreset> findByChannelAndDefaultForMommyTrue(Channel channel);
+
+    Optional<VoicePreset> findByChannelAndDefaultForChildTrue(Channel channel);
+
 }

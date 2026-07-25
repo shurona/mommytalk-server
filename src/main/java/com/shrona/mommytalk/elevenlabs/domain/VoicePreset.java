@@ -53,6 +53,12 @@ public class VoicePreset extends BaseEntity {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
+    @Column(name = "default_for_mommy")
+    private Boolean defaultForMommy = false;
+
+    @Column(name = "default_for_child")
+    private Boolean defaultForChild = false;
+
     public static VoicePreset of(
         Channel channel, String name, Gender gender, String voiceId, int sortOrder) {
         VoicePreset preset = new VoicePreset();
@@ -62,6 +68,8 @@ public class VoicePreset extends BaseEntity {
         preset.voiceId = voiceId;
         preset.sortOrder = sortOrder;
         preset.isActive = true;
+        preset.defaultForMommy = false;
+        preset.defaultForChild = false;
         return preset;
     }
 
@@ -77,6 +85,21 @@ public class VoicePreset extends BaseEntity {
 
     public void updateActive(boolean active) {
         this.isActive = active;
+    }
+
+    public void markDefaultForMommy(boolean value) {
+        this.defaultForMommy = value;
+    }
+
+    public void markDefaultForChild(boolean value) {
+        this.defaultForChild = value;
+    }
+
+    /**
+     * 엄마/아이 중 하나라도 기본 음성인지 여부
+     */
+    public boolean isDefault() {
+        return Boolean.TRUE.equals(defaultForMommy) || Boolean.TRUE.equals(defaultForChild);
     }
 
     /**

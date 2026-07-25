@@ -12,7 +12,9 @@ public record VoicePresetResponseDto(
     Gender gender,
     String voiceId,
     int sortOrder,
-    boolean active
+    boolean active,
+    boolean defaultForMommy,
+    boolean defaultForChild
 ) {
 
     public static VoicePresetResponseDto of(VoicePreset preset) {
@@ -22,7 +24,9 @@ public record VoicePresetResponseDto(
             preset.getGender(),
             preset.getVoiceId(),
             preset.getSortOrder(),
-            preset.getIsActive()
+            preset.getIsActive(),
+            Boolean.TRUE.equals(preset.getDefaultForMommy()),
+            Boolean.TRUE.equals(preset.getDefaultForChild())
         );
     }
 

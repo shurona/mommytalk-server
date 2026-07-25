@@ -41,4 +41,10 @@ public interface VoicePresetService {
      */
     VoicePresetResponseDto updateActive(Channel channel, Long voicePresetId, boolean active);
 
+    /**
+     * 기본 음성 지정/해제 (엄마/아이 각각, 채널당 최대 1개 불변식 유지)
+     */
+    VoicePresetResponseDto updateDefault(
+        Channel channel, Long voicePresetId, Boolean forMommy, Boolean forChild);
+
 }

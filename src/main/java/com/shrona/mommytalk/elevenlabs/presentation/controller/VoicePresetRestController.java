@@ -8,6 +8,7 @@ import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.elevenlabs.application.VoicePresetService;
 import com.shrona.mommytalk.elevenlabs.presentation.dtos.request.VoicePresetActiveRequestDto;
+import com.shrona.mommytalk.elevenlabs.presentation.dtos.request.VoicePresetDefaultRequestDto;
 import com.shrona.mommytalk.elevenlabs.presentation.dtos.request.VoicePresetOrderRequestDto;
 import com.shrona.mommytalk.elevenlabs.presentation.dtos.request.VoicePresetRequestDto;
 import com.shrona.mommytalk.elevenlabs.presentation.dtos.response.VoicePresetResponseDto;
@@ -83,6 +84,20 @@ public class VoicePresetRestController {
         Channel channel = findChannel(channelId);
         return ApiResponse.success(
             voicePresetService.reorderVoicePresets(channel, requestDto.voicePresetIds()));
+    }
+
+    /**
+     * 기본 음성 지정/해제 (엄마/아이 각각)
+     */
+    @PatchMapping("/{voicePresetId}/default")
+    public ApiResponse<VoicePresetResponseDto> updateDefault(
+        @PathVariable Long channelId,
+        @PathVariable Long voicePresetId,
+        @RequestBody VoicePresetDefaultRequestDto requestDto
+    ) {
+        Channel channel = findChannel(channelId);
+        return ApiResponse.success(voicePresetService.updateDefault(
+            channel, voicePresetId, requestDto.forMommy(), requestDto.forChild()));
     }
 
     /**
