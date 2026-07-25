@@ -1,7 +1,9 @@
 package com.shrona.mommytalk.common.advice;
 
 
+import com.shrona.mommytalk.channel.common.exception.ChannelException;
 import com.shrona.mommytalk.common.dto.ApiResponse;
+import com.shrona.mommytalk.elevenlabs.common.exception.ElevenLabsException;
 import com.shrona.mommytalk.entitlement.common.exception.EntitlementException;
 import com.shrona.mommytalk.message.common.exception.BatchValidationException;
 import com.shrona.mommytalk.message.common.exception.MessageException;
@@ -30,6 +32,18 @@ public class GlobalRestControllerAdvice {
 
     @ExceptionHandler(EntitlementException.class)
     public ResponseEntity<?> handleEntitlementException(EntitlementException ex) {
+        return ResponseEntity.status(ex.getCode().getStatus())
+            .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ElevenLabsException.class)
+    public ResponseEntity<?> handleElevenLabsException(ElevenLabsException ex) {
+        return ResponseEntity.status(ex.getCode().getStatus())
+            .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ChannelException.class)
+    public ResponseEntity<?> handleChannelException(ChannelException ex) {
         return ResponseEntity.status(ex.getCode().getStatus())
             .body(ApiResponse.error(ex.getMessage()));
     }
