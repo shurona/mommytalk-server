@@ -29,6 +29,18 @@ public record ElevenLabsRequest(
         );
     }
 
+    /**
+     * model_id를 주입한 복사본 반환 (전역 고정 모델 적용용)
+     */
+    public ElevenLabsRequest withModelId(String modelId) {
+        return new ElevenLabsRequest(
+            text,
+            Optional.ofNullable(modelId),
+            languageCode,
+            voiceSettings
+        );
+    }
+
     public static ElevenLabsRequest of(String text, String modelId) {
         return new ElevenLabsRequest(
             text,

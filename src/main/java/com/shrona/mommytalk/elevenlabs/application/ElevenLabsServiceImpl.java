@@ -42,10 +42,10 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
         try {
             log.info("ElevenLabs TTS 시작 - messageContentId: {}", messageContentId);
 
-            // API 호출
+            // 전역 고정 모델 주입 후 API 호출
             ResponseEntity<byte[]> response = elevenLabsClient.textToSpeech(
                 voiceId,
-                request,
+                request.withModelId(elevenlabsConfig.modelId()),
                 elevenlabsConfig.apiKey()
             );
 
@@ -98,9 +98,9 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
                 }
             }
 
-            // TTS 생성
+            // 전역 고정 모델 주입 후 TTS 생성
             ResponseEntity<byte[]> response = elevenLabsClient.textToSpeech(
-                voiceId, request, elevenlabsConfig.apiKey());
+                voiceId, request.withModelId(elevenlabsConfig.modelId()), elevenlabsConfig.apiKey());
 
             byte[] audioData = response.getBody();
             if (audioData == null || audioData.length == 0) {
