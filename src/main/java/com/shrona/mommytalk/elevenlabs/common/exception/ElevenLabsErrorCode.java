@@ -19,6 +19,9 @@ public enum ElevenLabsErrorCode {
 
     AUDIO_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "오디오 생성에 실패했습니다."),
 
+    VOICE_PRESET_NOT_FOUND(HttpStatus.NOT_FOUND, "음성 프리셋을 찾을 수 없습니다."),
+    VOICE_PRESET_ORDER_MISMATCH(HttpStatus.BAD_REQUEST, "순서 변경 대상이 채널의 음성 프리셋 목록과 일치하지 않습니다."),
+
     ;
 
     private HttpStatus status;

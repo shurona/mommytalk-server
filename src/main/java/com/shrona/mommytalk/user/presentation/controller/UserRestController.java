@@ -8,8 +8,11 @@ import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.common.dto.ApiResponse;
 import com.shrona.mommytalk.common.dto.PageResponseDto;
 import com.shrona.mommytalk.user.application.UserService;
+import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.infrastructure.repository.dao.UserListProjection;
+import com.shrona.mommytalk.user.presentation.dtos.request.UpdatePreferredSendTimeRequestDto;
 import com.shrona.mommytalk.user.presentation.dtos.request.UpdateUserRequestDto;
+import com.shrona.mommytalk.user.presentation.dtos.response.PreferredSendTimeResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.SentenceHistoryResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.TokenUsageResponseDto;
 import com.shrona.mommytalk.user.presentation.dtos.response.UserListResponseDto;
@@ -20,7 +23,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -91,6 +96,19 @@ public class UserRestController {
         userService.updateUserInfoByAdmin(userId, requestDto);
 
         return ApiResponse.success("success");
+    }
+
+    /**
+     * 어드민이 유저의 선호 발송 시간을 변경한다. (클라이언트와 동일하게 다음날부터 적용)
+     */
+    @PatchMapping("/{userId}/preferred-send-time")
+    public ApiResponse<PreferredSendTimeResponseDto> updatePreferredSendTime(
+        @PathVariable Long userId,
+        @Validated @RequestBody UpdatePreferredSendTimeRequestDto requestBody
+    ) {
+        User user = userService.updatePreferredSendTime(userId, requestBody.preferredSendTime());
+
+        return ApiResponse.success(PreferredSendTimeResponseDto.from(user));
     }
 
     /**

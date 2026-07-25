@@ -3,6 +3,7 @@ package com.shrona.mommytalk.user.presentation.dtos.response;
 import com.shrona.mommytalk.entitlement.presentation.dtos.response.EntitlementResponseDto;
 import com.shrona.mommytalk.user.domain.User;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import lombok.Builder;
 
@@ -22,6 +23,8 @@ public record UserResponseDto(
     String childName,
     String channelFriend,
     Integer purchaseCount,
+    LocalTime preferredSendTime,
+    LocalTime pendingPreferredSendTime,
 
     List<EntitlementResponseDto> entitlements
 ) {
@@ -45,6 +48,8 @@ public record UserResponseDto(
             .userLevel(user.getUserLevel())
             .childLevel(user.getChildLevel())
             .childName(user.getChildName())
+            .preferredSendTime(user.getPreferredSendTime())
+            .pendingPreferredSendTime(user.getPendingPreferredSendTime())
             .entitlements(entitlementDtos)
             .build();
     }
