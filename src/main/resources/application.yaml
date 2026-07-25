@@ -55,7 +55,6 @@ kakao:
 elevenlabs:
   base-url: https://api.elevenlabs.io
   api-key: ${ELEVENLABS_API_KEY}  # 환경 변수로 관리
-  voice-id: Xb7hH8MSUJpSbSDYk0k2
   model-id: eleven_v3              # 전역 고정 모델 (모델 변경 시 이 값만 수정)
   output-dir: elevenlabs           # 프로젝트 루트/elevenlabs/에 저장
 

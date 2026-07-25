@@ -5,7 +5,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "elevenlabs")
 public record ElevenlabsConfig(
     String apiKey,
-    String voiceId,
     String modelId,
     String outputDir
 ) {

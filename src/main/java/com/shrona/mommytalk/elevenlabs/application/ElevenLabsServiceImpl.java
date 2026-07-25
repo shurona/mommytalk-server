@@ -31,12 +31,6 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
     private final ElevenLabsMediaRepository elevenLabsMediaRepository;
 
     @Override
-    public String generateAudio(String text, Long messageContentId) {
-        ElevenLabsRequest request = ElevenLabsRequest.of(text);
-        return generateAudio(request, messageContentId, elevenlabsConfig.voiceId()).getFileUrl();
-    }
-
-    @Override
     public ElevenLabsMedia generateAudio(
         ElevenLabsRequest request, Long messageContentId, String voiceId) {
         try {
