@@ -9,15 +9,6 @@ import com.shrona.mommytalk.elevenlabs.infrastructure.sender.dto.ElevenLabsReque
 public interface ElevenLabsService {
 
     /**
-     * 텍스트를 음성으로 변환하고 파일로 저장
-     *
-     * @param text             변환할 텍스트
-     * @param messageContentId 메시지 콘텐츠 ID (파일명에 사용)
-     * @return 저장된 파일 경로
-     */
-    String generateAudio(String text, Long messageContentId);
-
-    /**
      * 텍스트를 음성으로 변환하고 파일로 저장 (옵션 포함)
      *
      * @param request          ElevenLabs 요청 DTO

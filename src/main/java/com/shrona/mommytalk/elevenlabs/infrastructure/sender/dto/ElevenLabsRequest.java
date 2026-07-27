@@ -20,21 +20,15 @@ public record ElevenLabsRequest(
     Optional<VoiceSettings> voiceSettings
 ) {
 
-    public static ElevenLabsRequest of(String text) {
+    /**
+     * model_id를 주입한 복사본 반환 (전역 고정 모델 적용용)
+     */
+    public ElevenLabsRequest withModelId(String modelId) {
         return new ElevenLabsRequest(
             text,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty()
-        );
-    }
-
-    public static ElevenLabsRequest of(String text, String modelId) {
-        return new ElevenLabsRequest(
-            text,
-            Optional.of(modelId),
-            Optional.empty(),
-            Optional.empty()
+            Optional.ofNullable(modelId),
+            languageCode,
+            voiceSettings
         );
     }
 

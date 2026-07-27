@@ -31,21 +31,15 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
     private final ElevenLabsMediaRepository elevenLabsMediaRepository;
 
     @Override
-    public String generateAudio(String text, Long messageContentId) {
-        ElevenLabsRequest request = ElevenLabsRequest.of(text);
-        return generateAudio(request, messageContentId, elevenlabsConfig.voiceId()).getFileUrl();
-    }
-
-    @Override
     public ElevenLabsMedia generateAudio(
         ElevenLabsRequest request, Long messageContentId, String voiceId) {
         try {
             log.info("ElevenLabs TTS 시작 - messageContentId: {}", messageContentId);
 
-            // API 호출
+            // 전역 고정 모델 주입 후 API 호출
             ResponseEntity<byte[]> response = elevenLabsClient.textToSpeech(
                 voiceId,
-                request,
+                request.withModelId(elevenlabsConfig.modelId()),
                 elevenlabsConfig.apiKey()
             );
 
@@ -98,9 +92,9 @@ public class ElevenLabsServiceImpl implements ElevenLabsService {
                 }
             }
 
-            // TTS 생성
+            // 전역 고정 모델 주입 후 TTS 생성
             ResponseEntity<byte[]> response = elevenLabsClient.textToSpeech(
-                voiceId, request, elevenlabsConfig.apiKey());
+                voiceId, request.withModelId(elevenlabsConfig.modelId()), elevenlabsConfig.apiKey());
 
             byte[] audioData = response.getBody();
             if (audioData == null || audioData.length == 0) {
