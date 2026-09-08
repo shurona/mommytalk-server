@@ -293,9 +293,9 @@ class MessageLogDetailServiceImplTest {
     @Test
     @DisplayName("발송일(KST)이 지난 카카오 로그는 누락 유저가 있어도 예외 없이 0을 반환한다")
     void 발송일지남_누락유저있어도_스킵() {
-        // given: 어제 로그, user4 누락
+        // given: 어제(KST) 로그, user4 누락
         MessageLog savedMessageLog = saveMessageLogWithDetails(
-            LocalDateTime.now().minusDays(1), user1);
+            todayKstStartInUtc().minusDays(1), user1);
 
         // when
         int addedCount = messageLogDetailService.addMissingDetailsBeforeSend(

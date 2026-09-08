@@ -54,12 +54,9 @@ class MessageLogTest {
     @DisplayName("카카오 로그는 reserveTime이 지났어도 발송일(KST) 당일이면 상세 추가 가능")
     void canAddNewDetails_카카오_당일_reserveTime지남_가능() {
         // given: 오늘(KST) 0시를 UTC로 변환 → 항상 현재보다 과거이면서 발송일은 오늘
-        LocalDateTime todayStartUtc = LocalDate.now(DateTimeUtils.KST)
-            .atStartOfDay(DateTimeUtils.KST)
-            .withZoneSameInstant(ZoneOffset.UTC)
-            .toLocalDateTime();
         MessageLog messageLog = MessageLog.messageLog(
-            channelOf(ChannelPlatform.KAKAO), null, todayStartUtc, "test");
+            channelOf(ChannelPlatform.KAKAO), null,
+            kstDateStartInUtc(LocalDate.now(DateTimeUtils.KST)), "test");
 
         // when, then
         Assertions.assertThat(messageLog.canAddNewDetails()).isTrue();
@@ -68,9 +65,10 @@ class MessageLogTest {
     @Test
     @DisplayName("카카오 로그는 발송일(KST)이 지나면 상세 추가 불가")
     void canAddNewDetails_카카오_발송일지남_불가() {
-        // given
+        // given: 어제(KST) 0시를 UTC로 변환 → 테스트 JVM 타임존과 무관하게 발송일은 어제
         MessageLog messageLog = MessageLog.messageLog(
-            channelOf(ChannelPlatform.KAKAO), null, LocalDateTime.now().minusDays(1), "test");
+            channelOf(ChannelPlatform.KAKAO), null,
+            kstDateStartInUtc(LocalDate.now(DateTimeUtils.KST).minusDays(1)), "test");
 
         // when, then
         Assertions.assertThat(messageLog.canAddNewDetails()).isFalse();
@@ -108,6 +106,15 @@ class MessageLogTest {
 
         // when, then
         Assertions.assertThat(messageLog.canAddNewDetails()).isFalse();
+    }
+
+    /**
+     * KST 날짜의 0시를 서버 저장 형식(UTC LocalDateTime)으로 변환한다.
+     */
+    private static LocalDateTime kstDateStartInUtc(LocalDate dateKst) {
+        return dateKst.atStartOfDay(DateTimeUtils.KST)
+            .withZoneSameInstant(ZoneOffset.UTC)
+            .toLocalDateTime();
     }
 
     private Channel channelOf(ChannelPlatform platform) {

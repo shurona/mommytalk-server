@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.given;
 
 import com.shrona.mommytalk.channel.domain.Channel;
 import com.shrona.mommytalk.channel.domain.ChannelPlatform;
+import com.shrona.mommytalk.common.utils.DateTimeUtils;
 import com.shrona.mommytalk.message.application.MessageContentService;
 import com.shrona.mommytalk.message.domain.MessageContent;
 import com.shrona.mommytalk.message.domain.MessageLog;
@@ -16,6 +17,7 @@ import com.shrona.mommytalk.user.domain.User;
 import com.shrona.mommytalk.user.domain.vo.PhoneNumber;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
@@ -138,11 +140,15 @@ class MessageLogDetailDomainServiceTest {
     @Test
     @DisplayName("MessageLog가 변경 불가능한 상태면 예외 발생")
     void createDetailsForUsers_변경불가상태_예외발생() {
-        // given
+        // given: 어제(KST) 0시를 UTC로 변환 → 테스트 JVM 타임존과 무관하게 발송일은 어제
+        LocalDateTime yesterdayKstStartUtc = LocalDate.now(DateTimeUtils.KST).minusDays(1)
+            .atStartOfDay(DateTimeUtils.KST)
+            .withZoneSameInstant(ZoneOffset.UTC)
+            .toLocalDateTime();
         MessageLog pastMessageLog = MessageLog.messageLog(
             channel,
             messageType,
-            LocalDateTime.now().minusDays(1),  // 과거 시간
+            yesterdayKstStartUtc,
             "test"
         );
 
