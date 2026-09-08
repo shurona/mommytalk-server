@@ -20,6 +20,8 @@ public interface MessageLogDetailService {
 
     /**
      * 예약 메시지 발송 전 누락 유저 추가 및 재활성 유저의 EXPIRED Detail 복구
+     * 발송 트랜잭션과 분리된 새 트랜잭션에서 커밋한다.
+     * 발송 결과 상태 갱신(REQUIRES_NEW)이 여기서 추가한 상세를 볼 수 있어야 하기 때문이다.
      */
     int addMissingDetailsBeforeSend(Long messageLogId);
 

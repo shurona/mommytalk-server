@@ -3,7 +3,9 @@ package com.shrona.mommytalk.message.domain;
 import static jakarta.persistence.CascadeType.PERSIST;
 
 import com.shrona.mommytalk.channel.domain.Channel;
+import com.shrona.mommytalk.channel.domain.ChannelPlatform;
 import com.shrona.mommytalk.common.entity.BaseEntity;
+import com.shrona.mommytalk.common.utils.DateTimeUtils;
 import com.shrona.mommytalk.entitlement.domain.Entitlement;
 import com.shrona.mommytalk.group.domain.Group;
 import com.shrona.mommytalk.line.common.exception.LineErrorCode;
@@ -18,6 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -162,8 +165,17 @@ public class MessageLog extends BaseEntity {
 
     /**
      * 신규 MessageLogDetail을 추가할 수 잇는 지 확인한다.
+     * 카카오는 reserveTime을 발송일(KST) 의미로 쓰므로 그날이 끝나기 전까지 추가 가능하고,
+     * 라인은 reserveTime이 실제 발송 시각이므로 그 전까지만 추가 가능하다.
      */
     public boolean canAddNewDetails() {
-        return !this.cancel && this.reserveTime.isAfter(LocalDateTime.now());
+        if (this.cancel) {
+            return false;
+        }
+        if (this.channel.getChannelPlatform() == ChannelPlatform.KAKAO) {
+            LocalDate sendDateKst = DateTimeUtils.toKst(this.reserveTime).toLocalDate();
+            return !DateTimeUtils.todayKst().isAfter(sendDateKst);
+        }
+        return this.reserveTime.isAfter(LocalDateTime.now());
     }
 }

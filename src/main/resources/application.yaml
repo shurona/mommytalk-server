@@ -21,6 +21,10 @@ spring:
 #        format_sql: true # SQL
 #        highlight_sql: true # SQL
 
+logging:
+  level:
+    root: INFO
+
 line:
   auth:
     channel-id: ${LINE_AUTH_CHANNEL_ID}

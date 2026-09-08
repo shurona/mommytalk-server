@@ -12,3 +12,16 @@ spring:
   task:
     scheduling:
       enabled: true  # admin에서는 스케줄러 활성화
+
+logging:
+  level:
+    com.shrona.mommytalk: INFO
+  file:
+    name: /mommy-logging/mommytalk.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 7
+      total-size-cap: 100MB
