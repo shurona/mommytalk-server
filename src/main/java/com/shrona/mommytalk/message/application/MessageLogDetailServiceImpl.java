@@ -169,12 +169,18 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int addMissingDetailsBeforeSend(Long messageLogId) {
 
         // MessageLog 조회
         MessageLog messageLog = messageLogJpaRepository.findById(messageLogId)
             .orElseThrow(() -> new MessageException(MESSAGE_LOG_NOT_FOUND));
+
+        // 취소됐거나 발송 가능 기간이 끝난 로그는 상세를 추가하지 않는다.
+        if (!messageLog.canAddNewDetails()) {
+            log.info("[누락 유저 추가 스킵] messageLogId={}, 취소 또는 발송 기간 종료", messageLogId);
+            return 0;
+        }
 
         //  MessageLog에 포함된 유저 목록을 조회한다.
         List<Long> targetGroupIds = Stream.concat(
@@ -194,21 +200,19 @@ public class MessageLogDetailServiceImpl implements MessageLogDetailService {
             : new HashSet<>(groupService.findUserIdsByGroupIds(exceptGroupIds));
 
         // 재구매 등으로 다시 대상이 된 유저의 만료(EXPIRED) Detail을 PREPARE로 복구한다.
-        if (messageLog.canAddNewDetails()) {
-            List<Long> targetUserIds = userListByGroupIds.stream()
-                .map(User::getId)
-                .filter(userId -> !exceptUserIds.contains(userId))
-                .toList();
+        List<Long> targetUserIds = userListByGroupIds.stream()
+            .map(User::getId)
+            .filter(userId -> !exceptUserIds.contains(userId))
+            .toList();
 
-            List<Long> expiredDetailIds = messageLogDetailQueryRepository
-                .findExpiredDetailIdsByLogIdAndUserIds(messageLogId, targetUserIds);
+        List<Long> expiredDetailIds = messageLogDetailQueryRepository
+            .findExpiredDetailIdsByLogIdAndUserIds(messageLogId, targetUserIds);
 
-            if (!expiredDetailIds.isEmpty()) {
-                messageLogDetailQueryRepository.updateStatusByIds(
-                    expiredDetailIds, ReservationStatus.PREPARE);
-                log.info("[재활성 유저 EXPIRED 복구] messageLogId={}, 복구 건수={}",
-                    messageLogId, expiredDetailIds.size());
-            }
+        if (!expiredDetailIds.isEmpty()) {
+            messageLogDetailQueryRepository.updateStatusByIds(
+                expiredDetailIds, ReservationStatus.PREPARE);
+            log.info("[재활성 유저 EXPIRED 복구] messageLogId={}, 복구 건수={}",
+                messageLogId, expiredDetailIds.size());
         }
 
         // 이미 있는 유저 조회
